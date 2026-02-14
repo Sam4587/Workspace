@@ -1,16 +1,20 @@
-const { renderMedia, selectCodec } = require('@remotion/renderer');
+const { renderMedia, selectCodec, renderStill } = require('@remotion/renderer');
 const path = require('path');
 const fs = require('fs');
 
 class VideoRenderService {
   constructor() {
     this.outputDir = path.join(process.cwd(), 'public', 'videos');
+    this.previewDir = path.join(process.cwd(), 'public', 'previews');
     this.ensureOutputDir();
   }
 
   ensureOutputDir() {
     if (!fs.existsSync(this.outputDir)) {
       fs.mkdirSync(this.outputDir, { recursive: true });
+    }
+    if (!fs.existsSync(this.previewDir)) {
+      fs.mkdirSync(this.previewDir, { recursive: true });
     }
   }
 
@@ -63,16 +67,20 @@ class VideoRenderService {
       frame = 0,
     } = options;
 
+    const outputFilename = `preview_${Date.now()}.png`;
+    const outputPath = path.join(this.previewDir, outputFilename);
+
     try {
-      const previewImage = await this.renderFrame({
+      await renderStill({
         compositionId,
         inputProps: props,
-        frameNumber: frame,
+        frame: frame,
+        output: outputPath,
       });
 
       return {
         success: true,
-        previewImage,
+        previewUrl: `/previews/${outputFilename}`,
       };
     } catch (error) {
       console.error('Preview render error:', error);

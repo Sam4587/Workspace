@@ -59,10 +59,25 @@ router.post('/render', async (req, res) => {
   try {
     const { templateId, props, options } = req.body;
 
-    if (!templateId) {
+    if (!templateId || typeof templateId !== 'string') {
       return res.status(400).json({
         success: false,
-        message: 'templateId is required',
+        message: 'templateId is required and must be a string',
+      });
+    }
+
+    const validTemplate = videoTemplates.find(t => t.id === templateId);
+    if (!validTemplate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid templateId',
+      });
+    }
+
+    if (props && typeof props !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'props must be an object',
       });
     }
 

@@ -5,11 +5,17 @@ const dotenv = require('dotenv');
 const cron = require('node-cron');
 const helmet = require('helmet');
 const compression = require('compression');
+const path = require('path');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// 静态文件服务
+app.use('/videos', express.static(path.join(__dirname, '../public/videos')));
+app.use('/audio', express.static(path.join(__dirname, '../public/audio')));
+app.use('/previews', express.static(path.join(__dirname, '../public/previews')));
 
 // 导入中间件
 const { requestLogger, errorLogger } = require('./utils/logger');
