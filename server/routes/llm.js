@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const llmGateway = require('../llm');
+const llmGateway = require('../services/llm');
 
 router.get('/providers', (req, res) => {
   const providers = llmGateway.getAllProviders();
