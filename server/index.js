@@ -68,6 +68,7 @@ app.use('/api/content', require('./routes/content'));
 app.use('/api/publish', require('./routes/publish'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/video', require('./routes/video'));
 
 // 404处理
 app.use('*', (req, res) => {
