@@ -15,6 +15,13 @@ const PORT = process.env.PORT || 5000;
 const { requestLogger, errorLogger } = require('./utils/logger');
 const rateLimiter = require('./utils/rateLimiter');
 
+// 导入新模块
+const { fetcherManager } = require('./fetchers');
+const { liteLLMAdapter } = require('./ai');
+const { notificationDispatcher } = require('./notification');
+const { reportGenerator } = require('./reports');
+const { storageManager, topicAnalyzer, trendAnalyzer } = require('./core');
+
 // 安全中间件
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -46,7 +53,14 @@ app.get('/api/health', (req, res) => {
     success: true,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
+    modules: {
+      fetcherManager: fetcherManager ? 'initialized' : 'not loaded',
+      liteLLMAdapter: liteLLMAdapter ? 'initialized' : 'not loaded',
+      notificationDispatcher: notificationDispatcher ? 'initialized' : 'not loaded',
+      reportGenerator: reportGenerator ? 'initialized' : 'not loaded',
+      storageManager: storageManager.isConnected ? 'connected' : 'disconnected'
+    }
   });
 });
 
@@ -54,10 +68,26 @@ app.get('/api/health', (req, res) => {
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-}).then(() => {
+}).then(async () => {
   console.log('MongoDB 连接成功');
   // 初始化 Prompt 管理服务
   require('./services/promptManagementService').initialize();
+
+  // 初始化存储管理器
+  try {
+    await storageManager.initialize();
+    console.log('StorageManager 初始化成功');
+  } catch (error) {
+    console.warn('StorageManager 初始化失败:', error.message);
+  }
+
+  // 初始化 FetcherManager 默认数据源
+  try {
+    fetcherManager.initializeDefaultSources();
+    console.log('FetcherManager 初始化成功，已注册数据源:', Array.from(fetcherManager.listSources()));
+  } catch (error) {
+    console.warn('FetcherManager 初始化失败:', error.message);
+  }
 }).catch((error) => {
   console.error('MongoDB 连接失败:', error);
 });
@@ -85,8 +115,24 @@ app.use(errorLogger);
 cron.schedule('*/30 * * * *', async () => {
   try {
     console.log('执行定时热点数据更新...');
-    const hotTopicService = require('./services/hotTopicService');
-    await hotTopicService.updateHotTopics();
+
+    // 使用新的 FetcherManager 获取热点
+    const topics = await fetcherManager.fetchAll();
+    console.log(`获取到 ${topics.length} 条热点数据`);
+
+    // 使用 TopicAnalyzer 分析热点
+    for (const topic of topics) {
+      topic.category = topicAnalyzer.categorize(topic.title);
+      topic.keywords = topicAnalyzer.extractKeywords(topic.title);
+      topic.suitability = topicAnalyzer.calculateSuitability(topic.title, topic.description);
+    }
+
+    // 保存到数据库
+    if (storageManager.isConnected) {
+      const saved = await storageManager.saveTopicsBatch(topics);
+      console.log(`保存了 ${saved} 条热点数据`);
+    }
+
     console.log('热点数据更新完成');
   } catch (error) {
     console.error('定时热点更新失败:', error);

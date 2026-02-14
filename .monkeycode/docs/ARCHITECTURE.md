@@ -194,6 +194,66 @@ Redis 缓存结果
 
 ## 核心模块
 
+### 0. 模块化架构层 (TrendRadar 重构)
+
+基于 TrendRadar 架构设计理念，重构后的模块化架构包含以下核心组件：
+
+**数据来源层** (`server/fetchers/`)：
+- `BaseFetcher.js` - 抽象基类，定义统一接口
+- `WeiboFetcher.js` - 微博热搜数据获取
+- `ToutiaoFetcher.js` - 今日头条数据获取
+- `ZhihuFetcher.js` - 知乎热榜数据获取
+- `RSSFetcher.js` - RSS 订阅源数据获取
+- `FetcherManager.js` - 统一管理器，支持并行获取
+
+**AI 智能层** (`server/ai/`)：
+- `LiteLLMAdapter.js` - LiteLLM 适配器，支持 100+ AI 提供商
+  - OpenAI (GPT-4, GPT-3.5)
+  - Anthropic (Claude)
+  - DeepSeek
+  - Moonshot
+  - 智谱 GLM
+  - 通义千问
+  - 百度文心
+  - 讯飞星火
+
+**通知层** (`server/notification/`)：
+- `BaseSender.js` - 抽象发送器基类
+- `senders/WeWorkSender.js` - 企业微信通知
+- `senders/DingTalkSender.js` - 钉钉通知
+- `senders/FeishuSender.js` - 飞书通知
+- `NotificationDispatcher.js` - 多渠道统一调度
+
+**报告生成层** (`server/reports/`)：
+- `ReportGenerator.js` - 多格式报告生成
+  - HTML 报告（内置模板）
+  - Markdown 报告
+  - 日报/周报/内容报告
+
+**核心处理层** (`server/core/`)：
+- `types.js` - 类型定义和常量
+- `TopicAnalyzer.js` - 话题分析器
+  - 分类功能
+  - 关键词提取
+  - 适配度评分
+  - 情感分析
+- `TrendAnalyzer.js` - 趋势分析器
+  - 趋势预测
+  - 生命周期分析
+  - 相关话题挖掘
+  - 爆发预测
+- `StorageManager.js` - 存储管理器
+  - MongoDB 操作封装
+  - Redis 缓存管理
+  - 数据模型定义
+
+**MCP 服务器** (`server/mcp/`)：
+- `main.py` - FastMCP 2.0 服务器
+  - 热点话题获取工具
+  - AI 内容生成工具
+  - 多平台发布工具
+  - 数据分析工具
+
 ### 1. 热点监控模块
 
 **职责**：
@@ -432,6 +492,11 @@ Docker 容器化部署
 
 ### 短期目标
 
+- [x] 完成模块化架构重构（TrendRadar 借鉴）
+- [x] LiteLLM 集成（支持 100+ AI 提供商）
+- [x] MCP 服务器实现
+- [x] 多渠道通知调度
+- [x] 报告生成组件
 - [ ] 完成今日头条发布集成
 - [ ] 添加微博发布功能
 - [ ] 优化 AI 内容生成质量
