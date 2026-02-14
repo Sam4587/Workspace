@@ -247,14 +247,173 @@ class ApiClient {
     }
   }
 
-  async checkAIHealth() {
+  async checkAIHealth(provider) {
     try {
-      return await this.client.get('/hot-topics/ai/health');
+      const query = provider ? `?provider=${provider}` : '';
+      return await this.client.get(`/hot-topics/ai/health${query}`);
     } catch (error) {
       console.error('AI 健康检查失败:', error);
       return {
         success: false,
         message: 'AI 健康检查失败'
+      };
+    }
+  }
+
+  async getAIProviders() {
+    try {
+      return await this.client.get('/hot-topics/ai/providers');
+    } catch (error) {
+      console.error('获取 AI 提供商列表失败:', error);
+      return {
+        success: false,
+        message: '获取 AI 提供商列表失败'
+      };
+    }
+  }
+
+  async setDefaultAIProvider(providerId) {
+    try {
+      return await this.client.post('/hot-topics/ai/providers/default', { providerId });
+    } catch (error) {
+      console.error('设置默认提供商失败:', error);
+      return {
+        success: false,
+        message: '设置默认提供商失败'
+      };
+    }
+  }
+
+  async translateContent(content, targetLanguage = 'English', provider) {
+    try {
+      return await this.client.post('/hot-topics/ai/translate', { content, targetLanguage, provider });
+    } catch (error) {
+      console.error('AI 翻译失败:', error);
+      return {
+        success: false,
+        message: 'AI 翻译失败'
+      };
+    }
+  }
+
+  // Prompt 模板管理相关
+  async getPromptTemplates(filters = {}) {
+    try {
+      const query = new URLSearchParams(filters).toString();
+      return await this.client.get(`/hot-topics/prompts/templates?${query}`);
+    } catch (error) {
+      console.error('获取 Prompt 模板列表失败:', error);
+      return {
+        success: false,
+        message: '获取 Prompt 模板列表失败'
+      };
+    }
+  }
+
+  async getPromptTemplate(id) {
+    try {
+      return await this.client.get(`/hot-topics/prompts/templates/${id}`);
+    } catch (error) {
+      console.error('获取 Prompt 模板失败:', error);
+      return {
+        success: false,
+        message: '获取 Prompt 模板失败'
+      };
+    }
+  }
+
+  async createPromptTemplate(data) {
+    try {
+      return await this.client.post('/hot-topics/prompts/templates', data);
+    } catch (error) {
+      console.error('创建 Prompt 模板失败:', error);
+      return {
+        success: false,
+        message: '创建 Prompt 模板失败'
+      };
+    }
+  }
+
+  async updatePromptTemplate(id, data) {
+    try {
+      return await this.client.put(`/hot-topics/prompts/templates/${id}`, data);
+    } catch (error) {
+      console.error('更新 Prompt 模板失败:', error);
+      return {
+        success: false,
+        message: '更新 Prompt 模板失败'
+      };
+    }
+  }
+
+  async deletePromptTemplate(id) {
+    try {
+      return await this.client.delete(`/hot-topics/prompts/templates/${id}`);
+    } catch (error) {
+      console.error('删除 Prompt 模板失败:', error);
+      return {
+        success: false,
+        message: '删除 Prompt 模板失败'
+      };
+    }
+  }
+
+  async renderPromptTemplate(id, variables) {
+    try {
+      return await this.client.post(`/hot-topics/prompts/templates/${id}/render`, { variables });
+    } catch (error) {
+      console.error('渲染 Prompt 模板失败:', error);
+      return {
+        success: false,
+        message: '渲染 Prompt 模板失败'
+      };
+    }
+  }
+
+  async getPromptTemplateHistory(id, limit = 50) {
+    try {
+      return await this.client.get(`/hot-topics/prompts/templates/${id}/history?limit=${limit}`);
+    } catch (error) {
+      console.error('获取 Prompt 使用历史失败:', error);
+      return {
+        success: false,
+        message: '获取 Prompt 使用历史失败'
+      };
+    }
+  }
+
+  async getPromptStats(days = 7) {
+    try {
+      return await this.client.get(`/hot-topics/prompts/stats?days=${days}`);
+    } catch (error) {
+      console.error('获取 Prompt 使用统计失败:', error);
+      return {
+        success: false,
+        message: '获取 Prompt 使用统计失败'
+      };
+    }
+  }
+
+  async getPromptTags() {
+    try {
+      return await this.client.get('/hot-topics/prompts/tags');
+    } catch (error) {
+      console.error('获取 Prompt 标签列表失败:', error);
+      return {
+        success: false,
+        message: '获取 Prompt 标签列表失败'
+      };
+    }
+  }
+
+  async getPromptCategories() {
+    try {
+      return await this.client.get('/hot-topics/prompts/categories');
+    } catch (error) {
+      console.error('获取 Prompt 分类列表失败:', error);
+      return {
+        success: false,
+        message: '获取 Prompt 分类列表失败'
       };
     }
   }

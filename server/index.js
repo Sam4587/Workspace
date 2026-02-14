@@ -54,6 +54,12 @@ app.get('/api/health', (req, res) => {
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+}).then(() => {
+  console.log('MongoDB 连接成功');
+  // 初始化 Prompt 管理服务
+  require('./services/promptManagementService').initialize();
+}).catch((error) => {
+  console.error('MongoDB 连接失败:', error);
 });
 
 // 路由

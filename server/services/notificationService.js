@@ -26,7 +26,13 @@ class NotificationService {
         smtpServer: process.env.EMAIL_SMTP_SERVER,
         smtpPort: process.env.EMAIL_SMTP_PORT
       },
-      webhook: process.env.WEBHOOK_URL
+      webhook: process.env.WEBHOOK_URL,
+      ntfy: process.env.NTFY_TOKEN,
+      bark: process.env.BARK_TOKEN,
+      slack: {
+        webhookUrl: process.env.SLACK_WEBHOOK_URL,
+        channel: process.env.SLACK_CHANNEL || '#general'
+      }
     };
   }
 
@@ -44,6 +50,12 @@ class NotificationService {
         return !!(this.channels.email.from && this.channels.email.password && this.channels.email.to);
       case 'webhook':
         return !!this.channels.webhook;
+      case 'ntfy':
+        return !!this.channels.ntfy;
+      case 'bark':
+        return !!this.channels.bark;
+      case 'slack':
+        return !!this.channels.slack.webhookUrl && this.channels.slack.channel;
       default:
         return false;
     }
@@ -176,6 +188,74 @@ class NotificationService {
     }
   }
 
+  async sendToNtfy(message) {
+    if (!this.isChannelEnabled('ntfy')) {
+      logger.warn('Ntfy 未配置');
+      return false;
+    }
+
+    const url = `https://api.ntfy.sh/${this.channels.ntfy}`;
+
+    try {
+      const response = await this.axiosInstance.post(url, {
+        title: '热点话题更新',
+        message: this.stripMarkdown(message),
+        icon: 'https://cdn-icons-png.flaticon.com/512/6393457/newsletter.png'
+      });
+      logger.info('Ntfy 推送成功');
+      return response.status === 200;
+    } catch (error) {
+      logger.error('Ntfy 推送失败', { error: error.message });
+      return false;
+    }
+  }
+
+  async sendToBark(message) {
+    if (!this.isChannelEnabled('bark')) {
+      logger.warn('Bark 未配置');
+      return false;
+    }
+
+    const url = `https://api.day.app/${this.channels.bark}`;
+
+    try {
+      const response = await this.axiosInstance.post(url, {
+        title: '热点话题更新',
+        body: this.stripMarkdown(message),
+        icon: 'https://cdn-icons-png.flaticon.com/512/6393457/newsletter.png',
+        group: '热点话题'
+      });
+      logger.info('Bark 推送成功');
+      return response.status === 200;
+    } catch (error) {
+      logger.error('Bark 推送失败', { error: error.message });
+      return false;
+    }
+  }
+
+  async sendToSlack(message) {
+    if (!this.isChannelEnabled('slack')) {
+      logger.warn('Slack 未配置');
+      return false;
+    }
+
+    const payload = {
+      text: this.stripMarkdown(message),
+      username: '热点机器人',
+      icon_url: 'https://cdn-icons-png.flaticon.com/512/6393457/newsletter.png',
+      mrkdwn: true
+    };
+
+    try {
+      await this.axiosInstance.post(this.channels.slack.webhookUrl, payload);
+      logger.info('Slack 推送成功');
+      return true;
+    } catch (error) {
+      logger.error('Slack 推送失败', { error: error.message });
+      return false;
+    }
+  }
+
   async sendToChannels(message, channels = ['wework']) {
     const results = {};
 
@@ -185,7 +265,10 @@ class NotificationService {
       dingtalk: () => this.sendToDingtalk(message),
       telegram: () => this.sendToTelegram(message),
       email: () => this.sendToEmail(message),
-      webhook: () => this.sendToWebhook(message)
+      webhook: () => this.sendToWebhook(message),
+      ntfy: () => this.sendToNtfy(message),
+      bark: () => this.sendToBark(message),
+      slack: () => this.sendToSlack(message)
     };
 
     const enabledChannels = channels.filter(ch => this.isChannelEnabled(ch));
@@ -269,6 +352,14 @@ class NotificationService {
           details: {
             botToken: !!value.botToken,
             chatId: !!value.chatId
+          }
+        };
+      } else if (key === 'slack') {
+        status[key] = {
+          enabled: !!(value.webhookUrl && value.channel),
+          details: {
+            webhookUrl: !!value.webhookUrl,
+            channel: value.channel
           }
         };
       } else {

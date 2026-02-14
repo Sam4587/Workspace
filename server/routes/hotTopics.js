@@ -7,7 +7,8 @@ const rssService = require('../services/rssService');
 const { TrendAnalysisService } = require('../services/trendAnalysisService');
 const keywordMatcher = require('../services/keywordMatcher');
 const notificationService = require('../services/notificationService');
-const aiAnalysisService = require('../services/aiAnalysisService');
+const aiProviderService = require('../services/aiProviderService');
+const promptManagementService = require('../services/promptManagementService');
 
 const router = express.Router();
 
@@ -527,7 +528,7 @@ router.post('/notifications/test', async (req, res) => {
 
 router.post('/ai/analyze', async (req, res) => {
   try {
-    const { topics, options = {} } = req.body;
+    const { topics, options = {}, provider } = req.body;
 
     if (!topics || topics.length === 0) {
       return res.status(400).json({
@@ -536,7 +537,7 @@ router.post('/ai/analyze', async (req, res) => {
       });
     }
 
-    const analysis = await aiAnalysisService.analyzeTopics(topics, options);
+    const analysis = await aiProviderService.analyzeTopics(topics, { ...options, provider });
 
     if (!analysis) {
       return res.status(500).json({
@@ -563,7 +564,7 @@ router.post('/ai/analyze', async (req, res) => {
 
 router.post('/ai/briefing', async (req, res) => {
   try {
-    const { topics, maxLength = 300, focus = 'important' } = req.body;
+    const { topics, maxLength = 300, focus = 'important', provider } = req.body;
 
     if (!topics || topics.length === 0) {
       return res.status(400).json({
@@ -572,7 +573,7 @@ router.post('/ai/briefing', async (req, res) => {
       });
     }
 
-    const brief = await aiAnalysisService.generateBrief(topics, { maxLength, focus });
+    const brief = await aiProviderService.generateBrief(topics, { maxLength, focus, provider });
 
     res.json({
       success: true,
@@ -592,7 +593,8 @@ router.post('/ai/briefing', async (req, res) => {
 
 router.get('/ai/health', async (req, res) => {
   try {
-    const health = await aiAnalysisService.checkServiceHealth();
+    const { provider } = req.query;
+    const health = await aiProviderService.checkServiceHealth(provider);
 
     res.json({
       success: true,
@@ -606,6 +608,88 @@ router.get('/ai/health', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'AI 健康检查失败'
+    });
+  }
+});
+
+router.get('/ai/providers', async (req, res) => {
+  try {
+    const providers = aiProviderService.getProviderList();
+
+    res.json({
+      success: true,
+      data: providers
+    });
+  } catch (error) {
+    logger.error('获取 AI 提供商列表失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取 AI 提供商列表失败'
+    });
+  }
+});
+
+router.post('/ai/providers/default', async (req, res) => {
+  try {
+    const { providerId } = req.body;
+
+    if (!providerId) {
+      return res.status(400).json({
+        success: false,
+        message: '缺少提供商 ID'
+      });
+    }
+
+    aiProviderService.setDefaultProvider(providerId);
+
+    res.json({
+      success: true,
+      message: '默认提供商已更新'
+    });
+  } catch (error) {
+    logger.error('设置默认提供商失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: error.message || '设置默认提供商失败'
+    });
+  }
+});
+
+router.post('/ai/translate', async (req, res) => {
+  try {
+    const { content, targetLanguage = 'English', provider } = req.body;
+
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: '缺少待翻译内容'
+      });
+    }
+
+    const translated = await aiProviderService.translateMessage(content, targetLanguage, provider);
+
+    res.json({
+      success: true,
+      data: {
+        original: content,
+        translated,
+        targetLanguage
+      }
+    });
+  } catch (error) {
+    logger.error('AI 翻译失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: 'AI 翻译失败'
     });
   }
 });
@@ -691,6 +775,253 @@ router.post('/trends/snapshot', async (req, res) => {
     res.status(500).json({
       success: false,
       message: '记录趋势快照失败'
+    });
+  }
+});
+
+// Prompt 模板管理 API
+router.get('/prompts/templates', async (req, res) => {
+  try {
+    const { category, isActive, isSystem, tags, language, search } = req.query;
+
+    await promptManagementService.initialize();
+
+    const templates = await promptManagementService.listTemplates({
+      category,
+      isActive: isActive !== 'false',
+      isSystem: isSystem === 'true',
+      tags: tags ? tags.split(',') : undefined,
+      language,
+      search
+    });
+
+    res.json({
+      success: true,
+      data: templates
+    });
+  } catch (error) {
+    logger.error('获取 Prompt 模板列表失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取 Prompt 模板列表失败'
+    });
+  }
+});
+
+router.get('/prompts/templates/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await promptManagementService.initialize();
+
+    const template = await promptManagementService.getTemplate(id);
+
+    res.json({
+      success: true,
+      data: template
+    });
+  } catch (error) {
+    logger.error('获取 Prompt 模板失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(error.message.includes('不存在') ? 404 : 500).json({
+      success: false,
+      message: error.message || '获取 Prompt 模板失败'
+    });
+  }
+});
+
+router.post('/prompts/templates', async (req, res) => {
+  try {
+    await promptManagementService.initialize();
+
+    const template = await promptManagementService.createTemplate(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: template
+    });
+  } catch (error) {
+    logger.error('创建 Prompt 模板失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: error.message || '创建 Prompt 模板失败'
+    });
+  }
+});
+
+router.put('/prompts/templates/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await promptManagementService.initialize();
+
+    const template = await promptManagementService.updateTemplate(id, req.body);
+
+    res.json({
+      success: true,
+      data: template
+    });
+  } catch (error) {
+    logger.error('更新 Prompt 模板失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(error.message.includes('不允许') ? 403 : error.message.includes('不存在') ? 404 : 500).json({
+      success: false,
+      message: error.message || '更新 Prompt 模板失败'
+    });
+  }
+});
+
+router.delete('/prompts/templates/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await promptManagementService.initialize();
+
+    await promptManagementService.deleteTemplate(id);
+
+    res.json({
+      success: true,
+      message: '模板已删除'
+    });
+  } catch (error) {
+    logger.error('删除 Prompt 模板失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(error.message.includes('不允许') ? 403 : error.message.includes('不存在') ? 404 : 500).json({
+      success: false,
+      message: error.message || '删除 Prompt 模板失败'
+    });
+  }
+});
+
+router.post('/prompts/templates/:id/render', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { variables } = req.body;
+
+    await promptManagementService.initialize();
+
+    const rendered = await promptManagementService.renderTemplate(id, variables);
+
+    res.json({
+      success: true,
+      data: {
+        templateId: id,
+        rendered
+      }
+    });
+  } catch (error) {
+    logger.error('渲染 Prompt 模板失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: error.message || '渲染 Prompt 模板失败'
+    });
+  }
+});
+
+router.get('/prompts/templates/:id/history', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { limit = 50 } = req.query;
+
+    await promptManagementService.initialize();
+
+    const history = await promptManagementService.getUsageHistory(id, parseInt(limit));
+
+    res.json({
+      success: true,
+      data: history
+    });
+  } catch (error) {
+    logger.error('获取 Prompt 使用历史失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取 Prompt 使用历史失败'
+    });
+  }
+});
+
+router.get('/prompts/stats', async (req, res) => {
+  try {
+    const { days = 7 } = req.query;
+
+    await promptManagementService.initialize();
+
+    const stats = await promptManagementService.getUsageStats(parseInt(days));
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('获取 Prompt 使用统计失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取 Prompt 使用统计失败'
+    });
+  }
+});
+
+router.get('/prompts/tags', async (req, res) => {
+  try {
+    await promptManagementService.initialize();
+
+    const tags = await promptManagementService.getTags();
+
+    res.json({
+      success: true,
+      data: tags
+    });
+  } catch (error) {
+    logger.error('获取 Prompt 标签列表失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取 Prompt 标签列表失败'
+    });
+  }
+});
+
+router.get('/prompts/categories', async (req, res) => {
+  try {
+    await promptManagementService.initialize();
+
+    const categories = await promptManagementService.getCategories();
+
+    res.json({
+      success: true,
+      data: categories
+    });
+  } catch (error) {
+    logger.error('获取 Prompt 分类列表失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取 Prompt 分类列表失败'
     });
   }
 });
