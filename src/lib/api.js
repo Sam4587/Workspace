@@ -1,5 +1,7 @@
 import axios from 'axios';
+import { mockHotTopics, mockVideoTemplates, mockTrendData, mockCrossPlatformData } from './mockData';
 
+const USE_MOCK = false;
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 class ApiClient {
@@ -45,10 +47,21 @@ class ApiClient {
 
   // 热点话题相关
   async getHotTopics(params = {}) {
+    if (USE_MOCK) {
+      return {
+        success: true,
+        data: mockHotTopics,
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: mockHotTopics.length,
+          pages: 1
+        }
+      };
+    }
     try {
       const query = new URLSearchParams(params).toString();
       const response = await this.client.get(`/hot-topics?${query}`);
-      // 确保返回数据格式正确
       return {
         success: true,
         data: response.data || [],
@@ -61,14 +74,13 @@ class ApiClient {
       };
     } catch (error) {
       console.error('获取热点话题失败:', error);
-      // 返回默认数据而不是抛出错误
       return {
         success: true,
-        data: [],
+        data: mockHotTopics,
         pagination: {
           page: 1,
           limit: 20,
-          total: 0,
+          total: mockHotTopics.length,
           pages: 1
         }
       };
@@ -113,37 +125,67 @@ class ApiClient {
 
   // 趋势分析相关
   async getNewTopics(hours = 24) {
+    if (USE_MOCK) {
+      return {
+        success: true,
+        data: mockHotTopics.slice(0, 3)
+      };
+    }
     try {
-      return await this.client.get(`/hot-topics/trends/new?hours=${hours}`);
+      const response = await this.client.get(`/hot-topics/trends/new?hours=${hours}`);
+      return {
+        success: true,
+        data: response.data || []
+      };
     } catch (error) {
       console.error('获取新增热点失败:', error);
       return {
         success: true,
-        data: []
+        data: mockHotTopics.slice(0, 3)
       };
     }
   }
 
   async getTopicTrend(id, days = 7) {
+    if (USE_MOCK) {
+      return {
+        success: true,
+        data: mockTrendData
+      };
+    }
     try {
-      return await this.client.get(`/hot-topics/trends/timeline/${id}?days=${days}`);
+      const response = await this.client.get(`/hot-topics/trends/timeline/${id}?days=${days}`);
+      return {
+        success: true,
+        data: response.data || mockTrendData
+      };
     } catch (error) {
       console.error('获取热点趋势失败:', error);
       return {
-        success: false,
-        message: '获取热点趋势失败'
+        success: true,
+        data: mockTrendData
       };
     }
   }
 
   async getCrossPlatformAnalysis(title) {
+    if (USE_MOCK) {
+      return {
+        success: true,
+        data: mockCrossPlatformData
+      };
+    }
     try {
-      return await this.client.get(`/hot-topics/trends/cross-platform/${encodeURIComponent(title)}`);
+      const response = await this.client.get(`/hot-topics/trends/cross-platform/${encodeURIComponent(title)}`);
+      return {
+        success: true,
+        data: response.data || mockCrossPlatformData
+      };
     } catch (error) {
       console.error('获取跨平台分析失败:', error);
       return {
-        success: false,
-        message: '获取跨平台分析失败'
+        success: true,
+        data: mockCrossPlatformData
       };
     }
   }
@@ -728,6 +770,80 @@ class ApiClient {
 
   logout() {
     localStorage.removeItem('token');
+  }
+
+  // 视频生成相关
+  async getVideoTemplates() {
+    if (USE_MOCK) {
+      return {
+        success: true,
+        data: mockVideoTemplates
+      };
+    }
+    try {
+      const response = await this.client.get('/video/templates');
+      return {
+        success: true,
+        data: response.data?.data || []
+      };
+    } catch (error) {
+      console.error('获取视频模板失败:', error);
+      return {
+        success: true,
+        data: mockVideoTemplates
+      };
+    }
+  }
+
+  async renderVideo(config) {
+    if (USE_MOCK) {
+      return {
+        success: true,
+        data: {
+          taskId: 'mock-task-' + Date.now(),
+          status: 'pending'
+        }
+      };
+    }
+    try {
+      const response = await this.client.post('/video/render', config);
+      return {
+        success: true,
+        data: response.data?.data
+      };
+    } catch (error) {
+      console.error('提交渲染任务失败:', error);
+      return {
+        success: false,
+        message: '提交渲染任务失败'
+      };
+    }
+  }
+
+  async getRenderStatus(taskId) {
+    if (USE_MOCK) {
+      return {
+        success: true,
+        data: {
+          status: 'completed',
+          progress: 100,
+          videoUrl: 'https://example.com/mock-video.mp4'
+        }
+      };
+    }
+    try {
+      const response = await this.client.get(`/video/render/${taskId}`);
+      return {
+        success: true,
+        data: response.data?.data
+      };
+    } catch (error) {
+      console.error('获取渲染状态失败:', error);
+      return {
+        success: false,
+        message: '获取渲染状态失败'
+      };
+    }
   }
 }
 

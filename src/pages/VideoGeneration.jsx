@@ -28,9 +28,8 @@ const VideoGeneration = () => {
   const { data: templates, isLoading: templatesLoading } = useQuery({
     queryKey: ['video-templates'],
     queryFn: async () => {
-      const response = await fetch('/api/video/templates');
-      const data = await response.json();
-      return data.data || [];
+      const response = await api.getVideoTemplates();
+      return response.data || [];
     },
   });
 
@@ -49,15 +48,14 @@ const VideoGeneration = () => {
     if (renderTaskId && renderStatus !== 'completed' && renderStatus !== 'failed') {
       const interval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/video/render/${renderTaskId}`);
-          const data = await response.json();
-          if (data.success) {
-            setRenderStatus(data.data.status);
-            if (data.data.status === 'completed') {
+          const response = await api.getRenderStatus(renderTaskId);
+          if (response.success) {
+            setRenderStatus(response.data.status);
+            if (response.data.status === 'completed') {
               showSuccess('视频渲染完成');
               clearInterval(interval);
-            } else if (data.data.status === 'failed') {
-              showError('视频渲染失败: ' + data.data.error);
+            } else if (response.data.status === 'failed') {
+              showError('视频渲染失败');
               clearInterval(interval);
             }
           }
@@ -71,15 +69,11 @@ const VideoGeneration = () => {
 
   const renderMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/video/render', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          templateId: selectedTemplate?.id,
-          props: videoConfig,
-        }),
+      const response = await api.renderVideo({
+        templateId: selectedTemplate?.id,
+        props: videoConfig,
       });
-      return response.json();
+      return response;
     },
     onSuccess: (data) => {
       if (data.success) {
