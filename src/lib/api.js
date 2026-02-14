@@ -1,5 +1,5 @@
-
 import axios from 'axios';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 class ApiClient {
@@ -36,7 +36,7 @@ class ApiClient {
           localStorage.removeItem('token');
           window.location.href = '/login';
         }
-        
+
         const message = error.response?.data?.message || error.message || '请求失败';
         return Promise.reject(new Error(message));
       }
@@ -95,6 +95,179 @@ class ApiClient {
       return {
         success: false,
         message: '更新热点数据失败'
+      };
+    }
+  }
+
+  async invalidateCache(source = 'all') {
+    try {
+      return await this.client.post('/hot-topics/invalidate-cache', { source });
+    } catch (error) {
+      console.error('清除缓存失败:', error);
+      return {
+        success: false,
+        message: '清除缓存失败'
+      };
+    }
+  }
+
+  // 趋势分析相关
+  async getNewTopics(hours = 24) {
+    try {
+      return await this.client.get(`/hot-topics/trends/new?hours=${hours}`);
+    } catch (error) {
+      console.error('获取新增热点失败:', error);
+      return {
+        success: true,
+        data: []
+      };
+    }
+  }
+
+  async getTopicTrend(id, days = 7) {
+    try {
+      return await this.client.get(`/hot-topics/trends/timeline/${id}?days=${days}`);
+    } catch (error) {
+      console.error('获取热点趋势失败:', error);
+      return {
+        success: false,
+        message: '获取热点趋势失败'
+      };
+    }
+  }
+
+  async getCrossPlatformAnalysis(title) {
+    try {
+      return await this.client.get(`/hot-topics/trends/cross-platform/${encodeURIComponent(title)}`);
+    } catch (error) {
+      console.error('获取跨平台分析失败:', error);
+      return {
+        success: false,
+        message: '获取跨平台分析失败'
+      };
+    }
+  }
+
+  async recordTopicSnapshot(topics) {
+    try {
+      return await this.client.post('/hot-topics/trends/snapshot', { topics });
+    } catch (error) {
+      console.error('记录趋势快照失败:', error);
+      return {
+        success: false,
+        message: '记录趋势快照失败'
+      };
+    }
+  }
+
+  // RSS 订阅源相关
+  async getRSSFeeds() {
+    try {
+      return await this.client.get('/hot-topics/rss/feeds');
+    } catch (error) {
+      console.error('获取 RSS 源状态失败:', error);
+      return {
+        success: false,
+        message: '获取 RSS 源状态失败'
+      };
+    }
+  }
+
+  async fetchRSSContent(url, keywords = []) {
+    try {
+      return await this.client.post('/hot-topics/rss/fetch', { url, keywords });
+    } catch (error) {
+      console.error('获取 RSS 内容失败:', error);
+      return {
+        success: false,
+        message: '获取 RSS 内容失败'
+      };
+    }
+  }
+
+  // 推送通知相关
+  async getNotificationChannels() {
+    try {
+      return await this.client.get('/hot-topics/notifications/channels');
+    } catch (error) {
+      console.error('获取推送渠道状态失败:', error);
+      return {
+        success: false,
+        message: '获取推送渠道状态失败'
+      };
+    }
+  }
+
+  async sendNotification(topics, channels = ['wework']) {
+    try {
+      return await this.client.post('/hot-topics/notifications/send', { topics, channels });
+    } catch (error) {
+      console.error('发送通知失败:', error);
+      return {
+        success: false,
+        message: '发送通知失败'
+      };
+    }
+  }
+
+  async testNotification(channel) {
+    try {
+      return await this.client.post('/hot-topics/notifications/test', { channel });
+    } catch (error) {
+      console.error('测试通知失败:', error);
+      return {
+        success: false,
+        message: '测试通知失败'
+      };
+    }
+  }
+
+  // AI 分析相关
+  async analyzeTopics(topics, options = {}) {
+    try {
+      return await this.client.post('/hot-topics/ai/analyze', { topics, options });
+    } catch (error) {
+      console.error('AI 分析失败:', error);
+      return {
+        success: false,
+        message: 'AI 分析失败'
+      };
+    }
+  }
+
+  async generateBrief(topics, maxLength = 300, focus = 'important') {
+    try {
+      return await this.client.post('/hot-topics/ai/briefing', { topics, maxLength, focus });
+    } catch (error) {
+      console.error('生成简报失败:', error);
+      return {
+        success: false,
+        message: '生成简报失败'
+      };
+    }
+  }
+
+  async checkAIHealth() {
+    try {
+      return await this.client.get('/hot-topics/ai/health');
+    } catch (error) {
+      console.error('AI 健康检查失败:', error);
+      return {
+        success: false,
+        message: 'AI 健康检查失败'
+      };
+    }
+  }
+
+  // 关键词匹配相关
+  async validateKeywords(keywords) {
+    try {
+      return await this.client.post('/hot-topics/keywords/validate', { keywords });
+    } catch (error) {
+      console.error('关键词验证失败:', error);
+      return {
+        success: false,
+        message: '关键词验证失败'
       };
     }
   }
