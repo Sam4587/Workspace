@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
-import { Video, FileText, Settings, Play, Download, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { Video, FileText, Settings, Play, Download, RefreshCw, CheckCircle, XCircle, Layers } from 'lucide-react';
 import api from '../lib/api';
 import { useNotification } from '../contexts/NotificationContext';
 import VideoTemplateSelector from '../components/video/VideoTemplateSelector';
 import VideoConfigPanel from '../components/video/VideoConfigPanel';
 import VideoPreview from '../components/video/VideoPreview';
+import BatchGeneration from '../components/video/BatchGeneration';
 
 const VideoGeneration = () => {
   const location = useLocation();
   const { showSuccess, showError } = useNotification();
   
+  const [activeTab, setActiveTab] = useState('single');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [videoConfig, setVideoConfig] = useState({
     title: '',
@@ -129,22 +131,44 @@ const VideoGeneration = () => {
         <p className="text-gray-600 mt-1">选择模板并配置内容，生成专业视频</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <VideoTemplateSelector
-            templates={templates || []}
-            selectedTemplate={selectedTemplate}
-            onSelect={handleTemplateSelect}
-            isLoading={templatesLoading}
-          />
+      <div className="mb-4 flex space-x-4 border-b">
+        <button
+          onClick={() => setActiveTab('single')}
+          className={`pb-2 px-1 ${activeTab === 'single' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+        >
+          <div className="flex items-center space-x-2">
+            <Video className="h-4 w-4" />
+            <span>单个生成</span>
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('batch')}
+          className={`pb-2 px-1 ${activeTab === 'batch' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+        >
+          <div className="flex items-center space-x-2">
+            <Layers className="h-4 w-4" />
+            <span>批量生成</span>
+          </div>
+        </button>
+      </div>
 
-          {selectedTemplate && (
-            <VideoConfigPanel
-              template={selectedTemplate}
-              config={videoConfig}
-              onChange={handleConfigChange}
+      {activeTab === 'single' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <VideoTemplateSelector
+              templates={templates || []}
+              selectedTemplate={selectedTemplate}
+              onSelect={handleTemplateSelect}
+              isLoading={templatesLoading}
             />
-          )}
+
+            {selectedTemplate && (
+              <VideoConfigPanel
+                template={selectedTemplate}
+                config={videoConfig}
+                onChange={handleConfigChange}
+              />
+            )}
 
           <div className="flex justify-end space-x-4">
             <button
@@ -231,6 +255,13 @@ const VideoGeneration = () => {
           />
         </div>
       </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <BatchGeneration templates={templates || []} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

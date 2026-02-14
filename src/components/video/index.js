@@ -5,3 +5,7 @@ export { default as BGM } from './BGM';
 export { default as Transition } from './Transition';
 export { default as ArticleVideo } from './ArticleVideo';
 export { default as MicroVideo } from './MicroVideo';
+export { default as VideoTemplateSelector } from './VideoTemplateSelector';
+export { default as VideoConfigPanel } from './VideoConfigPanel';
+export { default as VideoPreview } from './VideoPreview';
+export { default as BatchGeneration } from './BatchGeneration';

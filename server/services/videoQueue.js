@@ -12,6 +12,7 @@ class VideoQueue {
     
     const taskInfo = {
       id: taskId,
+      batchId: task.batchId || null,
       compositionId: task.compositionId,
       props: task.props,
       options: task.options || {},

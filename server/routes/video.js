@@ -189,4 +189,88 @@ router.delete('/queue/clear', (req, res) => {
   });
 });
 
+router.post('/render/batch', async (req, res) => {
+  try {
+    const { tasks } = req.body;
+
+    if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'tasks array is required',
+      });
+    }
+
+    const batchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const submittedTaskIds = [];
+
+    for (const task of tasks) {
+      const { templateId, props, options } = task;
+      
+      if (!templateId) {
+        continue;
+      }
+
+      const taskId = await videoQueue.addTask({
+        compositionId: templateId,
+        props: props || {},
+        options: options || {},
+        batchId,
+      });
+
+      submittedTaskIds.push(taskId);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        batchId,
+        taskIds: submittedTaskIds,
+        totalTasks: tasks.length,
+        submittedTasks: submittedTaskIds.length,
+      },
+    });
+  } catch (error) {
+    console.error('Batch render error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+router.get('/render/batch/:batchId', (req, res) => {
+  const { batchId } = req.params;
+  const allTasks = videoQueue.getAllTasks();
+  
+  const batchTasks = allTasks.filter(task => task.batchId === batchId);
+
+  if (batchTasks.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: 'Batch not found',
+    });
+  }
+
+  const completedCount = batchTasks.filter(t => t.status === 'completed').length;
+  const failedCount = batchTasks.filter(t => t.status === 'failed').length;
+  const renderingCount = batchTasks.filter(t => t.status === 'rendering').length;
+  const pendingCount = batchTasks.filter(t => t.status === 'pending').length;
+
+  res.json({
+    success: true,
+    data: {
+      batchId,
+      tasks: batchTasks,
+      summary: {
+        total: batchTasks.length,
+        completed: completedCount,
+        failed: failedCount,
+        rendering: renderingCount,
+        pending: pendingCount,
+        progress: Math.round((completedCount / batchTasks.length) * 100),
+      },
+    },
+  });
+});
+
 module.exports = router;
