@@ -645,6 +645,49 @@ Authorization: Bearer <token>
 }
 ```
 
+## 视频生成接口
+
+### 获取视频模板列表
+
+**接口**: `GET /api/video/templates`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "article-video",
+      "name": "文章视频",
+      "description": "将长文章转换为视频",
+      "category": "article",
+      "aspectRatio": "16:9",
+      "duration": 30
+    }
+  ]
+}
+```
+
+### 提交渲染任务
+
+**接口**: `POST /api/video/render`
+
+**请求参数**:
+```json
+{
+  "templateId": "article-video",
+  "props": { "title": "标题", "content": "内容" }
+}
+```
+
+### 批量提交渲染任务
+
+**接口**: `POST /api/video/render/batch`
+
+### 生成 TTS 语音
+
+**接口**: `POST /api/video/tts/generate`
+
 ## 错误码说明
 
 | 错误码 | 说明 |

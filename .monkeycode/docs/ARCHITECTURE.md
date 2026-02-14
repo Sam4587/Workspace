@@ -282,7 +282,27 @@ Redis 缓存结果
 - `src/components/StatsCard.jsx` - 统计卡片
 - `src/components/RecentActivity.jsx` - 最近活动
 
-### 5. 用户认证模块
+### 5. 视频生成模块（基于 Remotion）
+
+**职责**：
+- 视频模板渲染
+- 渲染队列管理
+- TTS 语音合成
+- 批量视频生成
+- 实时预览
+
+**核心文件**：
+- `server/services/videoRenderService.js` - 视频渲染服务
+- `server/services/videoQueue.js` - 渲染队列服务
+- `server/services/ttsService.js` - TTS 语音服务
+- `server/routes/video.js` - 视频 API 路由
+- `src/pages/VideoGeneration.jsx` - 视频生成页面
+- `src/components/video/ArticleVideo.jsx` - 文章视频模板
+- `src/components/video/MicroVideo.jsx` - 微头条视频模板
+- `src/components/video/VideoPreview.jsx` - 视频预览组件
+- `src/components/video/BatchGeneration.jsx` - 批量生成组件
+
+### 6. 用户认证模块
 
 **职责**：
 - 用户登录与注册
