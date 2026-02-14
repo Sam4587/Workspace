@@ -30,11 +30,16 @@ class OpenRouterProvider extends BaseProvider {
     }
 
     try {
+      console.log('[OpenRouter] Request:', { model: model.id, messages: messages.length });
+      
+      // 过滤掉 system 消息（某些模型不支持）
+      const filteredMessages = messages.filter(m => m.role !== 'system');
+      
       const response = await axios.post(
         this.endpoint,
         {
           model: model.id,
-          messages,
+          messages: filteredMessages,
           max_tokens: options.maxTokens || 2000,
           temperature: options.temperature || 0.7,
           top_p: options.topP || 1,
@@ -42,13 +47,15 @@ class OpenRouterProvider extends BaseProvider {
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
-            'HTTP-Referer': process.env.APP_URL || 'http://localhost',
+            'HTTP-Referer': 'https://openrouter.ai',
             'X-Title': 'AI Content Generator',
             'Content-Type': 'application/json',
           },
           timeout: 60000,
         }
       );
+
+      console.log('[OpenRouter] Response:', response.data);
 
       this.incrementUsage();
 
@@ -59,10 +66,11 @@ class OpenRouterProvider extends BaseProvider {
         provider: this.name,
       };
     } catch (error) {
+      console.error('[OpenRouter] Error:', error.response?.data || error.message);
       if (error.response?.status === 429) {
         throw new Error('Rate limit exceeded');
       }
-      throw new Error(`OpenRouter error: ${error.message}`);
+      throw new Error(`OpenRouter error: ${error.response?.data?.error?.message || error.message}`);
     }
   }
 
