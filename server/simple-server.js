@@ -115,11 +115,17 @@ let cachedTopics = [
 let lastFetchTime = Date.now();
 const CACHE_DURATION = 5 * 60 * 1000;
 
-async function fetchAndCacheTopics() {
+async function fetchAndCacheTopics(clearCache = true) {
   try {
     console.log('开始获取实时热点数据...');
     
     fetcherManager.initializeDefaultSources();
+    
+    if (clearCache) {
+      console.log('清除 Fetcher 缓存以获取最新数据...');
+      fetcherManager.clearAllCache();
+    }
+    
     const topics = await fetcherManager.fetchAll();
     
     if (topics && topics.length > 0) {
@@ -383,7 +389,7 @@ app.use('*', (req, res) => {
 app.listen(PORT, async () => {
   console.log(`服务器启动成功，端口: ${PORT}`);
   console.log(`健康检查: http://localhost:${PORT}/api/health`);
-  await fetchAndCacheTopics();
+  await fetchAndCacheTopics(false);
 });
 
 module.exports = app;
