@@ -1,6 +1,7 @@
 
 const OpenAI = require('openai');
 const axios = require('axios');
+const llmGateway = require('./llm');
 
 class MultiAIService {
   constructor() {
@@ -171,7 +172,8 @@ class MultiAIService {
       .map(([name, _]) => name);
     
     if (availableModels.length === 0) {
-      throw new Error('没有可用的AI模型');
+      // 如果没有配置付费模型，尝试使用免费 LLM
+      return await this.generateWithFreeLLM(prompt, options);
     }
     
     // 根据选项选择模型
@@ -199,21 +201,64 @@ class MultiAIService {
       } catch (error) {
         console.error(`模型 ${availableModels[i]} 生成失败:`, error.message);
         if (i === availableModels.length - 1) {
-          throw error; // 所有模型都失败
+          // 所有付费模型都失败，尝试免费 LLM
+          try {
+            return await this.generateWithFreeLLM(prompt, options);
+          } catch (llmError) {
+            throw error; // 抛出原始错误
+          }
         }
         continue; // 尝试下一个模型
       }
     }
   }
+
+  // 使用免费 LLM 生成内容
+  async generateWithFreeLLM(prompt, options = {}) {
+    const messages = [
+      {
+        role: 'system',
+        content: '你是一个专业的今日头条内容创作者，擅长撰写高质量的文章、微头条、视频脚本等。'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
+
+    const result = await llmGateway.generate(messages, options);
+    return {
+      content: result.content,
+      model: result.model,
+      provider: result.provider
+    };
+  }
   
   // 获取可用模型列表
   getAvailableModels() {
-    return Object.entries(this.models)
+    const models = Object.entries(this.models)
       .filter(([_, config]) => config.enabled)
       .map(([name, config]) => ({
         name,
-        enabled: config.enabled
+        enabled: config.enabled,
+        type: 'paid'
       }));
+    
+    // 添加免费 LLM 提供商
+    try {
+      const freeLLMs = llmGateway.getAvailableProviders();
+      freeLLMs.forEach(provider => {
+        models.push({
+          name: provider.name,
+          enabled: true,
+          type: 'free'
+        });
+      });
+    } catch (error) {
+      console.warn('Failed to get free LLM providers:', error.message);
+    }
+    
+    return models;
   }
 }
 
