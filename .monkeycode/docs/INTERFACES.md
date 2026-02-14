@@ -679,7 +679,7 @@ Authorization: Bearer <token>
 {
   "event": "publish.success",
   "data": {
-    "contentId": "60d5ec9f8b8c6d1e8c8d7e8b",
+    "contentId": "60d5ec9f8b8c6c8d7d1e8e8b",
     "platform": "toutiao",
     "status": "success",
     "platformUrl": "https://www.toutiao.com/article/123456/",
@@ -706,6 +706,481 @@ Authorization: Bearer <token>
       "shares": 20
     },
     "updateTime": "2024-02-14T12:00:00Z"
+  }
+}
+```
+
+## 缓存管理接口
+
+### 清除热点缓存
+
+**接口**: `POST /hot-topics/invalidate-cache`
+
+**请求参数**:
+```json
+{
+  "source": "all"
+}
+```
+
+**参数说明**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| source | String | 否 | 数据源：all/weibo/toutiao/baidu，默认 all |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "message": "缓存清除成功"
+}
+```
+
+## 趋势分析接口
+
+### 获取新增热点
+
+**接口**: `GET /hot-topics/trends/new`
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| hours | Integer | 否 | 时间范围（小时），默认 24 |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "60d5ec9f8b8c6d1e8c8d7e8a",
+      "title": "新热点话题",
+      "createdAt": "2024-02-14T12:00:00Z"
+    }
+  ]
+}
+```
+
+### 获取热点趋势时间线
+
+**接口**: `GET /hot-topics/trends/timeline/:id`
+
+**路径参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| id | String | 是 | 热点话题 ID |
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| days | Integer | 否 | 天数，默认 7 |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    { "date": "2024-02-14", "heat": 85 },
+    { "date": "2024-02-13", "heat": 72 }
+  ]
+}
+```
+
+### 获取跨平台分析
+
+**接口**: `GET /hot-topics/trends/cross-platform/:title`
+
+**路径参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| title | String | 是 | 话题标题（URL 编码） |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "title": "人工智能",
+    "platforms": [
+      { "source": "微博", "heat": 95, "rank": 1 },
+      { "source": "头条", "heat": 88, "rank": 2 }
+    ]
+  }
+}
+```
+
+### 记录趋势快照
+
+**接口**: `POST /hot-topics/trends/snapshot`
+
+**请求参数**:
+```json
+{
+  "topics": [
+    { "title": "话题1", "heat": 90 },
+    { "title": "话题2", "heat": 85 }
+  ]
+}
+```
+
+## RSS 订阅源接口
+
+### 获取 RSS 源列表
+
+**接口**: `GET /hot-topics/rss/feeds`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    { "url": "https://example.com/rss", "name": "示例源", "status": "active" }
+  ]
+}
+```
+
+### 获取 RSS 内容
+
+**接口**: `POST /hot-topics/rss/fetch`
+
+**请求参数**:
+```json
+{
+  "url": "https://example.com/rss",
+  "keywords": ["科技", "AI"]
+}
+```
+
+## 推送通知接口
+
+### 获取推送渠道
+
+**接口**: `GET /hot-topics/notifications/channels`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    { "channel": "wework", "enabled": true, "name": "企业微信" }
+  ]
+}
+```
+
+### 发送通知
+
+**接口**: `POST /hot-topics/notifications/send`
+
+**请求参数**:
+```json
+{
+  "topics": ["热点话题1", "热点话题2"],
+  "channels": ["wework"]
+}
+```
+
+### 测试通知
+
+**接口**: `POST /hot-topics/notifications/test`
+
+**请求参数**:
+```json
+{
+  "channel": "wework"
+}
+```
+
+## AI 分析接口
+
+### AI 分析话题
+
+**接口**: `POST /hot-topics/ai/analyze`
+
+**请求参数**:
+```json
+{
+  "topics": ["话题1", "话题2"],
+  "options": { "depth": "deep" }
+}
+```
+
+### 生成简报
+
+**接口**: `POST /hot-topics/ai/briefing`
+
+**请求参数**:
+```json
+{
+  "topics": ["话题1", "话题2"],
+  "maxLength": 300,
+  "focus": "important"
+}
+```
+
+### AI 健康检查
+
+**接口**: `GET /hot-topics/ai/health`
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| provider | String | 否 | AI 提供商 |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "openai": "healthy",
+    "baidu": "healthy",
+    "xfyun": "healthy"
+  }
+}
+```
+
+### 获取 AI 提供商列表
+
+**接口**: `GET /hot-topics/ai/providers`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    { "id": "openai", "name": "OpenAI", "status": "active", "isDefault": true }
+  ]
+}
+```
+
+### 设置默认 AI 提供商
+
+**接口**: `POST /hot-topics/ai/providers/default`
+
+**请求参数**:
+```json
+{
+  "providerId": "openai"
+}
+```
+
+### AI 翻译
+
+**接口**: `POST /hot-topics/ai/translate`
+
+**请求参数**:
+```json
+{
+  "content": "要翻译的内容",
+  "targetLanguage": "English",
+  "provider": "openai"
+}
+```
+
+## Prompt 模板接口
+
+### 获取模板列表
+
+**接口**: `GET /hot-topics/prompts/templates`
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| category | String | 否 | 分类筛选 |
+| tag | String | 否 | 标签筛选 |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "xxx",
+      "name": "文章生成模板",
+      "category": "content",
+      "tags": ["article"],
+      "variables": ["title", "keywords"]
+    }
+  ]
+}
+```
+
+### 获取单个模板
+
+**接口**: `GET /hot-topics/prompts/templates/:id`
+
+### 创建模板
+
+**接口**: `POST /hot-topics/prompts参数**:
+```json
+{
+ /templates`
+
+**请求 "name": "模板名称",
+  "content": "模板内容",
+  "category": "content",
+  "tags": ["tag1"],
+  "variables": ["var1"]
+}
+```
+
+### 更新模板
+
+**接口**: `PUT /hot-topics/prompts/templates/:id`
+
+### 删除模板
+
+**接口**: `DELETE /hot-topics/prompts/templates/:id`
+
+### 渲染模板
+
+**接口**: `POST /hot-topics/prompts/templates/:id/render`
+
+**请求参数**:
+```json
+{
+  "variables": { "title": "值1", "keywords": "值2" }
+}
+```
+
+### 获取模板使用历史
+
+**接口**: `GET /hot-topics/prompts/templates/:id/history`
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| limit | Integer | 否 | 返回数量，默认 50 |
+
+### 获取模板使用统计
+
+**接口**: `GET /hot-topics/prompts/stats`
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| days | Integer | 否 | 统计天数，默认 7 |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "totalUsage": 100,
+    "byTemplate": [{ "name": "模板1", "count": 50 }]
+  }
+}
+```
+
+### 获取模板标签列表
+
+**接口**: `GET /hot-topics/prompts/tags`
+
+### 获取模板分类列表
+
+**接口**: `GET /hot-topics/prompts/categories`
+
+## 关键词接口
+
+### 验证关键词
+
+**接口**: `POST /hot-topics/keywords/validate`
+
+**请求参数**:
+```json
+{
+  "keywords": ["关键词1", "关键词2"]
+}
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    { "keyword": "关键词1", "valid": true },
+    { "keyword": "关键词2", "valid": false, "reason": "包含敏感词" }
+  ]
+}
+```
+
+## 增强数据分析接口
+
+### 获取浏览量趋势
+
+**接口**: `GET /analytics/views-trend`
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| days | Integer | 否 | 天数，默认 7 |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    { "date": "2024-02-14", "views": 5000 },
+    { "date": "2024-02-13", "views": 4500 }
+  ]
+}
+```
+
+### 获取内容类型分布
+
+**接口**: `GET /analytics/content-types`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    { "type": "article", "count": 40, "percentage": 45 },
+    { "type": "micro", "count": 30, "percentage": 34 }
+  ]
+}
+```
+
+### 获取推荐洞察
+
+**接口**: `GET /analytics/recommendation-insights`
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| contentId | String | 是 | 内容 ID |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "coldStartPerformance": 75,
+    "userEngagement": 80,
+    "contentQuality": 85,
+    "recommendationScore": 82,
+    "insights": ["建议优化标题", "增加互动元素"]
+  }
+}
+```
+
+### 获取优化建议
+
+**接口**: `GET /analytics/optimization-suggestions`
+
+**查询参数**:
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| contentId | String | 是 | 内容 ID |
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "titleOptimization": ["建议使用数字", "添加关键词"],
+    "contentOptimization": ["增加案例", "精简开头"],
+    "timingOptimization": ["建议发布时间: 20:00-22:00"],
+    "audienceOptimization": ["目标受众: 科技爱好者"]
   }
 }
 ```

@@ -201,12 +201,21 @@ Redis 缓存结果
 - 数据清洗与分类
 - 适配度评分
 - 热点趋势分析
+- 跨平台分析
+- RSS 订阅源管理
+- 推送通知管理
 
 **核心文件**：
 - `server/services/hotTopicService.js` - 热点抓取服务
 - `server/models/HotTopic.js` - 热点数据模型
 - `server/routes/hotTopics.js` - 热点 API 路由
 - `src/pages/HotTopics.jsx` - 热点监控页面
+- `src/components/TopicCard.jsx` - 话题卡片
+- `src/components/FilterPanel.jsx` - 筛选面板
+- `src/components/TrendTimeline.jsx` - 趋势时间线
+- `src/components/AIAnalysisPanel.jsx` - AI 分析面板
+- `src/components/CrossPlatformAnalysis.jsx` - 跨平台分析
+- `src/components/HotTopicsPreview.jsx` - 热点预览
 
 ### 2. 内容生成模块
 
@@ -223,8 +232,25 @@ Redis 缓存结果
 - `server/models/Content.js` - 内容数据模型
 - `server/routes/content.js` - 内容 API 路由
 - `src/pages/ContentGeneration.jsx` - 内容生成页面
+- `src/components/ContentTypeSelector.jsx` - 内容类型选择器
+- `src/components/GenerationForm.jsx` - 生成表单
+- `src/components/ContentPreview.jsx` - 内容预览
 
-### 3. 发布管理模块
+### 3. Prompt 模板管理模块
+
+**职责**：
+- Prompt 模板的创建、编辑、删除
+- 模板变量管理
+- 模板分类与标签
+- 模板使用统计
+- 模板渲染
+
+**核心文件**：
+- `server/services/promptTemplateService.js` - Prompt 模板服务
+- `server/models/PromptTemplate.js` - 模板数据模型
+- `src/lib/api.js` - 前端 API 调用
+
+### 4. 发布管理模块
 
 **职责**：
 - 多平台内容发布
@@ -245,10 +271,16 @@ Redis 缓存结果
 - 图表展示
 - 报表生成
 - 数据导出
+- 推荐洞察分析
+- 内容优化建议
+- 浏览量趋势分析
+- 内容类型分布分析
 
 **核心文件**：
 - `server/routes/analytics.js` - 分析 API 路由
 - `src/pages/Analytics.jsx` - 数据分析页面
+- `src/components/StatsCard.jsx` - 统计卡片
+- `src/components/RecentActivity.jsx` - 最近活动
 
 ### 5. 用户认证模块
 
