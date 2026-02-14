@@ -688,6 +688,105 @@ Authorization: Bearer <token>
 
 **接口**: `POST /api/video/tts/generate`
 
+## LLM 多提供商接口
+
+### 获取所有提供商
+
+**接口**: `GET /api/llm/providers`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "openrouter",
+      "enabled": true,
+      "type": "free",
+      "models": ["google/gemma-3-12b-it:free", "deepseek/deepseek-r1-0528:free"]
+    }
+  ]
+}
+```
+
+### 获取可用提供商
+
+**接口**: `GET /api/llm/providers/available`
+
+### 获取所有模型
+
+**接口**: `GET /api/llm/models`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "deepseek/deepseek-r1-0528:free",
+      "name": "DeepSeek R1",
+      "type": "free",
+      "provider": "openrouter",
+      "available": true
+    }
+  ]
+}
+```
+
+### 生成内容
+
+**接口**: `POST /api/llm/generate`
+
+**请求参数**:
+```json
+{
+  "messages": [
+    { "role": "system", "content": "你是一个专业作家" },
+    { "role": "user", "content": "写一篇关于春天的文章" }
+  ],
+  "model": "deepseek/deepseek-r1-0528:free",
+  "provider": "openrouter",
+  "maxTokens": 2000,
+  "temperature": 0.7
+}
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "content": "春天是大自然苏醒的季节...",
+    "model": "deepseek/deepseek-r1-0528:free",
+    "provider": "openrouter",
+    "usage": {
+      "prompt_tokens": 50,
+      "completion_tokens": 200,
+      "total_tokens": 250
+    }
+  }
+}
+```
+
+### 健康检查
+
+**接口**: `GET /api/llm/health`
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "openrouter": {
+      "status": "healthy",
+      "name": "openrouter",
+      "enabled": true,
+      "type": "free"
+    }
+  }
+}
+```
+
 ## 错误码说明
 
 | 错误码 | 说明 |

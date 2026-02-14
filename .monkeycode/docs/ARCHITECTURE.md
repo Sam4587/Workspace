@@ -296,6 +296,30 @@ Redis 缓存结果
 - `src/components/GenerationForm.jsx` - 生成表单
 - `src/components/ContentPreview.jsx` - 内容预览
 
+### 2.1 LLM 多提供商模块 (LiteLLM)
+
+**职责**：
+- 统一的多 LLM 提供商调用接口
+- 免费模型支持 (OpenRouter, Groq, Cerebras)
+- 自动故障转移和备用提供商切换
+- 健康检查和速率限制
+- 成本追踪
+
+**核心文件**：
+- `server/services/llm/index.js` - LLM 网关
+- `server/services/llm/providers/base.js` - Provider 基类
+- `server/services/llm/providers/openrouter.js` - OpenRouter 适配器
+- `server/services/llm/providers/groq.js` - Groq 适配器
+- `server/services/llm/providers/cerebras.js` - Cerebras 适配器
+- `server/routes/llm.js` - LLM API 路由
+
+**支持的免费模型**：
+| 提供商 | 模型 | 限制 |
+|--------|------|------|
+| OpenRouter | DeepSeek R1, Qwen3, Mistral Small | 20 req/min |
+| Groq | Llama 3.1, Mixtral | 30 req/min |
+| Cerebras | Llama 3.1, Qwen3 | 30 req/min |
+
 ### 3. Prompt 模板管理模块
 
 **职责**：
