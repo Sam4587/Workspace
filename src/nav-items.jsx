@@ -1,9 +1,10 @@
-import { HomeIcon, TrendingUp, FileText, Send, BarChart3 } from "lucide-react";
+import { HomeIcon, TrendingUp, FileText, Send, BarChart3, Video } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import HotTopics from "./pages/HotTopics.jsx";
 import ContentGeneration from "./pages/ContentGeneration.jsx";
 import Publishing from "./pages/Publishing.jsx";
 import Analytics from "./pages/Analytics.jsx";
+import VideoGeneration from "./pages/VideoGeneration.jsx";
 
 /**
  * Central place for defining the navigation items. Used for navigation components and routing.
@@ -38,5 +39,11 @@ export const navItems = [
     to: "/analytics",
     icon: <BarChart3 className="h-4 w-4" />,
     page: <Analytics />,
+  },
+  {
+    title: "视频生成",
+    to: "/video-generation",
+    icon: <Video className="h-4 w-4" />,
+    page: <VideoGeneration />,
   },
 ];
