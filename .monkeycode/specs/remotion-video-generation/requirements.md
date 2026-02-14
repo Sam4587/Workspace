@@ -7,9 +7,26 @@
 ## Glossary
 
 - **Remotion**: 一个使用 React 构建视频的框架，将视频视为代码组件
-- **视频Composition**: 视频的合成场景，包含多个图层和元素
+- **视频 Composition**: 视频的合成场景，定义了视频的持续时间、帧率、尺寸以及渲染每一帧的 React 组件
 - **静态资产**: 视频中使用的图片、字体、音视频文件
 - **渲染队列**: 待渲染的视频任务列表
+- **Composition 组件**: 注册视频的基本单元，接收 props 并根据当前帧进行渲染
+- **Hooks**: 提供对动画系统的访问，如 useCurrentFrame()、useVideoConfig()
+- **动画工具**: spring() 创建物理动画，interpolate() 实现平滑过渡
+- **布局组件**: AbsoluteFill 填充整个视频帧，Sequence 实现时间偏移
+
+## Comparison with Traditional Video Tools
+
+| Feature | Traditional Video Tools | Remotion |
+|---------|------------------------|----------|
+| 开发方式 | 基于时间轴的手动编辑 | 声明式、基于代码的组合 |
+| 可复用性 | 有限的复制/粘贴 | 完全可复用的 React 组件 |
+| 自动化 | 有限的脚本功能 | 完整的编程语言访问权限 |
+| 预览 | 有延迟的渲染预览 | 即时的 Fast Refresh 预览 |
+| 协作 | 二进制文件冲突 | 使用 Git 进行版本控制 |
+| 可扩展性 | 每个视频需手动工作 | 自动化批量渲染 |
+| 学习曲线 | 特定工具的 UI 知识 | React/JavaScript 技能 |
+| 扩展性 | 插件生态系统 | npm 生态系统集成 |
 
 ## Requirements
 
