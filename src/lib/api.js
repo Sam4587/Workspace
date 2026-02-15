@@ -2,7 +2,8 @@ import axios from 'axios';
 import { mockHotTopics, mockVideoTemplates, mockTrendData, mockCrossPlatformData } from './mockData';
 
 const USE_MOCK = false;
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 优先使用环境变量，否则使用相对路径 /api（通过 Vite proxy 代理到后端）
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 class ApiClient {
   constructor() {

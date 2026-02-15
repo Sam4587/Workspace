@@ -284,6 +284,98 @@ app.get('/api/hot-topics/trends/cross-platform/:title', (req, res) => {
   });
 });
 
+// ========== NewsNow 数据源 API ==========
+
+// NewsNow 支持的数据源列表
+const NEWSNOW_SOURCES = [
+  { id: 'weibo', name: '微博热搜', enabled: true },
+  { id: 'zhihu', name: '知乎热榜', enabled: true },
+  { id: 'toutiao', name: '今日头条', enabled: true },
+  { id: 'baidu', name: '百度热搜', enabled: true },
+  { id: 'douyin', name: '抖音热点', enabled: true },
+  { id: 'bilibili', name: 'B站热门', enabled: true }
+];
+
+app.get('/api/hot-topics/newsnow/sources', (req, res) => {
+  res.json({
+    success: true,
+    data: NEWSNOW_SOURCES
+  });
+});
+
+app.post('/api/hot-topics/newsnow/fetch', async (req, res) => {
+  try {
+    const { sources, maxItems = 20 } = req.body;
+
+    // 使用已缓存的热点数据
+    let topics = cachedTopics;
+
+    // 如果指定了数据源，过滤数据
+    if (sources && Array.isArray(sources) && sources.length > 0) {
+      const sourceNames = sources.map(s => {
+        const source = NEWSNOW_SOURCES.find(ns => ns.id === s);
+        return source ? source.name : s;
+      });
+      topics = cachedTopics.filter(t => sourceNames.includes(t.source));
+    }
+
+    // 限制返回数量
+    topics = topics.slice(0, maxItems);
+
+    res.json({
+      success: true,
+      data: {
+        fetched: topics.length,
+        saved: topics.length,
+        topics
+      }
+    });
+  } catch (error) {
+    console.error('获取 NewsNow 数据失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取 NewsNow 数据失败'
+    });
+  }
+});
+
+app.get('/api/hot-topics/newsnow/fetch/:sourceId', (req, res) => {
+  const { sourceId } = req.params;
+  const { maxItems = 20 } = req.query;
+
+  const source = NEWSNOW_SOURCES.find(s => s.id === sourceId);
+  if (!source) {
+    return res.status(400).json({
+      success: false,
+      message: `不支持的数据源: ${sourceId}`,
+      availableSources: NEWSNOW_SOURCES.map(s => s.id)
+    });
+  }
+
+  // 过滤指定数据源的热点
+  const topics = cachedTopics
+    .filter(t => t.source === source.name)
+    .slice(0, parseInt(maxItems));
+
+  res.json({
+    success: true,
+    data: {
+      source: sourceId,
+      sourceName: source.name,
+      count: topics.length,
+      topics
+    }
+  });
+});
+
+// 数据源列表 API（另一种路径）
+app.get('/api/hot-topics/sources', (req, res) => {
+  res.json({
+    success: true,
+    data: NEWSNOW_SOURCES
+  });
+});
+
 app.get('/api/content', (req, res) => {
   res.json({
     success: true,
@@ -590,6 +682,171 @@ app.get('/api/content/publish/status', (req, res) => {
       douyin: false,
       toutiao: true
     }
+  });
+});
+
+// ========== 认证相关 API ==========
+
+app.post('/api/auth/login', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      token: 'mock_token_' + Date.now(),
+      user: { id: '1', username: 'admin' }
+    }
+  });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      id: '1',
+      username: 'admin',
+      role: 'admin'
+    }
+  });
+});
+
+// ========== 数据分析相关 API ==========
+
+app.get('/api/analytics/views-trend', (req, res) => {
+  const { days = 7 } = req.query;
+  const data = [];
+  for (let i = 0; i < parseInt(days); i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    data.push({
+      date: date.toISOString().split('T')[0],
+      views: Math.floor(Math.random() * 5000) + 1000,
+      likes: Math.floor(Math.random() * 500) + 100,
+      comments: Math.floor(Math.random() * 100) + 20
+    });
+  }
+  res.json({ success: true, data: data.reverse() });
+});
+
+app.get('/api/analytics/content-types', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { type: '文章', count: 45, percentage: 45 },
+      { type: '微头条', count: 30, percentage: 30 },
+      { type: '视频', count: 15, percentage: 15 },
+      { type: '音频', count: 10, percentage: 10 }
+    ]
+  });
+});
+
+app.get('/api/analytics/top-content', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { id: '1', title: 'AI技术突破：GPT-5即将发布', views: 12500, likes: 890, comments: 234 },
+      { id: '2', title: '春节档票房破百亿', views: 9800, likes: 654, comments: 187 },
+      { id: '3', title: '新能源汽车销量创新高', views: 7600, likes: 432, comments: 156 }
+    ]
+  });
+});
+
+app.get('/api/analytics/recommendation-insights', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      coldStartPerformance: 85,
+      userEngagement: 72,
+      contentQuality: 88,
+      recommendationScore: 82,
+      insights: [
+        '内容质量评分较高，继续保持',
+        '建议增加互动引导，提升用户参与度',
+        '新内容冷启动表现良好'
+      ]
+    }
+  });
+});
+
+app.get('/api/analytics/optimization-suggestions', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      titleOptimization: ['建议标题控制在20-30字', '加入数字增加点击率'],
+      contentOptimization: ['增加分段，提升可读性', '适当添加图片或视频'],
+      timingOptimization: ['建议在18:00-22:00发布', '周末发布效果更佳'],
+      audienceOptimization: ['关注科技领域用户', '针对年轻群体优化内容']
+    }
+  });
+});
+
+// ========== 发布队列 API ==========
+
+app.get('/api/publish/queue', (req, res) => {
+  res.json({
+    success: true,
+    data: [],
+    pagination: {
+      page: 1,
+      limit: 20,
+      total: 0,
+      pages: 1
+    }
+  });
+});
+
+app.post('/api/publish/toutiao', (req, res) => {
+  res.json({
+    success: true,
+    message: '发布任务已提交',
+    data: {
+      publishId: 'pub_' + Date.now()
+    }
+  });
+});
+
+// ========== 内容生成相关 API ==========
+
+app.post('/api/content/generate', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      id: 'content_' + Date.now(),
+      title: '生成的文章标题',
+      content: '这是生成的内容...',
+      status: 'draft',
+      createdAt: new Date().toISOString()
+    }
+  });
+});
+
+app.get('/api/content/:id', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      id: req.params.id,
+      title: '示例内容',
+      content: '这是内容详情...',
+      type: 'article',
+      status: 'draft',
+      createdAt: new Date().toISOString()
+    }
+  });
+});
+
+app.put('/api/content/:id', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      id: req.params.id,
+      ...req.body,
+      updatedAt: new Date().toISOString()
+    }
+  });
+});
+
+app.delete('/api/content/:id', (req, res) => {
+  res.json({
+    success: true,
+    message: '内容已删除'
   });
 });
 

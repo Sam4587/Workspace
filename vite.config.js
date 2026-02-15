@@ -42,13 +42,20 @@ async function loadPlugins() {
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
   const plugins = await loadPlugins();
-  
+
   return {
     server: {
       host: '::',
       port: '8080',
       hmr: {
         overlay: false,
+      },
+      allowedHosts: ['.monkeycode-ai.online'],
+      proxy: {
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+        },
       },
     },
     plugins,
