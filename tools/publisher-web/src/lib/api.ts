@@ -186,3 +186,134 @@ export async function generateHotTopicsBrief(topics: HotTopic[], maxLength = 300
   })
   return response.json()
 }
+
+// =====================================================
+// 视频下载 API
+// =====================================================
+
+const VIDEO_API_BASE = '/api/video'
+const TRANSCRIPTION_API_BASE = '/api/transcription'
+
+// 视频信息类型
+export interface VideoInfo {
+  videoId: string
+  platform: string
+  title: string
+  author: string
+  duration: number
+  cover: string
+  localPath: string
+  fileSize: number
+  status: 'downloaded' | 'uploaded' | 'transcribing' | 'transcribed'
+  transcription?: TranscriptResult
+  createdAt: string
+}
+
+// 转录结果类型
+export interface TranscriptResult {
+  success: boolean
+  engine: string
+  duration: number
+  language: string
+  text: string
+  segments: TranscriptSegment[]
+  keywords: string[]
+  metadata: {
+    modelSize?: string
+    processingTime: number
+  }
+}
+
+// 转录片段
+export interface TranscriptSegment {
+  index: number
+  start: number
+  end: number
+  text: string
+  confidence: number
+}
+
+// 转录任务
+export interface TranscriptionTask {
+  taskId: string
+  videoId: string
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  progress: number
+  result: TranscriptResult | null
+  error: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+// 下载视频
+export async function downloadVideo(url: string, removeWatermark = false): Promise<{ success: boolean; data?: { videoId: string; status: string }; message?: string }> {
+  const response = await fetch(`${VIDEO_API_BASE}/download`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, removeWatermark }),
+  })
+  return response.json()
+}
+
+// 获取视频状态
+export async function getVideoStatus(videoId: string): Promise<{ success: boolean; data?: VideoInfo; message?: string }> {
+  const response = await fetch(`${VIDEO_API_BASE}/download/${videoId}/status`)
+  return response.json()
+}
+
+// 获取视频列表
+export async function getVideoList(params?: { platform?: string; status?: string; page?: number; pageSize?: number }): Promise<{ success: boolean; data?: { total: number; data: VideoInfo[] }; message?: string }> {
+  const query = new URLSearchParams()
+  if (params?.platform) query.set('platform', params.platform)
+  if (params?.status) query.set('status', params.status)
+  if (params?.page) query.set('page', params.page.toString())
+  if (params?.pageSize) query.set('pageSize', params.pageSize.toString())
+
+  const response = await fetch(`${VIDEO_API_BASE}/download/list?${query}`)
+  return response.json()
+}
+
+// 删除视频
+export async function deleteVideo(videoId: string): Promise<{ success: boolean; message?: string }> {
+  const response = await fetch(`${VIDEO_API_BASE}/download/${videoId}`, { method: 'DELETE' })
+  return response.json()
+}
+
+// 识别视频平台
+export async function identifyVideoPlatform(url: string): Promise<{ success: boolean; data?: { platform: string; videoId?: string }; message?: string }> {
+  const response = await fetch(`${VIDEO_API_BASE}/metadata`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  })
+  return response.json()
+}
+
+// 提交转录任务
+export async function submitTranscription(videoId: string, engine?: string): Promise<{ success: boolean; data?: { taskId: string; status: string }; message?: string }> {
+  const response = await fetch(`${TRANSCRIPTION_API_BASE}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ videoId, engine }),
+  })
+  return response.json()
+}
+
+// 获取转录任务状态
+export async function getTranscriptionTask(taskId: string): Promise<{ success: boolean; data?: TranscriptionTask; message?: string }> {
+  const response = await fetch(`${TRANSCRIPTION_API_BASE}/${taskId}`)
+  return response.json()
+}
+
+// 获取视频的转录结果
+export async function getVideoTranscription(videoId: string): Promise<{ success: boolean; data?: { status: string; transcription?: TranscriptResult }; message?: string }> {
+  const response = await fetch(`${TRANSCRIPTION_API_BASE}/video/${videoId}`)
+  return response.json()
+}
+
+// 获取可用转录引擎
+export async function getTranscriptionEngines(): Promise<{ success: boolean; data?: { name: string; enabled: boolean }[] }> {
+  const response = await fetch(`${TRANSCRIPTION_API_BASE}/engines/list`)
+  return response.json()
+}
+

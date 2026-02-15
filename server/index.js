@@ -100,11 +100,12 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // 路由
 app.use('/api/hot-topics', require('./routes/hotTopics'));
-app.use('/api/content', require('./routes/content'));
+app.use('/api/content', require('./routes/contentRewrite'));
 app.use('/api/publish', require('./routes/publish'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/video', require('./routes/video'));
+app.use('/api/transcription', require('./routes/transcription'));
 app.use('/api/llm', require('./routes/llm'));
 
 // 404处理

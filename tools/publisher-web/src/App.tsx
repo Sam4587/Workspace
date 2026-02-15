@@ -6,6 +6,7 @@ import Accounts from "./pages/Accounts"
 import Publish from "./pages/Publish"
 import History from "./pages/History"
 import HotTopics from "./pages/HotTopics"
+import VideoTranscription from "./pages/VideoTranscription"
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/publish" element={<Publish />} />
             <Route path="/history" element={<History />} />
             <Route path="/hot-topics" element={<HotTopics />} />
+            <Route path="/video-transcription" element={<VideoTranscription />} />
           </Routes>
         </div>
       </Router>
