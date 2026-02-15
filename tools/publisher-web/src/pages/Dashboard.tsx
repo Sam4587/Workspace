@@ -26,10 +26,11 @@ export default function Dashboard() {
       try {
         const response = await getPlatforms()
         if (response.success && response.data) {
-          setPlatforms(response.data as Platform[])
+          const platformList = response.data.platforms as Platform[]
+          setPlatforms(platformList)
 
           // 检查每个平台的登录状态
-          for (const platform of response.data as Platform[]) {
+          for (const platform of platformList) {
             const statusRes = await checkLogin(platform)
             if (statusRes.success && statusRes.data) {
               setAccountStatuses((prev) => ({

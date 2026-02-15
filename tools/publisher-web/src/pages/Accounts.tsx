@@ -33,8 +33,9 @@ export default function Accounts() {
       try {
         const response = await getPlatforms()
         if (response.success && response.data) {
-          setPlatforms(response.data as Platform[])
-          await checkAllStatuses(response.data as Platform[])
+          const platformList = response.data.platforms as Platform[]
+          setPlatforms(platformList)
+          await checkAllStatuses(platformList)
         }
       } catch (error) {
         console.error("获取数据失败:", error)

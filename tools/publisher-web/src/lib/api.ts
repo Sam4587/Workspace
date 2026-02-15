@@ -2,6 +2,12 @@ import type { Platform, PlatformInfo, LoginResult, PublishResult, Task, AccountS
 
 const API_BASE = '/api/v1'
 
+// 平台列表响应类型
+interface PlatformsResponse {
+  count: number
+  platforms: string[]
+}
+
 // 通用请求方法
 async function request<T>(url: string, options?: RequestInit): Promise<APIResponse<T>> {
   const response = await fetch(url, {
@@ -17,8 +23,8 @@ async function request<T>(url: string, options?: RequestInit): Promise<APIRespon
 }
 
 // 获取平台列表
-export async function getPlatforms(): Promise<APIResponse<string[]>> {
-  return request<string[]>(`${API_BASE}/platforms`)
+export async function getPlatforms(): Promise<APIResponse<PlatformsResponse>> {
+  return request<PlatformsResponse>(`${API_BASE}/platforms`)
 }
 
 // 获取平台信息

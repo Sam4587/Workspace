@@ -6,8 +6,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
-import { getPlatforms, checkLogin, publishAsync, getPlatformInfo } from "@/lib/api"
-import type { Platform, PlatformInfo, AccountStatus } from "@/types/api"
+import { getPlatforms, checkLogin, publishAsync } from "@/lib/api"
+import type { Platform, AccountStatus } from "@/types/api"
 
 const platformNames: Record<Platform, string> = {
   douyin: "抖音",
@@ -15,14 +15,16 @@ const platformNames: Record<Platform, string> = {
   xiaohongshu: "小红书",
 }
 
+// 默认平台限制
+const platformLimits: Record<Platform, { title_max_length: number; body_max_length: number; max_images: number }> = {
+  douyin: { title_max_length: 30, body_max_length: 2000, max_images: 12 },
+  toutiao: { title_max_length: 30, body_max_length: 2000, max_images: 9 },
+  xiaohongshu: { title_max_length: 20, body_max_length: 1000, max_images: 18 },
+}
+
 export default function Publish() {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const [accountStatuses, setAccountStatuses] = useState<Record<Platform, AccountStatus | null>>({
-    douyin: null,
-    toutiao: null,
-    xiaohongshu: null,
-  })
-  const [platformInfos, setPlatformInfos] = useState<Record<Platform, PlatformInfo | null>>({
     douyin: null,
     toutiao: null,
     xiaohongshu: null,
@@ -37,7 +39,7 @@ export default function Publish() {
   const [video, setVideo] = useState("")
   const [tags, setTags] = useState("")
 
-  const [loading, setLoading] = useState(true)
+  const [_loading, _setLoading] = useState(true)
   const [publishing, setPublishing] = useState(false)
 
   useEffect(() => {
@@ -45,43 +47,29 @@ export default function Publish() {
       try {
         const response = await getPlatforms()
         if (response.success && response.data) {
-          const platforms = response.data as Platform[]
-          setPlatforms(platforms)
+          const platformList = response.data.platforms as Platform[]
+          setPlatforms(platformList)
 
-          // 检查登录状态和获取平台信息
-          for (const platform of platforms) {
-            const [statusRes, infoRes] = await Promise.all([
-              checkLogin(platform),
-              getPlatformInfo(platform),
-            ])
-
+          // 检查登录状态
+          for (const platform of platformList) {
+            const statusRes = await checkLogin(platform)
             if (statusRes.success && statusRes.data) {
               setAccountStatuses((prev) => ({
                 ...prev,
                 [platform]: statusRes.data!,
               }))
             }
-
-            if (infoRes.success && infoRes.data) {
-              setPlatformInfos((prev) => ({
-                ...prev,
-                [platform]: infoRes.data!,
-              }))
-            }
           }
 
-          // 默认选择第一个已登录的平台
-          const loggedInPlatform = platforms.find((p) => accountStatuses[p]?.logged_in)
-          if (loggedInPlatform) {
-            setSelectedPlatform(loggedInPlatform)
-          } else if (platforms.length > 0) {
-            setSelectedPlatform(platforms[0])
+          // 默认选择第一个平台
+          if (platformList.length > 0) {
+            setSelectedPlatform(platformList[0])
           }
         }
       } catch (error) {
         console.error("获取数据失败:", error)
       } finally {
-        setLoading(false)
+        _setLoading(false)
       }
     }
 
@@ -148,7 +136,7 @@ export default function Publish() {
     }
   }
 
-  const currentInfo = selectedPlatform ? platformInfos[selectedPlatform] : null
+  const currentLimits = selectedPlatform ? platformLimits[selectedPlatform] : null
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -191,10 +179,10 @@ export default function Publish() {
           <CardHeader>
             <CardTitle>发布内容</CardTitle>
             <CardDescription>
-              {currentInfo && (
+              {currentLimits && (
                 <span>
-                  标题最多 {currentInfo.limits.title_max_length} 字，正文最多{" "}
-                  {currentInfo.limits.body_max_length} 字
+                  标题最多 {currentLimits.title_max_length} 字，正文最多{" "}
+                  {currentLimits.body_max_length} 字
                 </span>
               )}
             </CardDescription>
@@ -225,7 +213,7 @@ export default function Publish() {
                     }}
                   />
                   <p className="text-sm text-muted-foreground mt-1">
-                    {currentInfo && `最多上传 ${currentInfo.limits.max_images} 张图片`}
+                    {currentLimits && `最多上传 ${currentLimits.max_images} 张图片`}
                   </p>
                 </div>
               </TabsContent>
@@ -259,10 +247,10 @@ export default function Publish() {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="请输入标题"
                   className="mt-1"
-                  maxLength={currentInfo?.limits.title_max_length}
+                  maxLength={currentLimits?.title_max_length}
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  {title.length} / {currentInfo?.limits.title_max_length || 30}
+                  {title.length} / {currentLimits?.title_max_length || 30}
                 </p>
               </div>
 
@@ -274,10 +262,10 @@ export default function Publish() {
                   onChange={(e) => setBody(e.target.value)}
                   placeholder="请输入正文内容"
                   className="mt-1 min-h-32"
-                  maxLength={currentInfo?.limits.body_max_length}
+                  maxLength={currentLimits?.body_max_length}
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  {body.length} / {currentInfo?.limits.body_max_length || 2000}
+                  {body.length} / {currentLimits?.body_max_length || 2000}
                 </p>
               </div>
 
@@ -293,7 +281,7 @@ export default function Publish() {
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button onClick={handlePublish} disabled={publishing || loading}>
+                <Button onClick={handlePublish} disabled={publishing || _loading}>
                   {publishing ? "发布中..." : "立即发布"}
                 </Button>
                 <Button variant="outline" disabled={publishing}>
