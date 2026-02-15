@@ -8,6 +8,7 @@ const WeiboFetcher = require('./WeiboFetcher');
 const ToutiaoFetcher = require('./ToutiaoFetcher');
 const ZhihuFetcher = require('./ZhihuFetcher');
 const RSSFetcher = require('./RSSFetcher');
+const NewsNowFetcher = require('./NewsNowFetcher');
 const { FetcherManager, fetcherManager } = require('./FetcherManager');
 
 module.exports = {
@@ -19,6 +20,7 @@ module.exports = {
   ToutiaoFetcher,
   ZhihuFetcher,
   RSSFetcher,
+  NewsNowFetcher,
 
   // 管理器
   FetcherManager,

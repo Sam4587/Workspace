@@ -84,3 +84,86 @@ export interface APIResponse<T = unknown> {
   error_code?: string
   timestamp: number
 }
+
+// =====================================================
+// 热点监控相关类型
+// =====================================================
+
+// 热点话题分类
+export type HotTopicCategory = '娱乐' | '科技' | '财经' | '体育' | '社会' | '国际' | '其他'
+
+// 热点趋势
+export type HotTopicTrend = 'up' | 'down' | 'stable' | 'new' | 'hot'
+
+// 热点话题
+export interface HotTopic {
+  _id: string
+  title: string
+  description?: string
+  category: HotTopicCategory
+  heat: number
+  trend: HotTopicTrend
+  source: string
+  sourceId?: string
+  sourceUrl?: string
+  originalUrl?: string
+  keywords?: string[]
+  suitability?: number
+  publishedAt?: string
+  createdAt?: string
+  updatedAt?: string
+  extra?: {
+    hotValue?: number | null
+    originTitle?: string | null
+  }
+}
+
+// 数据源
+export interface HotSource {
+  id: string
+  name: string
+  enabled: boolean
+}
+
+// 分页信息
+export interface Pagination {
+  page: number
+  limit: number
+  total: number
+  pages: number
+}
+
+// 热点列表响应
+export interface HotTopicsResponse {
+  success: boolean
+  data: HotTopic[]
+  pagination: Pagination
+}
+
+// 趋势数据点
+export interface TrendDataPoint {
+  date: string
+  heat: number
+  rank?: number
+}
+
+// 跨平台分析结果
+export interface CrossPlatformAnalysis {
+  title: string
+  platforms: {
+    name: string
+    heat: number
+    rank: number
+    url?: string
+  }[]
+  totalHeat: number
+  trend: HotTopicTrend
+}
+
+// AI 分析结果
+export interface AIAnalysisResult {
+  summary: string
+  keyPoints: string[]
+  sentiment: 'positive' | 'negative' | 'neutral'
+  recommendations?: string[]
+}
