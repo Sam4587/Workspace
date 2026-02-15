@@ -1,0 +1,20 @@
+package errors
+
+var (
+	ErrNotLoggedIn     = errors.New("未登录")
+	ErrCookieExpired   = errors.New("Cookie 已过期")
+	ErrUploadFailed    = errors.New("上传失败")
+	ErrPublishFailed   = errors.New("发布失败")
+	ErrInvalidImage    = errors.New("无效的图片")
+	ErrInvalidVideo    = errors.New("无效的视频")
+	ErrVideoTooLarge   = errors.New("视频过大")
+	ErrTitleTooLong    = errors.New("标题过长")
+	ErrContentTooLong  = errors.New("正文过长")
+	ErrNetworkError    = errors.New("网络错误")
+	ErrRateLimited     = errors.New("操作过于频繁")
+	ErrAntiSpider      = errors.New("触发风控")
+	ErrElementNotFound = errors.New("元素未找到")
+	ErrTimeout         = errors.New("操作超时")
+	ErrInvalidPlatform = errors.New("无效的平台")
+	ErrLoginFailed     = errors.New("登录失败")
+)
