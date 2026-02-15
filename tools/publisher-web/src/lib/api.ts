@@ -123,13 +123,13 @@ export async function getHotTopic(id: string): Promise<{ success: boolean; data?
 
 // 获取数据源列表
 export async function getHotSources(): Promise<{ success: boolean; data: HotSource[] }> {
-  const response = await fetch(`${HOT_API_BASE}/sources`)
+  const response = await fetch(`${HOT_API_BASE}/newsnow/sources`)
   return response.json()
 }
 
 // 从 NewsNow 抓取热点
 export async function fetchHotTopics(sources?: string[], maxItems = 20): Promise<{ success: boolean; data: { fetched: number; saved: number; topics: HotTopic[] } }> {
-  const response = await fetch(`${HOT_API_BASE}/fetch`, {
+  const response = await fetch(`${HOT_API_BASE}/newsnow/fetch`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sources, maxItems }),
@@ -139,7 +139,7 @@ export async function fetchHotTopics(sources?: string[], maxItems = 20): Promise
 
 // 从指定数据源抓取热点
 export async function fetchHotTopicsFromSource(sourceId: string, maxItems = 20): Promise<{ success: boolean; data: { source: string; sourceName: string; count: number; topics: HotTopic[] } }> {
-  const response = await fetch(`${HOT_API_BASE}/fetch/${sourceId}?maxItems=${maxItems}`)
+  const response = await fetch(`${HOT_API_BASE}/newsnow/fetch/${sourceId}?maxItems=${maxItems}`)
   return response.json()
 }
 

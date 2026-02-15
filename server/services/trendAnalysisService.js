@@ -208,13 +208,12 @@ class TrendAnalysisService {
       {
         $group: {
           _id: null,
-          newTopics: { $sum: { $cond: { if: { $eq: ['$isNew', true] } } } },
-          hotTopics: { $sum: { $cond: { if: { $eq: ['$trend', 'hot'] } } } },
+          newTopics: { $sum: { $cond: { if: { $eq: ['$isNew', true] }, then: 1, else: 0 } } },
+          hotTopics: { $sum: { $cond: { if: { $eq: ['$trend', 'hot'] }, then: 1, else: 0 } } },
           totalSnapshots: { $sum: 1 },
           avgHeat: { $avg: '$heat' }
         }
-      }
-    },
+      },
       {
         $project: {
           _id: 0,

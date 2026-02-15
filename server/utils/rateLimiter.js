@@ -1,44 +1,36 @@
-const RateLimiterRedis = require('rate-limiter-flexible');
-const Redis = require('redis');
+const { RateLimiterMemory } = require('rate-limiter-flexible');
 
 class RateLimiter {
   constructor() {
-    this.redisClient = Redis.createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379'
-    });
-    
-    // API请求限流
-    this.apiLimiter = new RateLimiterRedis({
-      storeClient: this.redisClient,
+    // API请求限流 (使用内存存储，无需 Redis)
+    this.apiLimiter = new RateLimiterMemory({
       keyPrefix: 'api_limit',
       points: 100, // 100次请求
       duration: 60, // 每分钟
       blockDuration: 60 * 5 // 超出限制后封禁5分钟
     });
-    
+
     // 热点抓取限流
-    this.scrapeLimiter = new RateLimiterRedis({
-      storeClient: this.redisClient,
+    this.scrapeLimiter = new RateLimiterMemory({
       keyPrefix: 'scrape_limit',
       points: 30, // 30次请求
       duration: 60, // 每分钟
       blockDuration: 60 * 10 // 超出限制后封禁10分钟
     });
-    
+
     // IP防封策略
-    this.ipLimiter = new RateLimiterRedis({
-      storeClient: this.redisClient,
+    this.ipLimiter = new RateLimiterMemory({
       keyPrefix: 'ip_limit',
       points: 1000, // 1000次请求
       duration: 3600, // 每小时
       blockDuration: 3600 * 2 // 超出限制后封禁2小时
     });
   }
-  
+
   // API请求限流中间件
   async apiLimit(req, res, next) {
     try {
-      const key = req.ip;
+      const key = req.ip || 'unknown';
       await this.apiLimiter.consume(key);
       next();
     } catch (rejRes) {
@@ -49,7 +41,7 @@ class RateLimiter {
       });
     }
   }
-  
+
   // 热点抓取限流
   async scrapeLimit(source) {
     try {
@@ -59,7 +51,7 @@ class RateLimiter {
       throw new Error(`抓取频率过高，请等待 ${Math.round(rejRes.msBeforeNext / 1000)} 秒后重试`);
     }
   }
-  
+
   // IP防封检查
   async checkIP(ip) {
     try {
@@ -69,22 +61,29 @@ class RateLimiter {
       throw new Error(`IP访问频率过高，已被临时封禁`);
     }
   }
-  
+
   // 获取限流状态
   async getLimitStatus(key) {
-    const apiStatus = await this.apiLimiter.get(key);
-    const ipStatus = await this.ipLimiter.get(key);
-    
-    return {
-      api: {
-        remaining: apiStatus?.remainingPoints || 0,
-        resetTime: apiStatus?.msBeforeNext || 0
-      },
-      ip: {
-        remaining: ipStatus?.remainingPoints || 0,
-        resetTime: ipStatus?.msBeforeNext || 0
-      }
-    };
+    try {
+      const apiStatus = await this.apiLimiter.get(key);
+      const ipStatus = await this.ipLimiter.get(key);
+
+      return {
+        api: {
+          remaining: apiStatus?.remainingPoints || 0,
+          resetTime: apiStatus?.msBeforeNext || 0
+        },
+        ip: {
+          remaining: ipStatus?.remainingPoints || 0,
+          resetTime: ipStatus?.msBeforeNext || 0
+        }
+      };
+    } catch (error) {
+      return {
+        api: { remaining: 100, resetTime: 0 },
+        ip: { remaining: 1000, resetTime: 0 }
+      };
+    }
   }
 }
 

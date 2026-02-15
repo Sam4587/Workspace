@@ -10,7 +10,7 @@ const path = require('path');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 // 静态文件服务
 app.use('/videos', express.static(path.join(__dirname, '../public/videos')));
@@ -50,8 +50,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // 请求日志
 app.use(requestLogger);
 
-// 限流中间件
-app.use(rateLimiter.apiLimit);
+// 限流中间件（暂时禁用以便测试）
+// app.use(rateLimiter.apiLimit);
 
 // 健康检查端点
 app.get('/api/health', (req, res) => {
@@ -70,33 +70,38 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 数据库连接
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(async () => {
-  console.log('MongoDB 连接成功');
-  // 初始化 Prompt 管理服务
-  require('./services/promptManagementService').initialize();
+// 数据库连接（可选）
+const MONGODB_URI = process.env.MONGODB_URI;
+if (MONGODB_URI) {
+  mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }).then(async () => {
+    console.log('MongoDB 连接成功');
+    // 初始化 Prompt 管理服务
+    require('./services/promptManagementService').initialize();
 
-  // 初始化存储管理器
-  try {
-    await storageManager.initialize();
-    console.log('StorageManager 初始化成功');
-  } catch (error) {
-    console.warn('StorageManager 初始化失败:', error.message);
-  }
+    // 初始化存储管理器
+    try {
+      await storageManager.initialize();
+      console.log('StorageManager 初始化成功');
+    } catch (error) {
+      console.warn('StorageManager 初始化失败:', error.message);
+    }
 
-  // 初始化 FetcherManager 默认数据源
-  try {
-    fetcherManager.initializeDefaultSources();
-    console.log('FetcherManager 初始化成功，已注册数据源:', Array.from(fetcherManager.listSources()));
-  } catch (error) {
-    console.warn('FetcherManager 初始化失败:', error.message);
-  }
-}).catch((error) => {
-  console.error('MongoDB 连接失败:', error);
-});
+    // 初始化 FetcherManager 默认数据源
+    try {
+      fetcherManager.initializeDefaultSources();
+      console.log('FetcherManager 初始化成功，已注册数据源:', Array.from(fetcherManager.listSources()));
+    } catch (error) {
+      console.warn('FetcherManager 初始化失败:', error.message);
+    }
+  }).catch((error) => {
+    console.error('MongoDB 连接失败:', error);
+  });
+} else {
+  console.log('未配置 MONGODB_URI，跳过数据库连接');
+}
 
 // 路由
 app.use('/api/hot-topics', require('./routes/hotTopics'));
@@ -156,6 +161,11 @@ cron.schedule('0 * * * *', async () => {
   } catch (error) {
     console.error('缓存清理失败:', error);
   }
+});
+
+// 启动服务器
+app.listen(PORT, () => {
+  console.log(`服务器运行在端口 ${PORT}`);
 });
 
 module.exports = app;

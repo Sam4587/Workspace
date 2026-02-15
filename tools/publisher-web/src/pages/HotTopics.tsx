@@ -168,7 +168,24 @@ export default function HotTopics() {
     loadSources()
   }, [])
 
-  // 加载热点数据
+  // 初始加载热点数据
+  useEffect(() => {
+    async function initialLoad() {
+      setLoading(true)
+      try {
+        // 直接获取热点数据（不依赖数据库）
+        const result = await fetchHotTopics(undefined, 30)
+        if (result.success && result.data?.topics) {
+          setTopics(result.data.topics)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    initialLoad()
+  }, [])
+
+  // 加载热点数据（从数据库）
   async function loadTopics() {
     setLoading(true)
     try {
@@ -177,7 +194,7 @@ export default function HotTopics() {
         category: category === 'all' ? undefined : category,
         limit: 50,
       })
-      if (result.success && result.data) {
+      if (result.success && result.data && result.data.length > 0) {
         // 前端筛选数据源
         let filtered = result.data
         if (selectedSource !== 'all') {
@@ -220,8 +237,15 @@ export default function HotTopics() {
     setRefreshing(true)
     try {
       const sourceIds = selectedSource === 'all' ? undefined : [selectedSource]
-      await fetchHotTopics(sourceIds, 30)
-      await loadTopics()
+      const result = await fetchHotTopics(sourceIds, 30)
+      if (result.success && result.data?.topics) {
+        // 直接使用获取的数据，不依赖数据库
+        let filtered = result.data.topics
+        if (selectedSource !== 'all') {
+          filtered = result.data.topics.filter((t: HotTopic) => t.sourceId === selectedSource || t.source === selectedSource)
+        }
+        setTopics(filtered)
+      }
     } finally {
       setRefreshing(false)
     }

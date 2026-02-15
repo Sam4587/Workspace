@@ -2,6 +2,8 @@
  * NewsNow API 数据抓取器
  * 使用 NewsNow 统一 API 获取多平台热点数据
  * 参考 TrendRadar 数据源配置
+ *
+ * 当 NewsNow API 不可用时，回退到现有 fetchers
  */
 
 const axios = require('axios');
@@ -9,18 +11,23 @@ const BaseFetcher = require('./BaseFetcher');
 const { logger } = require('../utils/logger');
 const { SourceType, Source, Category, Trend } = require('../core/types');
 
+// 引入现有 fetchers 作为备用
+const WeiboFetcher = require('./WeiboFetcher');
+const ZhihuFetcher = require('./ZhihuFetcher');
+const ToutiaoFetcher = require('./ToutiaoFetcher');
+
 // NewsNow API 基础地址
 const NEWSNOW_API_BASE = 'https://newsnow.busiyi.world/api/s';
 
 // NewsNow 平台 ID 映射
 const NEWSNOW_SOURCE_MAP = {
   // 社交媒体
-  weibo: { name: '微博热搜', source: Source.WEIBO },
-  zhihu: { name: '知乎热榜', source: Source.ZHIHU },
+  weibo: { name: '微博热搜', source: Source.WEIBO, fetcher: WeiboFetcher },
+  zhihu: { name: '知乎热榜', source: Source.ZHIHU, fetcher: ZhihuFetcher },
   tieba: { name: '贴吧热议', source: Source.OTHER },
 
   // 新闻资讯
-  toutiao: { name: '今日头条', source: Source.TOUTIAO },
+  toutiao: { name: '今日头条', source: Source.TOUTIAO, fetcher: ToutiaoFetcher },
   baidu: { name: '百度热搜', source: Source.BAIDU },
   thepaper: { name: '澎湃新闻', source: Source.OTHER },
   ifeng: { name: '凤凰网', source: Source.OTHER },
@@ -83,6 +90,7 @@ class NewsNowFetcher extends BaseFetcher {
       return cached;
     }
 
+    // 首先尝试 NewsNow API
     try {
       const response = await this.fetchWithRetry(async () => {
         return await this.axiosInstance.get('', {
@@ -90,9 +98,16 @@ class NewsNowFetcher extends BaseFetcher {
         });
       });
 
+      // 检查是否返回有效 JSON 数据（而非被 Cloudflare 拦截的 HTML）
+      const contentType = response.headers?.['content-type'] || '';
+      if (!contentType.includes('application/json') || typeof response.data === 'string') {
+        logger.warn(`[NewsNow] 数据源 ${sourceId} 返回非 JSON 响应，可能被 Cloudflare 拦截`);
+        throw new Error('Cloudflare block detected');
+      }
+
       if (!response.data || response.data.code !== 200) {
         logger.warn(`[NewsNow] 数据源 ${sourceId} 返回异常: ${response.data?.message || '未知错误'}`);
-        return [];
+        throw new Error(response.data?.message || 'API error');
       }
 
       const items = response.data.data || [];
@@ -101,7 +116,45 @@ class NewsNowFetcher extends BaseFetcher {
 
       return items;
     } catch (error) {
-      logger.error(`[NewsNow] 数据源 ${sourceId} 获取失败: ${error.message}`);
+      logger.warn(`[NewsNow] 数据源 ${sourceId} API 获取失败: ${error.message}，尝试使用备用 fetcher`);
+
+      // 回退到现有 fetcher
+      return await this.fetchFromFallback(sourceId);
+    }
+  }
+
+  /**
+   * 使用备用 fetcher 获取数据
+   * @param {string} sourceId - 数据源 ID
+   * @returns {Promise<Object[]>}
+   */
+  async fetchFromFallback(sourceId) {
+    const sourceInfo = NEWSNOW_SOURCE_MAP[sourceId];
+
+    if (!sourceInfo || !sourceInfo.fetcher) {
+      logger.warn(`[NewsNow] 数据源 ${sourceId} 没有可用的备用 fetcher`);
+      return [];
+    }
+
+    try {
+      const FetcherClass = sourceInfo.fetcher;
+      const fetcher = new FetcherClass();
+      const topics = await fetcher.fetch();
+
+      // 转换为 NewsNow 数据格式
+      const items = topics.map((topic, index) => ({
+        title: topic.title,
+        url: topic.sourceUrl || '',
+        hot: topic.heat,
+        pub_date: topic.publishedAt?.toISOString() || new Date().toISOString(),
+        source: sourceId,
+        sourceName: sourceInfo.name
+      }));
+
+      logger.info(`[NewsNow] 使用备用 fetcher 获取 ${sourceId} 数据: ${items.length} 条`);
+      return items;
+    } catch (error) {
+      logger.error(`[NewsNow] 备用 fetcher ${sourceId} 也失败: ${error.message}`);
       return [];
     }
   }
@@ -116,13 +169,16 @@ class NewsNowFetcher extends BaseFetcher {
   transformItem(item, sourceId, index) {
     const sourceInfo = NEWSNOW_SOURCE_MAP[sourceId] || { name: '未知来源', source: Source.OTHER };
 
+    // 优先使用数据中携带的 sourceName（来自备用 fetcher）
+    const sourceName = item.sourceName || sourceInfo.name;
+
     return {
       title: item.title?.trim() || '',
       description: item.title || '',
       category: this.categorizeTopic(item.title || ''),
       heat: this.calculateHeat(item, index),
       trend: this.getTrend(index),
-      source: sourceInfo.name,
+      source: sourceName,
       sourceId: sourceId,
       sourceUrl: item.url || '',
       originalUrl: item.url || '',

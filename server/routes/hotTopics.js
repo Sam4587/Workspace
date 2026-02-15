@@ -95,6 +95,131 @@ router.get('/', async (req, res) => {
   }
 });
 
+// =====================================================
+// NewsNow 数据源 API (必须在 /:id 之前定义)
+// =====================================================
+
+/**
+ * 获取 NewsNow 支持的数据源列表
+ */
+router.get('/newsnow/sources', async (req, res) => {
+  try {
+    const sources = newsNowFetcher.getSupportedSources();
+
+    res.json({
+      success: true,
+      data: sources
+    });
+  } catch (error) {
+    logger.error('获取数据源列表失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取数据源列表失败'
+    });
+  }
+});
+
+/**
+ * 从 NewsNow 获取热点数据
+ */
+router.post('/newsnow/fetch', async (req, res) => {
+  try {
+    const { sources, maxItems = 20 } = req.body;
+
+    // 如果指定了数据源，创建新的 fetcher 实例
+    let fetcher = newsNowFetcher;
+    if (sources && Array.isArray(sources) && sources.length > 0) {
+      const { NewsNowFetcher } = require('../fetchers/NewsNowFetcher');
+      fetcher = new NewsNowFetcher({ sourceIds: sources, maxItems });
+    }
+
+    const topics = await fetcher.fetch();
+
+    // 保存到数据库（如果连接了 MongoDB）
+    const savedTopics = [];
+    try {
+      for (const topic of topics) {
+        try {
+          const saved = await HotTopic.findOneAndUpdate(
+            { title: topic.title, source: topic.source },
+            { ...topic, updatedAt: new Date() },
+            { upsert: true, new: true }
+          );
+          savedTopics.push(saved);
+        } catch (saveError) {
+          logger.debug(`保存话题失败: ${topic.title}`, { error: saveError.message });
+        }
+      }
+    } catch (dbError) {
+      logger.warn('数据库保存失败，跳过保存', { error: dbError.message });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        fetched: topics.length,
+        saved: savedTopics.length,
+        topics: savedTopics.length > 0 ? savedTopics : topics
+      }
+    });
+  } catch (error) {
+    logger.error('获取 NewsNow 数据失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取 NewsNow 数据失败'
+    });
+  }
+});
+
+/**
+ * 从指定数据源获取热点（快捷接口）
+ */
+router.get('/newsnow/fetch/:sourceId', async (req, res) => {
+  try {
+    const { sourceId } = req.params;
+    const { maxItems = 20 } = req.query;
+
+    // 验证数据源
+    if (!NEWSNOW_SOURCE_MAP[sourceId]) {
+      return res.status(400).json({
+        success: false,
+        message: `不支持的数据源: ${sourceId}`,
+        availableSources: Object.keys(NEWSNOW_SOURCE_MAP)
+      });
+    }
+
+    const { NewsNowFetcher } = require('../fetchers/NewsNowFetcher');
+    const fetcher = new NewsNowFetcher({ sourceId, maxItems: parseInt(maxItems) });
+
+    const topics = await fetcher.fetchSource(sourceId);
+
+    res.json({
+      success: true,
+      data: {
+        source: sourceId,
+        sourceName: NEWSNOW_SOURCE_MAP[sourceId].name,
+        count: topics.length,
+        topics
+      }
+    });
+  } catch (error) {
+    logger.error('获取数据源热点失败', {
+      error: error.message,
+      sourceId: req.params.sourceId
+    });
+    res.status(500).json({
+      success: false,
+      message: '获取数据源热点失败'
+    });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
