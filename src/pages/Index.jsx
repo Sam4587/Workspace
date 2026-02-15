@@ -77,9 +77,9 @@ const Index = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">数据加载失败</h3>
-          <p className="text-gray-500">请检查网络连接或稍后重试</p>
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-card-foreground mb-2">数据加载失败</h3>
+          <p className="text-muted-foreground">请检查网络连接或稍后重试</p>
         </div>
       </div>
     );
@@ -88,8 +88,8 @@ const Index = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">系统总览</h1>
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-foreground">系统总览</h1>
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
           <span>最后更新: {new Date().toLocaleString('zh-CN')}</span>
         </div>
@@ -102,25 +102,25 @@ const Index = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">系统状态</h3>
+        <div className="bg-card rounded-lg shadow p-6 border border-border">
+          <h3 className="text-lg font-semibold text-card-foreground mb-4">系统状态</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">热点监控</span>
+              <span className="text-sm text-muted-foreground">热点监控</span>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-600">正常运行</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">AI生成服务</span>
+              <span className="text-sm text-muted-foreground">AI生成服务</span>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-600">正常运行</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">发布服务</span>
+              <span className="text-sm text-muted-foreground">发布服务</span>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-600">正常运行</span>

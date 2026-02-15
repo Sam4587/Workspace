@@ -7,11 +7,11 @@ const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="w-64 bg-white shadow-lg">
+    <div className="w-64 bg-card shadow-lg border-r border-border">
       <div className="p-6">
         <div className="flex items-center space-x-2">
-          <Bot className="h-8 w-8 text-blue-600" />
-          <h1 className="text-xl font-bold text-gray-800">AI创作系统</h1>
+          <Bot className="h-8 w-8 text-primary" />
+          <h1 className="text-xl font-bold text-card-foreground">AI创作系统</h1>
         </div>
       </div>
       
@@ -25,8 +25,8 @@ const Sidebar = () => {
               to={item.to}
               className={`flex items-center px-6 py-3 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-accent text-accent-foreground border-r-2 border-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`}
             >
               {item.icon}

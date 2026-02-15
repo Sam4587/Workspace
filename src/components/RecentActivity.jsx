@@ -117,15 +117,15 @@ const RecentActivity = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">最近活动</h3>
+      <div className="bg-card rounded-lg shadow p-6 border border-border">
+        <h3 className="text-lg font-semibold text-card-foreground mb-4">最近活动</h3>
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="animate-pulse flex items-center space-x-3">
-              <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+              <div className="h-8 w-8 bg-muted rounded-full"></div>
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-muted rounded w-1/2"></div>
               </div>
             </div>
           ))}
@@ -136,13 +136,13 @@ const RecentActivity = () => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">最近活动</h3>
+      <div className="bg-card rounded-lg shadow p-6 border border-border">
+        <h3 className="text-lg font-semibold text-card-foreground mb-4">最近活动</h3>
         <div className="text-center py-8">
-          <div className="text-red-500 mb-2">加载失败</div>
+          <div className="text-destructive mb-2">加载失败</div>
           <button 
             onClick={() => window.location.reload()}
-            className="text-blue-600 hover:text-blue-700 text-sm"
+            className="text-primary hover:text-primary/80 text-sm"
           >
             点击重试
           </button>
@@ -152,28 +152,28 @@ const RecentActivity = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">最近活动</h3>
+    <div className="bg-card rounded-lg shadow p-6 border border-border">
+      <h3 className="text-lg font-semibold text-card-foreground mb-4">最近活动</h3>
       
       <div className="space-y-4">
         {activities?.map((activity) => (
           <div key={activity.id} className="flex items-center space-x-3">
             <div className="flex-shrink-0">
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                 {getIcon(activity.type)}
               </div>
             </div>
             
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-card-foreground truncate">
                 {activity.title}
               </p>
-              <p className="text-sm text-gray-500">{activity.time}</p>
+              <p className="text-sm text-muted-foreground">{activity.time}</p>
             </div>
             
             <div className="flex items-center space-x-2">
               {getStatusIcon(activity.status)}
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 {getStatusText(activity.status)}
               </span>
             </div>
@@ -183,8 +183,8 @@ const RecentActivity = () => {
       
       {activities?.length === 0 && (
         <div className="text-center py-8">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">暂无最近活动</p>
+          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">暂无最近活动</p>
         </div>
       )}
     </div>

@@ -28,13 +28,13 @@ const HotTopicsPreview = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">热门话题</h3>
+      <div className="bg-card rounded-lg shadow p-6 border border-border">
+        <h3 className="text-lg font-semibold text-card-foreground mb-4">热门话题</h3>
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
             </div>
           ))}
         </div>
@@ -44,13 +44,13 @@ const HotTopicsPreview = () => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">热门话题</h3>
+      <div className="bg-card rounded-lg shadow p-6 border border-border">
+        <h3 className="text-lg font-semibold text-card-foreground mb-4">热门话题</h3>
         <div className="text-center py-8">
-          <div className="text-red-500 mb-2">加载失败</div>
+          <div className="text-destructive mb-2">加载失败</div>
           <button 
             onClick={() => window.location.reload()}
-            className="text-blue-600 hover:text-blue-700 text-sm"
+            className="text-primary hover:text-primary/80 text-sm"
           >
             点击重试
           </button>
@@ -60,20 +60,20 @@ const HotTopicsPreview = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-card rounded-lg shadow p-6 border border-border">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">热门话题</h3>
+        <h3 className="text-lg font-semibold text-card-foreground">热门话题</h3>
         <TrendingUp className="h-5 w-5 text-red-500" />
       </div>
       
       <div className="space-y-4">
         {hotTopics?.map((topic) => (
-          <div key={topic._id} className="border-l-4 border-red-500 pl-4 hover:bg-gray-50 transition-colors">
-            <h4 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+          <div key={topic._id} className="border-l-4 border-red-500 pl-4 hover:bg-accent transition-colors rounded-r">
+            <h4 className="text-sm font-medium text-card-foreground mb-1 line-clamp-2">
               {topic.title}
             </h4>
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span className="bg-gray-100 px-2 py-1 rounded">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="bg-muted px-2 py-1 rounded">
                 {topic.category}
               </span>
               <div className="flex items-center space-x-2">
@@ -95,10 +95,10 @@ const HotTopicsPreview = () => {
         ))}
       </div>
       
-      <div className="mt-4 pt-4 border-t">
+      <div className="mt-4 pt-4 border-t border-border">
         <Link 
           to="/hot-topics"
-          className="flex items-center justify-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
+          className="flex items-center justify-center space-x-2 text-primary hover:text-primary/80 transition-colors"
         >
           <span className="text-sm">查看更多热点</span>
           <ArrowRight className="h-4 w-4" />
@@ -107,9 +107,9 @@ const HotTopicsPreview = () => {
       
       {hotTopics?.length === 0 && (
         <div className="text-center py-8">
-          <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">暂无热门话题</p>
-          <p className="text-gray-400 text-sm mt-2">系统正在初始化热点数据，请稍后再试</p>
+          <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">暂无热门话题</p>
+          <p className="text-muted-foreground/70 text-sm mt-2">系统正在初始化热点数据，请稍后再试</p>
         </div>
       )}
     </div>
