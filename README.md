@@ -20,9 +20,11 @@ TrendRadar 是一个全栈内容运营系统，支持：
 
 ### 后端
 - **Node.js** + **Express**
-- **MongoDB** + **Mongoose**
+- **MongoDB** + **Mongoose** (仅生产环境)
 - **Winston** 日志管理
 - **PM2** 进程管理
+
+**开发环境**: 使用 `simple-server.js`，无需数据库依赖
 
 ### CLI 工具
 - **Go 1.21+** + **Rod** 浏览器自动化
@@ -45,15 +47,20 @@ project-root/
 │   ├── models/             # 数据模型
 │   ├── core/               # 核心模块
 │   ├── ai/                 # AI 模块
+│   ├── video/              # 视频下载模块
+│   ├── transcription/      # 转录引擎模块
 │   ├── notification/       # 通知服务
+│   ├── simple-server.js    # 开发用简单服务器（无需 MongoDB）
 │   └── utils/              # 工具函数
 │
 ├── tools/                  # CLI 工具
 │   ├── douyin-toutiao/     # 抖音/头条发布工具
-│   └── xiaohongshu-publisher/  # 小红书发布工具
+│   ├── xiaohongshu-publisher/  # 小红书发布工具
+│   └── publisher-web/      # 前端 Web 界面
 │
 ├── docs/                   # 项目文档
 │   ├── PROJECT_SUMMARY.md  # 项目总结
+│   ├── plans/              # 设计文档
 │   ├── mcp/                # MCP 相关文档
 │   └── tools/              # 工具文档
 │
@@ -68,7 +75,6 @@ project-root/
 ### 环境要求
 - Node.js 18+
 - Go 1.21+ (用于 CLI 工具)
-- MongoDB 6+
 
 ### 安装依赖
 
@@ -80,21 +86,46 @@ npm install
 cd server && npm install
 ```
 
-### 开发模式
+### 开发模式（推荐）
+
+**重要说明：当前开发环境使用 simple-server.js，无需 MongoDB 依赖。**
 
 ```bash
-# 同时启动前端和后端
-npm run dev:all
+# 启动后端（简单服务器，无需 MongoDB）
+cd server && node simple-server.js
 
-# 或分别启动
-npm run dev          # 前端 (http://localhost:5173)
-cd server && npm start  # 后端 (http://localhost:3000)
+# 启动前端（另一个终端）
+npm run dev
 ```
+
+- **后端地址**: http://localhost:5000
+- **前端地址**: http://localhost:5173
+
+#### 简单服务器说明
+
+`server/simple-server.js` 是一个轻量级开发服务器，提供以下功能：
+- **无需数据库**：使用内存存储，适合快速开发测试
+- **Mock API**：模拟热点监控、视频转录、内容改写等 API 响应
+- **CORS 支持**：已配置跨域支持
+
+如需完整的 MongoDB 功能，请参考下方"生产环境配置"。
 
 ### 生产构建
 
 ```bash
 npm run build
+```
+
+### 生产环境配置（需要 MongoDB）
+
+生产环境需要 MongoDB 支持：
+
+```bash
+# 确保 MongoDB 运行
+mongod --dbpath /path/to/data
+
+# 启动完整后端服务
+cd server && npm start
 ```
 
 ## 功能模块
@@ -105,17 +136,23 @@ npm run build
 - 今日头条
 - RSS 订阅源
 
-### 2. AI 内容生成
+### 2. 视频转录与智能创作
+- **视频下载**: 支持抖音、快手等平台视频下载
+- **AI 转录**: Whisper 本地模型 + 阿里云 ASR 备选
+- **智能改写**: 多平台风格内容改写（小红书、抖音、今日头条）
+- **一键发布**: 改写内容直接发布到各平台
+
+### 3. AI 内容生成
 - 多模型支持（OpenAI、Groq、Cerebras）
 - LiteLLM 集成
 - 内容质量评估
 
-### 3. 多平台发布
+### 4. 多平台发布
 - 抖音图文/视频发布
 - 今日头条发布
 - 小红书发布
 
-### 4. 数据分析
+### 5. 数据分析
 - 发布数据统计
 - 内容表现分析
 - 趋势报告生成
@@ -139,6 +176,44 @@ go build -o publisher .
 
 详细文档请参考 [docs/tools/](./docs/tools/)
 
+## API 接口
+
+### 视频转录 API
+
+```bash
+# 下载视频
+POST /api/video/download
+{
+  "url": "https://v.douyin.com/xxx"
+}
+
+# 查询下载状态
+GET /api/video/download/:taskId/status
+
+# 提交转录任务
+POST /api/transcription/submit
+{
+  "videoPath": "/path/to/video.mp4"
+}
+
+# 查询转录结果
+GET /api/transcription/:taskId
+
+# 内容改写
+POST /api/content/video-rewrite
+{
+  "text": "转录文本",
+  "platforms": ["xiaohongshu", "douyin", "toutiao"]
+}
+```
+
+### 热点监控 API
+
+```bash
+# 获取热点数据
+GET /api/hot-topics?source=weibo&limit=20
+```
+
 ## 部署
 
 项目支持 Docker 部署：
@@ -154,9 +229,29 @@ docker-compose -f docker-compose.prod.yml up -d
 ## 文档
 
 - [项目总结](./docs/PROJECT_SUMMARY.md)
+- [视频转录功能设计](./docs/plans/2026-02-15-video-transcription-design.md)
 - [抖音/头条工具架构](./docs/tools/douyin-toutiao-architecture.md)
 - [小红书工具文档](./docs/tools/xiaohongshu-project.md)
 - [MCP 集成文档](./docs/mcp/)
+
+## 开发注意事项
+
+### 使用简单服务器进行开发
+
+当前开发阶段使用 `server/simple-server.js` 作为后端服务，该服务器：
+- 不需要 MongoDB 数据库连接
+- 提供 Mock API 用于前端开发测试
+- 运行在端口 5000
+
+### 后端架构说明
+
+| 文件/目录 | 用途 |
+|----------|------|
+| `simple-server.js` | 开发用简单服务器，无需数据库 |
+| `index.js` | 完整后端服务，需要 MongoDB |
+| `video/` | 视频下载模块（抖音、快手等） |
+| `transcription/` | 转录引擎模块（Whisper、阿里云 ASR） |
+| `services/` | 业务逻辑（内容分析、改写等） |
 
 ## 许可证
 
