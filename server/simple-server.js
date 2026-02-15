@@ -379,6 +379,220 @@ app.get('/api/video/render/:taskId', (req, res) => {
   });
 });
 
+// ========== 视频下载相关 API ==========
+
+app.post('/api/video/download', (req, res) => {
+  const { url } = req.body;
+  if (!url) {
+    return res.status(400).json({
+      success: false,
+      message: 'url 参数是必需的'
+    });
+  }
+  res.json({
+    success: true,
+    data: {
+      videoId: 'vid_' + Date.now(),
+      status: 'downloading'
+    }
+  });
+});
+
+app.get('/api/video/download/:id/status', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      videoId: req.params.id,
+      platform: 'douyin',
+      title: '示例视频标题',
+      author: '创作者',
+      duration: 60,
+      status: 'downloaded',
+      fileSize: 10240000,
+      createdAt: new Date().toISOString()
+    }
+  });
+});
+
+app.get('/api/video/download/list', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      total: 0,
+      data: []
+    }
+  });
+});
+
+app.get('/api/video/platforms/list', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { id: 'douyin', name: '抖音', enabled: true },
+      { id: 'kuaishou', name: '快手', enabled: true },
+      { id: 'generic', name: '其他平台', enabled: true }
+    ]
+  });
+});
+
+app.post('/api/video/metadata', (req, res) => {
+  const { url } = req.body;
+  res.json({
+    success: true,
+    data: {
+      platform: 'douyin',
+      videoId: 'mock_video_id',
+      url
+    }
+  });
+});
+
+// ========== 转录相关 API ==========
+
+app.post('/api/transcription/submit', (req, res) => {
+  const { videoId } = req.body;
+  if (!videoId) {
+    return res.status(400).json({
+      success: false,
+      message: 'videoId 参数是必需的'
+    });
+  }
+  res.json({
+    success: true,
+    data: {
+      taskId: 'transcribe_' + Date.now(),
+      videoId,
+      status: 'pending'
+    }
+  });
+});
+
+app.get('/api/transcription/:taskId', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      taskId: req.params.taskId,
+      status: 'completed',
+      progress: 100,
+      result: {
+        success: true,
+        engine: 'whisper-local',
+        duration: 60,
+        language: 'zh-CN',
+        text: '这是一个示例转录文本，展示了 AI 语音识别的能力。视频内容围绕热点话题展开讨论，提供了深入的见解和分析。',
+        segments: [
+          { index: 0, start: 0, end: 5, text: '这是一个示例转录文本', confidence: 0.95 },
+          { index: 1, start: 5, end: 10, text: '展示了 AI 语音识别的能力', confidence: 0.92 }
+        ],
+        keywords: ['AI', '语音识别', '转录'],
+        metadata: { processingTime: 15000 }
+      }
+    }
+  });
+});
+
+app.get('/api/transcription/video/:videoId', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      status: 'completed',
+      transcription: {
+        success: true,
+        engine: 'whisper-local',
+        duration: 60,
+        language: 'zh-CN',
+        text: '这是一个示例转录文本，展示了 AI 语音识别的能力。视频内容围绕热点话题展开讨论，提供了深入的见解和分析。',
+        segments: [],
+        keywords: ['AI', '语音识别', '转录'],
+        metadata: { processingTime: 15000 }
+      }
+    }
+  });
+});
+
+app.get('/api/transcription/engines/list', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { name: 'whisper-local', enabled: true },
+      { name: 'aliyun-asr', enabled: true }
+    ]
+  });
+});
+
+// ========== 内容改写相关 API ==========
+
+app.post('/api/content/video-rewrite', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      summary: '这是一个关于热点话题的视频内容摘要',
+      keyPoints: ['要点一', '要点二', '要点三'],
+      results: {
+        xiaohongshu: {
+          title: '爆款标题！一定要看',
+          content: '姐妹们！这个视频绝了！内容太精彩了，一定要分享给大家...\n\n#热点 #爆款',
+          tags: ['热点', '爆款', '必看']
+        },
+        douyin: {
+          hook: '三秒内不划走，后面更精彩！',
+          mainContent: '今天给大家分享一个超级热门的话题...',
+          cta: '点赞关注，不错过更多精彩内容！'
+        },
+        toutiao: {
+          title: '深度解析：热点话题背后的真相',
+          content: '近日，一个热点话题引发广泛关注。本文将从多个角度进行分析...',
+          microContent: '热点话题持续发酵，专家解读背后深意。',
+          tags: ['热点', '社会', '深度解析']
+        }
+      }
+    }
+  });
+});
+
+app.post('/api/content/analyze', (req, res) => {
+  res.json({
+    success: true,
+    summary: '内容摘要',
+    keyPoints: ['要点1', '要点2'],
+    keywords: ['关键词1', '关键词2'],
+    category: '科技',
+    sentiment: 'positive'
+  });
+});
+
+app.get('/api/content/platforms', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { id: 'xiaohongshu', name: '小红书', maxTitle: 20, maxContent: 1000 },
+      { id: 'douyin', name: '抖音', maxTitle: 30, maxContent: 2000 },
+      { id: 'toutiao', name: '今日头条', maxTitle: 30, maxContent: 2000 }
+    ]
+  });
+});
+
+app.post('/api/content/publish', (req, res) => {
+  res.json({
+    success: true,
+    message: '发布任务已提交',
+    data: {
+      publishId: 'pub_' + Date.now()
+    }
+  });
+});
+
+app.get('/api/content/publish/status', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      xiaohongshu: true,
+      douyin: false,
+      toutiao: true
+    }
+  });
+});
+
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
