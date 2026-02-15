@@ -1,171 +1,162 @@
-# 抖音/今日头条 MCP 发布工具
+# TrendRadar - 热点内容监控与多平台发布系统
 
-基于小红书 MCP 核心架构实现的抖音和今日头条发布工具。
+一个集成热点监控、AI 内容生成、多平台发布的内容运营平台。
 
-## 技术架构
+## 项目概述
 
-完全复用小红书 MCP 的技术框架:
-- **Go 1.21+** - 主要开发语言
-- **Rod** - 浏览器自动化框架
-- **HTTP/MCP 协议** - 统一的接口封装
+TrendRadar 是一个全栈内容运营系统，支持：
+- 热点话题自动监控与抓取
+- AI 驱动的内容生成
+- 多平台（抖音、今日头条、小红书）内容发布
+- 数据分析与报告生成
 
-## 功能特性
+## 技术栈
 
-### 抖音
-- ✅ 二维码登录
-- ✅ Cookie 管理 (tt_webid, passport_auth, csrf_token, ttcid)
-- ✅ 图文发布
-- ✅ 视频发布
-- ✅ 登录状态检查
-- ✅ 话题标签支持
-- ✅ 反爬虫应对 (随机延迟,UA 模拟)
+### 前端
+- **React 18** + **Vite**
+- **Tailwind CSS** + **shadcn/ui**
+- **TanStack Query** 数据请求
+- **Recharts** 数据可视化
 
-### 今日头条
-- ✅ 二维码登录
-- ✅ Cookie 管理 (sessionid, passport_auth, tt_token, tt_webid)
-- ✅ 图文发布
-- ✅ 视频发布
-- ✅ 登录状态检查
-- ✅ 话题标签支持
-- ✅ 反爬虫应对
+### 后端
+- **Node.js** + **Express**
+- **MongoDB** + **Mongoose**
+- **Winston** 日志管理
+- **PM2** 进程管理
+
+### CLI 工具
+- **Go 1.21+** + **Rod** 浏览器自动化
+
+## 目录结构
+
+```
+project-root/
+├── src/                    # 前端源码
+│   ├── components/         # UI 组件
+│   ├── pages/              # 页面
+│   ├── lib/                # 工具库
+│   ├── contexts/           # React Context
+│   └── providers/          # Provider
+│
+├── server/                 # 后端服务
+│   ├── routes/             # API 路由
+│   ├── services/           # 业务逻辑
+│   ├── fetchers/           # 数据抓取
+│   ├── models/             # 数据模型
+│   ├── core/               # 核心模块
+│   ├── ai/                 # AI 模块
+│   ├── notification/       # 通知服务
+│   └── utils/              # 工具函数
+│
+├── tools/                  # CLI 工具
+│   ├── douyin-toutiao/     # 抖音/头条发布工具
+│   └── xiaohongshu-publisher/  # 小红书发布工具
+│
+├── docs/                   # 项目文档
+│   ├── PROJECT_SUMMARY.md  # 项目总结
+│   ├── mcp/                # MCP 相关文档
+│   └── tools/              # 工具文档
+│
+├── scripts/                # 脚本
+├── nginx/                  # Nginx 配置
+├── .monkeycode/            # 项目规格文档
+└── .trae/                  # AI 辅助配置
+```
 
 ## 快速开始
 
-### 1. 编译
+### 环境要求
+- Node.js 18+
+- Go 1.21+ (用于 CLI 工具)
+- MongoDB 6+
+
+### 安装依赖
 
 ```bash
-go build -o douyin-toutiao-mcp .
+# 安装前端依赖
+npm install
+
+# 安装后端依赖
+cd server && npm install
 ```
 
-### 2. 登录
-
-**抖音登录**:
-```bash
-./douyin-toutiao-mcp -platform douyin -login
-```
-
-**今日头条登录**:
-```bash
-./douyin-toutiao-mcp -platform toutiao -login
-```
-
-### 3. 检查登录状态
+### 开发模式
 
 ```bash
-# 抖音
-./douyin-toutiao-mcp -platform douyin -check
+# 同时启动前端和后端
+npm run dev:all
 
-# 今日头条
-./douyin-toutiao-mcp -platform toutiao -check
+# 或分别启动
+npm run dev          # 前端 (http://localhost:5173)
+cd server && npm start  # 后端 (http://localhost:3000)
 ```
 
-### 4. 发布内容
+### 生产构建
 
-**抖音图文**:
 ```bash
-./douyin-toutiao-mcp -platform douyin \
-  -title "标题" \
-  -content "内容" \
-  -images "img1.jpg,img2.jpg" \
-  -tags "美食,生活"
+npm run build
 ```
 
-**抖音视频**:
+## 功能模块
+
+### 1. 热点监控
+- 微博热搜
+- 知乎热榜
+- 今日头条
+- RSS 订阅源
+
+### 2. AI 内容生成
+- 多模型支持（OpenAI、Groq、Cerebras）
+- LiteLLM 集成
+- 内容质量评估
+
+### 3. 多平台发布
+- 抖音图文/视频发布
+- 今日头条发布
+- 小红书发布
+
+### 4. 数据分析
+- 发布数据统计
+- 内容表现分析
+- 趋势报告生成
+
+## CLI 工具使用
+
+### 抖音/头条发布工具
+
 ```bash
-./douyin-toutiao-mcp -platform douyin \
-  -title "标题" \
-  -content "内容" \
-  -video "video.mp4" \
-  -tags "生活"
+cd tools/douyin-toutiao
+
+# 编译
+go build -o publisher .
+
+# 登录
+./publisher -platform douyin -login
+
+# 发布内容
+./publisher -platform douyin -title "标题" -content "内容" -images "img1.jpg"
 ```
 
-**今日头条图文**:
+详细文档请参考 [docs/tools/](./docs/tools/)
+
+## 部署
+
+项目支持 Docker 部署：
+
 ```bash
-./douyin-toutiao-mcp -platform toutiao \
-  -title "标题" \
-  -content "内容" \
-  -images "img1.jpg,img2.jpg" \
-  -tags "科技,数码"
+# 开发环境
+docker-compose up -d
+
+# 生产环境
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## 参数说明
+## 文档
 
-| 参数 | 说明 | 示例 |
-|------|------|------|
-| `-platform` | 平台选择: douyin 或 toutiao | `-platform douyin` |
-| `-headless` | 是否无头模式 (默认: true) | `-headless=false` |
-| `-title` | 内容标题 (抖音/头条≤30字) | `-title "测试标题"` |
-| `-content` | 正文内容 (抖音/头条≤2000字) | `-content "测试内容"` |
-| `-images` | 图片路径,逗号分隔 | `-images "img1.jpg,img2.jpg"` |
-| `-video` | 视频路径 (仅本地) | `-video "video.mp4"` |
-| `-tags` | 话题标签,逗号分隔 | `-tags "美食,生活"` |
-| `-check` | 检查登录状态 | `-check` |
-| `-login` | 登录 | `-login` |
-
-## Cookie 管理
-
-Cookie 存储位置:
-- 抖音: `./cookies/douyin_cookies.json`
-- 今日头条: `./cookies/toutiao_cookies.json`
-
-Cookie 包含的关键字段:
-- 抖音: `tt_webid`, `passport_auth`, `csrf_token`, `ttcid`
-- 今日头条: `sessionid`, `passport_auth`, `tt_token`, `tt_webid`
-
-## 反爬虫策略
-
-1. **随机延迟**: 每次操作后随机等待 0.3-2 秒
-2. **无头模式**: 可选的有头模式,便于调试
-3. **操作间隔**: 发布间隔建议 ≥5 分钟
-4. **DOM 稳定**: 等待 DOM 加载完成再操作
-
-## 平台适配说明
-
-### 抖音
-- **登录页**: `https://creator.douyin.com/creator-micro/content/publish`
-- **发布页**: `https://creator.douyin.com/creator-micro/content/publish`
-- **视频限制**: 大小 ≤2GB, 格式 MP4
-- **标题限制**: 最多 30 字
-- **正文限制**: 最多 2000 字
-
-### 今日头条
-- **登录页**: `https://mp.toutiao.com/`
-- **发布页**: `https://mp.toutiao.com/profile_v4/pub_article`
-- **视频限制**: 格式 MP4
-- **标题限制**: 最多 30 字
-- **正文限制**: 最多 2000 字
-
-## 技术实现亮点
-
-1. **零重写核心逻辑** - 完全复用小红书 MCP 的成熟架构
-2. **平台抽象** - 统一的登录/发布接口
-3. **错误处理** - 完善的错误包装和提示
-4. **日志记录** - 详细的操作日志
-5. **Cookie 持久化** - 自动保存和加载登录状态
-6. **模块化设计** - 浏览器/Cookie/配置分离
-
-## 风险说明
-
-1. **风控风险** - 抖音/头条的风控比小红书更严格
-2. **Cookie 过期** - 需要定期重新登录
-3. **DOM 变化** - 网页改版需要更新选择器
-4. **接口限制** - 高频发布可能触发限流
-
-## 后续优化方向
-
-1. **MCP 协议支持** - 实现标准 MCP 协议
-2. **HTTP API** - 提供 RESTful 接口
-3. **批量发布** - 支持配置文件批量导入
-4. **定时发布** - 支持定时任务
-5. **内容模板** - 支持内容模板管理
-6. **多账号** - 支持账号切换和管理
-7. **数据统计** - 发布数据统计和分析
-
-## 开源参考
-
-参考的开源项目:
-- 抖音自动化: https://github.com/Hunter-python/douyin-tiktok-api
-- 头条号操作: https://github.com/Jack-Cherish/python-spider
+- [项目总结](./docs/PROJECT_SUMMARY.md)
+- [抖音/头条工具架构](./docs/tools/douyin-toutiao-architecture.md)
+- [小红书工具文档](./docs/tools/xiaohongshu-project.md)
+- [MCP 集成文档](./docs/mcp/)
 
 ## 许可证
 
