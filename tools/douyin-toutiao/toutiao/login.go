@@ -85,7 +85,7 @@ func (a *LoginAction) ExtractCookies(ctx context.Context) (map[string]string, er
 
 	cookiesMap := make(map[string]string)
 
-	cookies, err := pp.Cookies()
+	cookies, err := pp.Cookies([]string{})
 	if err != nil {
 		return nil, errors.Wrap(err, "获取 cookies 失败")
 	}

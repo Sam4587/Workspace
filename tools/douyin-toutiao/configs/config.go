@@ -1,5 +1,7 @@
 package configs
 
+import "os"
+
 var (
 	IsHeadless = true
 )

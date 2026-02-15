@@ -2,10 +2,8 @@ package douyin
 
 import (
 	"context"
-	"log/slog"
 	"math/rand"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -139,7 +137,7 @@ func uploadVideo(page *rod.Page, videoPath string) error {
 
 	fileInput.MustSetFiles(videoPath)
 
-	slog.Info("等待视频上传完成...")
+	logrus.Info("等待视频上传完成...")
 	time.Sleep(3 * time.Second)
 
 	return nil

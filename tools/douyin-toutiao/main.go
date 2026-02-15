@@ -55,7 +55,7 @@ func main() {
 	browserInstance := browser.NewBrowser(headless)
 	defer browserInstance.Close()
 
-	page := browserInstance.NewPage()
+	page := browserInstance.MustPage()
 	defer page.Close()
 
 	switch platform {
@@ -181,12 +181,12 @@ func performLogin(ctx context.Context, loginAction interface{}, platform string)
 		return errors.New("登录超时")
 	}
 
-	cookies, err := extractCookies(ctx, loginAction, platform)
+	cookiesData, err := extractCookies(ctx, loginAction, platform)
 	if err != nil {
 		return err
 	}
 
-	if err := cookies.SaveCookies(cookies, platform); err != nil {
+	if err := cookies.SaveCookies(cookiesData, platform); err != nil {
 		return err
 	}
 

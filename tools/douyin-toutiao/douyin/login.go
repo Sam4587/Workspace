@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/monkeycode/douyin-toutiao-mcp/configs"
-	"github.com/monkeycode/douyin-toutiao-mcp/cookies"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -87,7 +85,7 @@ func (a *LoginAction) ExtractCookies(ctx context.Context) (map[string]string, er
 
 	cookiesMap := make(map[string]string)
 
-	cookies, err := pp.Cookies()
+	cookies, err := pp.Cookies([]string{})
 	if err != nil {
 		return nil, errors.Wrap(err, "获取 cookies 失败")
 	}
