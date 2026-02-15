@@ -2,6 +2,21 @@ node_modules
 build
 .env
 
+# Go 编译产物
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Cookie 存储目录
+cookies/
+*.json
+
 # 本地启动脚本
 start-all.bat
 start-backend.bat
