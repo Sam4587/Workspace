@@ -4,12 +4,29 @@
 
 ## 工具列表
 
-| 工具 | 平台 | 状态 |
-|------|------|------|
-| `xiaohongshu-publisher` | 小红书 | 可用 |
-| `douyin-toutiao` | 抖音/今日头条 | 可用 |
+| 工具 | 平台 | 状态 | 说明 |
+|------|------|------|------|
+| `publisher-core` | 统一接口 | **推荐** | 统一架构，支持异步发布和 REST API |
+| `xiaohongshu-publisher` | 小红书 | 可用 | 独立 CLI 工具 |
+| `douyin-toutiao` | 抖音/今日头条 | 可用 | 独立 CLI 工具 |
 
-## 编译
+## 快速开始
+
+### 方式一：统一发布服务（推荐）
+
+```bash
+# 编译
+make build
+
+# 启动 REST API 服务
+./bin/publisher-server -port 8080
+
+# 或使用命令行工具
+./bin/publisher -platform douyin -login
+./bin/publisher -platform douyin -title "标题" -content "正文" -images "img.jpg" -async
+```
+
+### 方式二：独立工具
 
 ```bash
 # 编译所有工具
@@ -18,6 +35,42 @@ make build
 # 或单独编译
 cd xiaohongshu-publisher && go build -o xhs-publisher .
 cd douyin-toutiao && go build -o publisher .
+```
+
+## Publisher Core 新特性
+
+### 统一接口
+
+所有平台使用统一的 `Publisher` 接口：
+
+```go
+pub, _ := factory.Create("douyin")
+pub.Login(ctx)
+pub.Publish(ctx, content)
+```
+
+### 异步发布
+
+耗时操作支持异步执行：
+
+```go
+taskID, _ := pub.PublishAsync(ctx, content)
+result, _ := pub.QueryStatus(ctx, taskID)
+```
+
+### REST API
+
+```bash
+# 获取平台列表
+curl http://localhost:8080/api/v1/platforms
+
+# 异步发布
+curl -X POST http://localhost:8080/api/v1/publish/async \
+  -H "Content-Type: application/json" \
+  -d '{"platform":"douyin","type":"images","title":"标题","images":["img.jpg"]}'
+
+# 查询任务状态
+curl http://localhost:8080/api/v1/tasks/{taskId}
 ```
 
 ## 小红书发布工具
@@ -85,7 +138,7 @@ cd douyin-toutiao && go build -o publisher .
 
 | 平台 | 标题 | 正文 | 视频 |
 |------|------|------|------|
-| 抖音 | 最多 30 字 | 最多 2000 字 | ≤2GB, MP4 |
+| 抖音 | 最多 30 字 | 最多 2000 字 | <=2GB, MP4 |
 | 今日头条 | 最多 30 字 | 最多 2000 字 | MP4 |
 
 ## Cookie 管理
@@ -115,7 +168,7 @@ cd douyin-toutiao && go build -o publisher .
 
 1. **首次使用**：必须先执行登录操作
 2. **Cookie 过期**：需要定期重新登录
-3. **发布间隔**：建议间隔 ≥5 分钟
+3. **发布间隔**：建议间隔 >=5 分钟
 4. **内容规范**：遵守各平台社区规范
 5. **风控风险**：高频操作可能触发限流
 
@@ -123,24 +176,31 @@ cd douyin-toutiao && go build -o publisher .
 
 ```
 工具架构
-├── main.go           # CLI 入口
-├── browser/          # 浏览器管理
-├── cookies/          # Cookie 存储
-├── configs/          # 配置管理
-├── errors/           # 错误定义
-├── douyin/           # 抖音平台实现
-│   ├── login.go
-│   └── publish.go
-├── toutiao/          # 今日头条平台实现
-│   ├── login.go
-│   └── publish.go
-└── xiaohongshu/      # 小红书平台实现（外部依赖）
+├── publisher-core/           # 统一核心库（推荐）
+│   ├── interfaces/           # 接口定义
+│   ├── adapters/             # 平台适配器
+│   ├── task/                 # 异步任务管理
+│   ├── storage/              # 文件存储抽象
+│   ├── api/                  # REST API
+│   └── cmd/
+│       ├── server/           # API 服务入口
+│       └── cli/              # 命令行入口
+├── xiaohongshu-publisher/    # 小红书独立工具
+│   ├── main.go
+│   └── go.mod
+└── douyin-toutiao/           # 抖音/头条独立工具
+    ├── main.go
+    ├── douyin/
+    ├── toutiao/
+    └── go.mod
 ```
 
 ## 开源依赖
 
 - [go-rod/rod](https://github.com/go-rod/rod) - 浏览器自动化
 - [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp) - 小红书 MCP 核心
+- [gorilla/mux](https://github.com/gorilla/mux) - HTTP 路由
+- [google/uuid](https://github.com/google/uuid) - UUID 生成
 
 ## 许可证
 
