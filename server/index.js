@@ -28,6 +28,15 @@ const { notificationDispatcher } = require('./notification');
 const { reportGenerator } = require('./reports');
 const { storageManager, topicAnalyzer, trendAnalyzer } = require('./core');
 
+// 内存存储 - 用于无 MongoDB 模式
+const memoryStorage = {
+  hotTopics: [],
+  lastUpdate: null
+};
+
+// MongoDB 连接状态
+let isMongoConnected = false;
+
 // 安全中间件
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -78,6 +87,7 @@ if (MONGODB_URI) {
     useUnifiedTopology: true,
   }).then(async () => {
     console.log('MongoDB 连接成功');
+    isMongoConnected = true;
     // 初始化 Prompt 管理服务
     require('./services/promptManagementService').initialize();
 
@@ -98,13 +108,49 @@ if (MONGODB_URI) {
     }
   }).catch((error) => {
     console.error('MongoDB 连接失败:', error);
+    console.log('将使用内存存储模式');
   });
 } else {
-  console.log('未配置 MONGODB_URI，跳过数据库连接');
+  console.log('未配置 MONGODB_URI，使用内存存储模式');
+  // 初始化内存数据
+  initializeMemoryStorage();
 }
 
-// 路由
-app.use('/api/hot-topics', require('./routes/hotTopics'));
+// 初始化内存存储
+async function initializeMemoryStorage() {
+  try {
+    console.log('正在初始化内存存储...');
+    await updateMemoryHotTopics();
+    console.log('内存存储初始化完成');
+  } catch (error) {
+    console.warn('内存存储初始化失败:', error.message);
+  }
+}
+
+// 更新内存中的热点数据
+async function updateMemoryHotTopics() {
+  try {
+    const { newsNowFetcher } = require('./fetchers/NewsNowFetcher');
+    const topics = await newsNowFetcher.fetch();
+
+    memoryStorage.hotTopics = topics.map((topic, index) => ({
+      ...topic,
+      _id: `mem-${Date.now()}-${index}`,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
+    memoryStorage.lastUpdate = new Date();
+    console.log(`内存存储更新: ${memoryStorage.hotTopics.length} 条热点数据`);
+    return memoryStorage.hotTopics;
+  } catch (error) {
+    console.error('更新内存热点数据失败:', error.message);
+    return [];
+  }
+}
+
+// 路由 - 统一使用内存版本（无 MongoDB 依赖）
+// 内存版本会在有 MongoDB 时也保存数据到数据库
+app.use('/api/hot-topics', require('./routes/hotTopicsMemory'));
 app.use('/api/content', require('./routes/contentRewrite'));
 app.use('/api/publish', require('./routes/publish'));
 app.use('/api/analytics', require('./routes/analytics'));
