@@ -17,8 +17,11 @@ app.use('/audio', express.static(path.join(__dirname, '../public/audio')));
 app.use('/previews', express.static(path.join(__dirname, '../public/previews')));
 
 // 导入中间件
-const { requestLogger, errorLogger } = require('./utils/logger');
+const logger = require('../server/utils/logger');
+const { requestLogger, errorLogger } = require('./utils/enhancedLogger');
 const rateLimiter = require('./utils/rateLimiter');
+
+// 服务器重启标记
 
 // 导入新模块
 const { fetcherManager } = require('./fetchers');
@@ -121,6 +124,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/video', require('./routes/video'));
 app.use('/api/transcription', require('./routes/transcription'));
 app.use('/api/llm', require('./routes/llm'));
+app.use('/api/tasks', require('./routes/tasks')); // 任务管理API
 
 // 404处理
 app.use('*', (req, res) => {
