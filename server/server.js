@@ -740,6 +740,53 @@ app.get('/api/analytics/top-content', (req, res) => {
   });
 });
 
+// 新增的API端点模拟
+app.get('/api/analytics/user-behavior', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { hour: 8, dayOfWeek: 1, avgViewsPerContent: 1200, engagementRate: 8.5 },
+      { hour: 12, dayOfWeek: 1, avgViewsPerContent: 1800, engagementRate: 12.3 },
+      { hour: 18, dayOfWeek: 1, avgViewsPerContent: 2100, engagementRate: 15.2 }
+    ]
+  });
+});
+
+app.get('/api/analytics/content-quality', (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { _id: 'article', count: 45, avgQuality: 82, avgWordCount: 1200, avgViews: 3500 },
+      { _id: 'micro', count: 30, avgQuality: 75, avgWordCount: 300, avgViews: 1800 }
+    ]
+  });
+});
+
+app.get('/api/analytics/predictions', (req, res) => {
+  const { metric = 'views', days = 7 } = req.query;
+  const predictions = [];
+  const baseValue = metric === 'views' ? 5000 : metric === 'likes' ? 500 : 100;
+  
+  for (let i = 1; i <= parseInt(days); i++) {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    predictions.push({
+      date: date.toISOString().split('T')[0],
+      predictedValue: Math.round(baseValue * (1 + Math.random() * 0.3)),
+      confidence: 0.8 - (i * 0.05)
+    });
+  }
+  
+  res.json({
+    success: true,
+    data: {
+      historical: [],
+      predictions,
+      trend: '上升'
+    }
+  });
+});
+
 // ========== 内容生成相关 API ==========
 
 app.post('/api/content/generate', (req, res) => {
@@ -769,6 +816,9 @@ app.use('/api/transcription', require('./routes/transcription'));
 
 // 注册任务队列管理路由
 app.use('/api/task-queue', require('./routes/taskQueue'));
+
+// 注册数据分析路由
+app.use('/api/analytics', require('./routes/analytics'));
 
 // 注册视频生成路由
 app.use('/api/video-generation', require('./routes/video'));

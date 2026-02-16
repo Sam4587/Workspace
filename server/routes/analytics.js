@@ -480,4 +480,244 @@ router.get('/hot-topics', async (req, res) => {
   }
 });
 
+// 获取用户行为分析
+router.get('/user-behavior', async (req, res) => {
+  try {
+    const { days = 30 } = req.query;
+    
+    const behaviorStats = await PublishRecord.aggregate([
+      {
+        $match: {
+          status: 'success',
+          publishTime: {
+            $gte: new Date(Date.now() - parseInt(days) * 24 * 60 * 60 * 1000)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            hour: { $hour: '$publishTime' },
+            dayOfWeek: { $dayOfWeek: '$publishTime' }
+          },
+          totalViews: { $sum: '$metrics.views' },
+          totalEngagements: { 
+            $sum: { 
+              $add: ['$metrics.likes', '$metrics.comments', '$metrics.shares'] 
+            } 
+          },
+          contentCount: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          hour: '$_id.hour',
+          dayOfWeek: '$_id.dayOfWeek',
+          avgViewsPerContent: { $divide: ['$totalViews', '$contentCount'] },
+          engagementRate: {
+            $cond: [
+              { $eq: ['$totalViews', 0] },
+              0,
+              { $multiply: [{ $divide: ['$totalEngagements', '$totalViews'] }, 100] }
+            ]
+          }
+        }
+      },
+      { $sort: { hour: 1, dayOfWeek: 1 } }
+    ]);
+
+    res.json({
+      success: true,
+      data: behaviorStats
+    });
+  } catch (error) {
+    console.error('获取用户行为分析失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取用户行为分析失败'
+    });
+  }
+});
+
+// 获取内容质量分析
+router.get('/content-quality', async (req, res) => {
+  try {
+    const qualityStats = await Content.aggregate([
+      {
+        $lookup: {
+          from: 'publishrecords',
+          localField: '_id',
+          foreignField: 'contentId',
+          as: 'publishRecords'
+        }
+      },
+      {
+        $project: {
+          title: 1,
+          type: 1,
+          quality: 1,
+          wordCount: 1,
+          publishCount: { $size: '$publishRecords' },
+          avgViews: { $avg: '$publishRecords.metrics.views' },
+          avgEngagement: {
+            $avg: {
+              $add: [
+                '$publishRecords.metrics.likes',
+                '$publishRecords.metrics.comments',
+                '$publishRecords.metrics.shares'
+              ]
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          publishCount: { $gt: 0 }
+        }
+      },
+      {
+        $group: {
+          _id: '$type',
+          count: { $sum: 1 },
+          avgQuality: { $avg: '$quality' },
+          avgWordCount: { $avg: '$wordCount' },
+          avgViews: { $avg: '$avgViews' },
+          avgEngagement: { $avg: '$avgEngagement' }
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: qualityStats
+    });
+  } catch (error) {
+    console.error('获取内容质量分析失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取内容质量分析失败'
+    });
+  }
+});
+
+// 获取预测性分析
+router.get('/predictions', async (req, res) => {
+  try {
+    const { metric = 'views', days = 7 } = req.query;
+    
+    // 获取历史数据用于预测
+    const historicalData = await PublishRecord.aggregate([
+      {
+        $match: {
+          status: 'success',
+          publishTime: {
+            $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 最近30天
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$publishTime' } },
+          [`${metric}`]: { $sum: `$metrics.${metric}` }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // 简单的线性趋势预测
+    const predictions = [];
+    if (historicalData.length > 1) {
+      const recentData = historicalData.slice(-7); // 取最近7天数据
+      const values = recentData.map(item => item[metric]);
+      
+      // 计算趋势
+      const sum = values.reduce((a, b) => a + b, 0);
+      const avg = sum / values.length;
+      const lastValue = values[values.length - 1];
+      const trend = lastValue > avg ? '上升' : lastValue < avg ? '下降' : '平稳';
+      
+      // 预测未来几天
+      for (let i = 1; i <= parseInt(days); i++) {
+        const predictedValue = Math.round(lastValue * (1 + (lastValue - avg) / avg * 0.1));
+        const predictionDate = new Date();
+        predictionDate.setDate(predictionDate.getDate() + i);
+        
+        predictions.push({
+          date: predictionDate.toISOString().split('T')[0],
+          predictedValue,
+          confidence: 0.8 - (i * 0.05) // 置信度递减
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        historical: historicalData,
+        predictions,
+        trend: predictions.length > 0 ? 
+          (predictions[predictions.length - 1].predictedValue > historicalData[historicalData.length - 1][metric] ? '上升' : '下降') : 
+          '未知'
+      }
+    });
+  } catch (error) {
+    console.error('获取预测分析失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取预测分析失败'
+    });
+  }
+});
+
+// 获取数据导出
+router.get('/export', async (req, res) => {
+  try {
+    const { type = 'csv', dataType = 'overview' } = req.query;
+    
+    let exportData;
+    let filename;
+    
+    switch (dataType) {
+      case 'overview':
+        const overviewResponse = await fetch(`${req.protocol}://${req.get('host')}/api/analytics/overview`);
+        exportData = await overviewResponse.json();
+        filename = `analytics-overview-${new Date().toISOString().split('T')[0]}.${type}`;
+        break;
+        
+      case 'trends':
+        const trendsResponse = await fetch(`${req.protocol}://${req.get('host')}/api/analytics/views-trend`);
+        exportData = await trendsResponse.json();
+        filename = `analytics-trends-${new Date().toISOString().split('T')[0]}.${type}`;
+        break;
+        
+      default:
+        return res.status(400).json({
+          success: false,
+          message: '不支持的数据类型'
+        });
+    }
+
+    // 设置响应头
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    if (type === 'csv') {
+      res.setHeader('Content-Type', 'text/csv');
+      // 简单的CSV格式化
+      const csv = Object.entries(exportData.data || exportData)
+        .map(([key, value]) => `${key},${JSON.stringify(value)}`)
+        .join('\n');
+      res.send(csv);
+    } else {
+      res.setHeader('Content-Type', 'application/json');
+      res.json(exportData);
+    }
+  } catch (error) {
+    console.error('数据导出失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '数据导出失败'
+    });
+  }
+});
+
 module.exports = router;

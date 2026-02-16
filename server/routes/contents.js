@@ -10,6 +10,10 @@ let contentService = null;
 let aiService = null;
 let workflowEngine = null;
 let performanceTrackingService = null;
+let enhancedContentCreationService = null;
+let contentQualityAssessmentService = null;
+let multiPlatformAdaptationService = null;
+let contentDistributionService = null;
 
 try {
   contentService = require('../services/ContentService');
@@ -25,6 +29,38 @@ try {
 } catch (error) {
   console.error('[ContentRoute] AIService 加载失败:', error.message);
   aiService = null;
+}
+
+try {
+  enhancedContentCreationService = require('../services/enhancedContentCreationService');
+  console.log('[ContentRoute] EnhancedContentCreationService 加载成功');
+} catch (error) {
+  console.error('[ContentRoute] EnhancedContentCreationService 加载失败:', error.message);
+  enhancedContentCreationService = null;
+}
+
+try {
+  contentQualityAssessmentService = require('../services/contentQualityAssessmentService');
+  console.log('[ContentRoute] ContentQualityAssessmentService 加载成功');
+} catch (error) {
+  console.error('[ContentRoute] ContentQualityAssessmentService 加载失败:', error.message);
+  contentQualityAssessmentService = null;
+}
+
+try {
+  multiPlatformAdaptationService = require('../services/multiPlatformAdaptationService');
+  console.log('[ContentRoute] MultiPlatformAdaptationService 加载成功');
+} catch (error) {
+  console.error('[ContentRoute] MultiPlatformAdaptationService 加载失败:', error.message);
+  multiPlatformAdaptationService = null;
+}
+
+try {
+  contentDistributionService = require('../services/contentDistributionService');
+  console.log('[ContentRoute] ContentDistributionService 加载成功');
+} catch (error) {
+  console.error('[ContentRoute] ContentDistributionService 加载失败:', error.message);
+  contentDistributionService = null;
 }
 
 try {
@@ -368,6 +404,491 @@ router.post('/:id/performance/track', async (req, res) => {
     res.json(result);
   } catch (error) {
     logger.error('[ContentAPI] 手动追踪性能失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/publish
+ * 立即发布内容
+ */
+router.post('/publish', async (req, res) => {
+  try {
+    if (!contentDistributionService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容分发服务不可用'
+      });
+    }
+
+    const { contentId, platforms, options } = req.body;
+    
+    // 获取内容
+    const contentResult = await contentService.getById(contentId);
+    if (!contentResult.success) {
+      return res.status(404).json({
+        success: false,
+        message: '内容不存在'
+      });
+    }
+
+    const result = await contentDistributionService.publishContent(
+      contentResult.content, 
+      platforms, 
+      options
+    );
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 内容发布失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/schedule-publish
+ * 定时发布内容
+ */
+router.post('/schedule-publish', async (req, res) => {
+  try {
+    if (!contentDistributionService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容分发服务不可用'
+      });
+    }
+
+    const { contentId, platforms, scheduleTime, options } = req.body;
+    
+    // 获取内容
+    const contentResult = await contentService.getById(contentId);
+    if (!contentResult.success) {
+      return res.status(404).json({
+        success: false,
+        message: '内容不存在'
+      });
+    }
+
+    const result = await contentDistributionService.schedulePublish(
+      contentResult.content, 
+      platforms, 
+      scheduleTime,
+      options
+    );
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 定时发布设置失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/batch-publish
+ * 批量发布内容
+ */
+router.post('/batch-publish', async (req, res) => {
+  try {
+    if (!contentDistributionService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容分发服务不可用'
+      });
+    }
+
+    const { contentIds, platformMapping, options } = req.body;
+    
+    // 获取所有内容
+    const contents = [];
+    for (const contentId of contentIds) {
+      const result = await contentService.getById(contentId);
+      if (result.success) {
+        contents.push(result.content);
+      }
+    }
+
+    const result = await contentDistributionService.batchPublish(
+      contents, 
+      platformMapping, 
+      options
+    );
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 批量发布失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/smart-distribute
+ * 智能分发内容
+ */
+router.post('/smart-distribute', async (req, res) => {
+  try {
+    if (!contentDistributionService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容分发服务不可用'
+      });
+    }
+
+    const { contentId, strategy, options } = req.body;
+    
+    // 获取内容
+    const contentResult = await contentService.getById(contentId);
+    if (!contentResult.success) {
+      return res.status(404).json({
+        success: false,
+        message: '内容不存在'
+      });
+    }
+
+    const result = await contentDistributionService.smartDistribute(
+      contentResult.content, 
+      strategy, 
+      options
+    );
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 智能分发失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/contents/publish-status/:contentId
+ * 获取发布状态
+ */
+router.get('/publish-status/:contentId', async (req, res) => {
+  try {
+    if (!contentDistributionService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容分发服务不可用'
+      });
+    }
+
+    const { contentId } = req.params;
+    const { platform } = req.query;
+
+    const status = await contentDistributionService.getPublishStatus(contentId, platform);
+
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取发布状态失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/contents/scheduled-tasks
+ * 获取调度任务
+ */
+router.get('/scheduled-tasks', async (req, res) => {
+  try {
+    if (!contentDistributionService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容分发服务不可用'
+      });
+    }
+
+    const { status, contentId } = req.query;
+    const filter = {};
+    
+    if (status) filter.status = status;
+    if (contentId) filter.contentId = contentId;
+
+    const tasks = contentDistributionService.getScheduledTasks(filter);
+
+    res.json({
+      success: true,
+      data: tasks
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取调度任务失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/contents/scheduled-tasks/:taskId
+ * 取消调度任务
+ */
+router.delete('/scheduled-tasks/:taskId', async (req, res) => {
+  try {
+    if (!contentDistributionService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容分发服务不可用'
+      });
+    }
+
+    const { taskId } = req.params;
+
+    const result = contentDistributionService.cancelScheduledTask(taskId);
+
+    res.json(result);
+  } catch (error) {
+    logger.error('[ContentAPI] 取消调度任务失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/contents/publishers
+ * 获取可用发布器
+ */
+router.get('/publishers', async (req, res) => {
+  try {
+    if (!contentDistributionService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容分发服务不可用'
+      });
+    }
+
+    const publishers = contentDistributionService.getAvailablePublishers();
+
+    res.json({
+      success: true,
+      data: publishers
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取发布器失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/adapt-platform
+ * 多平台内容适配
+ */
+router.post('/adapt-platform', async (req, res) => {
+  try {
+    if (!multiPlatformAdaptationService) {
+      return res.status(500).json({
+        success: false,
+        message: '多平台适配服务不可用'
+      });
+    }
+
+    const { content, targetPlatform, options } = req.body;
+
+    const adaptation = await multiPlatformAdaptationService.adaptContentForPlatform(
+      content, 
+      targetPlatform, 
+      options
+    );
+
+    res.json({
+      success: true,
+      data: adaptation
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 多平台内容适配失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/adapt-multiple-platforms
+ * 批量多平台内容适配
+ */
+router.post('/adapt-multiple-platforms', async (req, res) => {
+  try {
+    if (!multiPlatformAdaptationService) {
+      return res.status(500).json({
+        success: false,
+        message: '多平台适配服务不可用'
+      });
+    }
+
+    const { content, platforms, options } = req.body;
+
+    const adaptations = await multiPlatformAdaptationService.adaptContentForMultiplePlatforms(
+      content, 
+      platforms, 
+      options
+    );
+
+    res.json({
+      success: true,
+      data: adaptations
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 批量多平台内容适配失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/contents/platforms
+ * 获取支持的平台列表
+ */
+router.get('/platforms', async (req, res) => {
+  try {
+    if (!multiPlatformAdaptationService) {
+      return res.status(500).json({
+        success: false,
+        message: '多平台适配服务不可用'
+      });
+    }
+
+    const platforms = multiPlatformAdaptationService.getSupportedPlatforms();
+
+    res.json({
+      success: true,
+      data: platforms
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取平台列表失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/quality-assess
+ * 内容质量评估
+ */
+router.post('/quality-assess', async (req, res) => {
+  try {
+    if (!contentQualityAssessmentService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容质量评估服务不可用'
+      });
+    }
+
+    const { content, contentType, options } = req.body;
+
+    const assessment = await contentQualityAssessmentService.assessContentQuality(
+      content, 
+      contentType, 
+      options
+    );
+
+    res.json({
+      success: true,
+      data: assessment
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 内容质量评估失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/generate-enhanced
+ * 增强版AI内容生成
+ */
+router.post('/generate-enhanced', async (req, res) => {
+  try {
+    if (!enhancedContentCreationService) {
+      return res.status(500).json({
+        success: false,
+        message: '增强内容生成服务不可用'
+      });
+    }
+
+    const { formData, options } = req.body;
+
+    const result = await enhancedContentCreationService.generateSmartContent(formData, options);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 增强AI生成内容失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/contents/templates
+ * 获取可用内容模板
+ */
+router.get('/templates', async (req, res) => {
+  try {
+    if (!enhancedContentCreationService) {
+      return res.status(500).json({
+        success: false,
+        message: '内容生成服务不可用'
+      });
+    }
+
+    const templates = enhancedContentCreationService.getAvailableTemplates();
+    const styles = enhancedContentCreationService.getAvailableStyles();
+
+    res.json({
+      success: true,
+      data: {
+        templates,
+        styles
+      }
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取模板失败', { error: error.message });
     res.status(500).json({
       success: false,
       message: error.message
