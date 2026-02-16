@@ -122,4 +122,4 @@ curl http://localhost:5000/api/health
 ---
 
 **详细规范**: `docs/dev/SPEC_STANDARDS.md`
-**完整流程**: `docs/dev/DEV_WORKFLOW.md`
+**完整流程**: `docs/02-development/workflow.md`

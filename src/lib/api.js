@@ -626,6 +626,81 @@ class ApiClient {
     }
   }
 
+  // 增强数据分析API
+  async getUserBehaviorAnalysis(days = 30) {
+    try {
+      const response = await this.client.get(`/analytics/user-behavior?days=${days}`);
+      return {
+        success: true,
+        data: response.data || []
+      };
+    } catch (error) {
+      console.error('获取用户行为分析失败:', error);
+      return {
+        success: true,
+        data: []
+      };
+    }
+  }
+
+  async getContentQualityAnalysis() {
+    try {
+      const response = await this.client.get('/analytics/content-quality');
+      return {
+        success: true,
+        data: response.data || []
+      };
+    } catch (error) {
+      console.error('获取内容质量分析失败:', error);
+      return {
+        success: true,
+        data: []
+      };
+    }
+  }
+
+  async getPredictiveAnalysis(metric = 'views', days = 7) {
+    try {
+      const response = await this.client.get(`/analytics/predictions?metric=${metric}&days=${days}`);
+      return {
+        success: true,
+        data: response.data || {
+          historical: [],
+          predictions: [],
+          trend: '未知'
+        }
+      };
+    } catch (error) {
+      console.error('获取预测分析失败:', error);
+      return {
+        success: true,
+        data: {
+          historical: [],
+          predictions: [],
+          trend: '未知'
+        }
+      };
+    }
+  }
+
+  async exportAnalyticsData(type = 'csv', dataType = 'overview') {
+    try {
+      const response = await this.client.get(`/analytics/export?type=${type}&dataType=${dataType}`, {
+        responseType: 'blob'
+      });
+      return {
+        success: true,
+        data: response
+      };
+    } catch (error) {
+      console.error('导出数据分析失败:', error);
+      return {
+        success: false,
+        message: '导出数据分析失败'
+      };
+    }
+  }
+
   async getContentOptimizationSuggestions(contentId) {
     try {
       const response = await this.client.get(`/analytics/optimization-suggestions?contentId=${contentId}`);
@@ -902,6 +977,218 @@ class ApiClient {
     }
   }
 
+  async publishContent(contentId, platforms, options = {}) {
+    try {
+      const response = await this.client.post('/contents/publish', { 
+        contentId, 
+        platforms, 
+        options 
+      });
+      return response;
+    } catch (error) {
+      console.error('内容发布失败:', error);
+      return {
+        success: false,
+        message: '内容发布失败'
+      };
+    }
+  }
+
+  async schedulePublish(contentId, platforms, scheduleTime, options = {}) {
+    try {
+      const response = await this.client.post('/contents/schedule-publish', { 
+        contentId, 
+        platforms, 
+        scheduleTime,
+        options 
+      });
+      return response;
+    } catch (error) {
+      console.error('定时发布设置失败:', error);
+      return {
+        success: false,
+        message: '定时发布设置失败'
+      };
+    }
+  }
+
+  async batchPublish(contentIds, platformMapping, options = {}) {
+    try {
+      const response = await this.client.post('/contents/batch-publish', { 
+        contentIds, 
+        platformMapping, 
+        options 
+      });
+      return response;
+    } catch (error) {
+      console.error('批量发布失败:', error);
+      return {
+        success: false,
+        message: '批量发布失败'
+      };
+    }
+  }
+
+  async smartDistribute(contentId, strategy = 'balanced', options = {}) {
+    try {
+      const response = await this.client.post('/contents/smart-distribute', { 
+        contentId, 
+        strategy, 
+        options 
+      });
+      return response;
+    } catch (error) {
+      console.error('智能分发失败:', error);
+      return {
+        success: false,
+        message: '智能分发失败'
+      };
+    }
+  }
+
+  async getPublishStatus(contentId, platform = null) {
+    try {
+      const params = platform ? { platform } : {};
+      const response = await this.client.get(`/contents/publish-status/${contentId}`, { params });
+      return response;
+    } catch (error) {
+      console.error('获取发布状态失败:', error);
+      return {
+        success: false,
+        message: '获取发布状态失败'
+      };
+    }
+  }
+
+  async getScheduledTasks(filters = {}) {
+    try {
+      const response = await this.client.get('/contents/scheduled-tasks', { params: filters });
+      return response;
+    } catch (error) {
+      console.error('获取调度任务失败:', error);
+      return {
+        success: false,
+        message: '获取调度任务失败'
+      };
+    }
+  }
+
+  async cancelScheduledTask(taskId) {
+    try {
+      const response = await this.client.delete(`/contents/scheduled-tasks/${taskId}`);
+      return response;
+    } catch (error) {
+      console.error('取消调度任务失败:', error);
+      return {
+        success: false,
+        message: '取消调度任务失败'
+      };
+    }
+  }
+
+  async getAvailablePublishers() {
+    try {
+      const response = await this.client.get('/contents/publishers');
+      return response;
+    } catch (error) {
+      console.error('获取发布器失败:', error);
+      return {
+        success: false,
+        message: '获取发布器失败'
+      };
+    }
+  }
+
+  async adaptContentForPlatform(content, targetPlatform, options = {}) {
+    try {
+      const response = await this.client.post('/contents/adapt-platform', { 
+        content, 
+        targetPlatform, 
+        options 
+      });
+      return response;
+    } catch (error) {
+      console.error('内容平台适配失败:', error);
+      return {
+        success: false,
+        message: '内容平台适配失败'
+      };
+    }
+  }
+
+  async adaptContentForMultiplePlatforms(content, platforms, options = {}) {
+    try {
+      const response = await this.client.post('/contents/adapt-multiple-platforms', { 
+        content, 
+        platforms, 
+        options 
+      });
+      return response;
+    } catch (error) {
+      console.error('批量内容平台适配失败:', error);
+      return {
+        success: false,
+        message: '批量内容平台适配失败'
+      };
+    }
+  }
+
+  async getSupportedPlatforms() {
+    try {
+      const response = await this.client.get('/contents/platforms');
+      return response;
+    } catch (error) {
+      console.error('获取支持平台失败:', error);
+      return {
+        success: false,
+        message: '获取支持平台失败'
+      };
+    }
+  }
+
+  async assessContentQuality(content, contentType = 'article', options = {}) {
+    try {
+      const response = await this.client.post('/contents/quality-assess', { 
+        content, 
+        contentType, 
+        options 
+      });
+      return response;
+    } catch (error) {
+      console.error('内容质量评估失败:', error);
+      return {
+        success: false,
+        message: '内容质量评估失败'
+      };
+    }
+  }
+
+  async generateEnhancedContent(formData, options = {}) {
+    try {
+      const response = await this.client.post('/contents/generate-enhanced', { formData, options });
+      return response;
+    } catch (error) {
+      console.error('增强AI生成内容失败:', error);
+      return {
+        success: false,
+        message: '增强AI生成内容失败'
+      };
+    }
+  }
+
+  async getContentTemplates() {
+    try {
+      const response = await this.client.get('/contents/templates');
+      return response;
+    } catch (error) {
+      console.error('获取内容模板失败:', error);
+      return {
+        success: false,
+        message: '获取内容模板失败'
+      };
+    }
+  }
+
   async generateAIContent(formData, type, options = {}) {
     try {
       const response = await this.client.post('/contents/generate', { formData, type, options });
@@ -1005,6 +1292,47 @@ class ApiClient {
         success: false,
         message: '获取性能趋势失败'
       };
+    }
+  }
+
+  // 通用HTTP方法
+  async get(url, config = {}) {
+    try {
+      const response = await this.client.get(url, config);
+      return response;
+    } catch (error) {
+      console.error(`GET ${url} 失败:`, error);
+      throw error;
+    }
+  }
+
+  async post(url, data = {}, config = {}) {
+    try {
+      const response = await this.client.post(url, data, config);
+      return response;
+    } catch (error) {
+      console.error(`POST ${url} 失败:`, error);
+      throw error;
+    }
+  }
+
+  async put(url, data = {}, config = {}) {
+    try {
+      const response = await this.client.put(url, data, config);
+      return response;
+    } catch (error) {
+      console.error(`PUT ${url} 失败:`, error);
+      throw error;
+    }
+  }
+
+  async delete(url, config = {}) {
+    try {
+      const response = await this.client.delete(url, config);
+      return response;
+    } catch (error) {
+      console.error(`DELETE ${url} 失败:`, error);
+      throw error;
     }
   }
 }

@@ -17,7 +17,11 @@ const ContentGeneration = () => {
   const [selectedType, setSelectedType] = useState('article');
   const [formData, setFormData] = useState(null);
   const [generatedContent, setGeneratedContent] = useState(null);
-  const [useWorkflow, setUseWorkflow] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState('news_report');
+  const [selectedStyle, setSelectedStyle] = useState('professional');
+  const [optimizations, setOptimizations] = useState(['seo', 'readability']);
+  const [availableTemplates, setAvailableTemplates] = useState([]);
+  const [availableStyles, setAvailableStyles] = useState([]);
 
   const contentTypes = [
     {
@@ -52,14 +56,60 @@ const ContentGeneration = () => {
 
   const topic = location.state?.selectedTopic || null;
 
-  const generateMutation = useMutation({
-    mutationFn: async ({ formData, type }) => {
-      const response = await api.generateContent(formData, type);
+  useEffect(() => {
+    // 获取可用模板和样式
+    const fetchTemplates = async () => {
+      try {
+        const response = await api.getContentTemplates();
+        if (response.success) {
+          setAvailableTemplates(response.data.templates);
+          setAvailableStyles(response.data.styles);
+        }
+      } catch (error) {
+        console.error('获取模板失败:', error);
+      }
+    };
+    
+    fetchTemplates();
+  }, []);
+
+  useEffect(() => {
+    if (topic) {
+      setFormData({
+        topic: topic.title,
+        title: topic.title,
+        keywords: topic.keywords?.join(',') || '',
+        targetAudience: '',
+        tone: 'professional',
+        length: 'medium',
+        includeData: true,
+        includeCase: false,
+        includeExpert: false,
+        hotTopicId: topic._id
+      });
+    }
+  }, [topic]);
+
+  // 增强版内容生成mutation
+  const generateEnhancedMutation = useMutation({
+    mutationFn: async ({ formData }) => {
+      const options = {
+        template: selectedTemplate,
+        style: selectedStyle,
+        optimizeFor: optimizations,
+        targetPlatform: 'toutiao',
+        autoApprove: false,
+        sourceType: 'hot_topic',
+        sourceId: formData.hotTopicId,
+        userId: 'current_user'
+      };
+      
+      const response = await api.generateEnhancedContent(formData, options);
       return response.data;
     },
     onSuccess: (data) => {
       setGeneratedContent(data);
-      showSuccess('内容生成成功');
+      showSuccess('增强内容生成成功');
     },
     onError: (error) => {
       showError('内容生成失败: ' + error.message);
@@ -118,23 +168,6 @@ const ContentGeneration = () => {
       showError('内容发布失败: ' + error.message);
     }
   });
-
-  useEffect(() => {
-    if (topic) {
-      setFormData({
-        topic: topic.title,
-        title: topic.title,
-        keywords: topic.keywords?.join(',') || '',
-        targetAudience: '',
-        tone: 'professional',
-        length: 'medium',
-        includeData: true,
-        includeCase: false,
-        includeExpert: false,
-        hotTopicId: topic._id
-      });
-    }
-  }, [topic]);
 
   const handleGenerate = async (formData) => {
     setFormData(formData);

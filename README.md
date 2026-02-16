@@ -138,16 +138,30 @@ ai-content-flow/
     └── nginx.conf          # 反向代理配置
 ```
 
-## 文档中心
+## 📚 文档中心
 
-### 📚 核心文档
-- [项目概述](./docs/PROJECT_SUMMARY.md) - 了解项目目标和功能
-- [任务状态汇总](./docs/PROJECT_TASK_STATUS_OVERVIEW.md) - 查看所有任务完成状态
-- [开发计划](./docs/DEVELOPMENT_PLAN.md) - 待落地任务和优先级
+### 📖 入门文档
+- [快速开始](./docs/01-getting-started/quick-start.md) - 从零开始的完整指南
+
+### 🛠️ 开发文档
+- [开发工作流](./docs/02-development/workflow.md) - 标准开发流程和规范
+- [架构设计](./docs/dev/ARCHITECTURE.md) - 系统架构详解
+- [API 文档](./docs/dev/API.md) - 接口规范说明
+
+### 📊 项目管理
+- [任务状态](./docs/PROJECT_TASK_STATUS_OVERVIEW.md) - 项目进度和任务完成情况
+- [开发计划](./docs/DEVELOPMENT_PLAN.md) - 未来开发规划
+
+### 🔧 技术标准
+- [技术标准规范](./docs/04-technical-standards/index.md) - 环境变量、日志、监控等标准
+
+### 🔒 安全相关
+- [安全加固计划](./docs/security/SECURITY_HARDENING_PLAN.md) - 安全措施和实施
+- [JWT 实施报告](./docs/security/JWT_REFRESH_TOKEN_IMPLEMENTATION_REPORT.md) - 认证机制说明
 
 ### 🛠️ 开发指南
-- [快速开始](./docs/dev/QUICK_START.md) - 详细环境配置和启动指南
-- [开发工作流](./docs/dev/DEV_WORKFLOW.md) - 标准7步开发流程
+- [快速开始](./docs/01-getting-started/quick-start.md) - 环境配置和启动指南
+- [开发工作流](./docs/02-development/workflow.md) - 标准开发流程
 - [架构设计](./docs/dev/ARCHITECTURE.md) - 系统架构说明
 - [API 文档](./docs/dev/API.md) - 接口规范
 - [数据存储](./docs/dev/DATA_STORAGE.md) - 存储方案
@@ -158,10 +172,7 @@ ai-content-flow/
 - [规格文档标准](./docs/dev/SPEC_STANDARDS.md) - 文档编写规范
 
 ### 🔧 技术标准
-- [环境变量标准](./docs/ENVIRONMENT_VARIABLES_STANDARD.md) - 配置管理规范
-- [日志系统标准](./docs/LOGGING_SYSTEM_STANDARD.md) - 日志记录规范
-- [监控告警标准](./docs/MONITORING_ALERT_SYSTEM.md) - 监控体系规范
-- [端口配置标准](./docs/STANDARD_PORT_CONFIGURATION.md) - 端口分配规范
+- [技术标准规范](./docs/04-technical-standards/index.md) - 统一的技术标准文档
 
 ### 🔒 安全相关
 - [安全加固计划](./docs/security/SECURITY_HARDENING_PLAN.md) - 安全措施
