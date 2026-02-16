@@ -13,6 +13,8 @@
     "@anthropic-ai/sdk": "^0.74.0",
     "@baiducloud/qianfan": "^0.2.4",
     "@google/generative-ai": "^0.24.1",
+    "@remotion/bundler": "^4.0.422",
+    "@remotion/renderer": "^4.0.422",
     "axios": "^1.6.8",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",

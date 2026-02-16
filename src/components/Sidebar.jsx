@@ -16,7 +16,7 @@ const Sidebar = () => {
       </div>
       
       <nav className="mt-6">
-        {navItems.map((item) => {
+        {navItems.filter(item => !item.hidden).map((item) => {
           const isActive = location.pathname === item.to;
           
           return (

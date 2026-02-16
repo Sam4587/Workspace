@@ -11,6 +11,7 @@
     "dev:all": "node scripts/dev-server.js",
     "dev:legacy": "node scripts/auto-dev-server.js",
     "dev:auto": "node scripts/auto-dev-server/src/cli.js start",
+    "dev:server": "cd scripts/auto-dev-server && npm install && cd ../.. && node scripts/auto-dev-server/src/cli.js start",
     "setup": "npm install && cd server && npm install",
     "build": "vite build",
     "build:dev": "vite build --mode development",

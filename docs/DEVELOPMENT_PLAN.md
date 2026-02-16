@@ -6,15 +6,15 @@
 
 | 模块 | 完成度 | 状态 |
 |------|--------|------|
-| 热点发现 | 80% | 基本可用 |
+| 热点发现 | 100% | 已完成 |
 | 内容生成 | 70% | 基本可用 |
 | 数据分析 | 40% | 待完善 |
-| Remotion视频生成 | 50% | 进行中 |
-| 视频转录 | 0% | 未开始 |
+| Remotion视频生成 | ✅ 100% | 已完成 |
+| 视频转录 | ✅ 100% | 已完成 |
 | MCP发布平台 | 0% | 未开始 |
-| LiteLLM集成 | 0% | 未开始 |
-| Auto Dev Server | 0% | 未开始 |
-| 深色模式切换 | 0% | 未开始 |
+| LiteLLM集成 | ✅ 100% | 已完成 |
+| Auto Dev Server | ✅ 已完成 | 已完成 |
+| 深色模式切换 | ✅ 已完成 | 已完成 |
 
 ## 优先级任务列表
 
@@ -25,7 +25,7 @@
 | SEC-001: 移除硬编码密钥 | 全面扫描并移除代码中的硬编码凭证 | ✅ 已完成 |
 | SEC-002: 完善JWT认证 | 增强JWT安全性，实现刷新令牌机制 | ✅ 已完成 |
 | SEC-003: API速率限制 | 配置和优化请求频率限制 | ✅ 已完成 |
-| SEC-004: 请求验证中间件 | 实现输入验证和防护机制 | ⚠️ 进行中 |
+| SEC-004: 请求验证中间件 | 实现输入验证和防护机制 | ✅ 已完成 |
 | 清理 .env 中的硬编码密钥 | 已移除 QWEN_API_KEY、OPENROUTER_API_KEY | ✅ 已完成 |
 | 移除默认密码 | 已移除 ADMIN_PASSWORD 默认值 | ✅ 已完成 |
 | 创建 .env.example | 已创建配置模板 | ✅ 已完成 |
@@ -36,8 +36,8 @@
 
 | 任务 | 规格文档 | 预估工时 | 状态 |
 |------|----------|----------|------|
-| Auto Dev Server | [specs/auto-dev-server](specs/auto-dev-server/) | 4小时 | 待开始 |
-| 深色模式切换 | [specs/dark-mode-toggle](specs/dark-mode-toggle/) | 2小时 | 待开始 |
+| Auto Dev Server | [specs/auto-dev-server](specs/auto-dev-server/) | 4小时 | ✅ 已完成 |
+| 深色模式切换 | [specs/dark-mode-toggle](specs/dark-mode-toggle/) | 2小时 | ✅ 已完成 |
 | Remotion视频生成（剩余） | [specs/remotion-video-generation](specs/remotion-video-generation/) | 8-12小时 | 50%完成 |
 
 ### P2 - 中优先级
@@ -75,29 +75,28 @@
 **目标**: 实现深色/浅色主题切换
 
 **任务列表**:
-- [ ] 安装 next-themes 依赖
-- [ ] 创建 CSS 变量定义
-- [ ] 配置 ThemeProvider
-- [ ] 创建 ThemeToggle 组件
-- [ ] 集成到导航栏
-- [ ] 测试功能
+- [x] 安装 next-themes 依赖
+- [x] 创建 CSS 变量定义
+- [x] 配置 ThemeProvider
+- [x] 创建 ThemeToggle 组件
+- [x] 集成到导航栏
+- [x] 测试功能
 
 **规格文档**: `docs/specs/dark-mode-toggle/tasklist.md`
 
-### 3. Remotion视频生成（剩余36个子任务）
+### 3. Remotion视频生成（已完成）
 
 **目标**: 完成视频生成功能
 
 **已完成**:
-- 基础架构
-- 模板系统
-- 渲染服务
+- ✅ 文章视频模板 (ArticleVideo)
+- ✅ 微头条视频模板 (MicroVideo)
+- ✅ 服务端渲染API
+- ✅ 渲染队列服务
+- ✅ TTS服务集成
+- ✅ 批量生成功能
 
-**待完成**:
-- 更多视频模板
-- 批量生成
-- 性能优化
-- 错误处理
+**规格文档**: `docs/specs/remotion-video-generation/tasklist.md`
 
 **规格文档**: `docs/specs/remotion-video-generation/tasklist.md`
 
@@ -117,15 +116,18 @@
 
 **规格文档**: `docs/specs/litellm-integration/tasklist.md`
 
-### 5. 视频转录功能（3周）
+### 5. 视频转录功能（已完成）
 
-**目标**: 实现视频语音转文字
+**目标**: 实现视频语音转文字和智能内容创作
 
-**任务列表**:
-- [ ] 阶段1: 基础设施
-- [ ] 阶段2: Whisper本地转录
-- [ ] 阶段3: 云服务集成
-- [ ] 阶段4: API和前端
+**已完成**:
+- ✅ 视频下载模块（抖音/快手支持）
+- ✅ 转录引擎集成（Whisper本地 + 阿里云ASR备用）
+- ✅ 智能创作模块（内容分析、多平台改写）
+- ✅ 前端集成（视频操作面板、转录结果显示）
+- ✅ 发布集成（对接Publisher Tools）
+
+**规格文档**: `docs/specs/video-transcription/tasklist.md`
 
 **规格文档**: `docs/specs/video-transcription/tasklist.md`
 

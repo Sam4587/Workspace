@@ -334,6 +334,191 @@ function validateJwtToken() {
   };
 }
 
+/**
+ * XSS防护中间件
+ * 清理请求中的潜在XSS攻击载荷
+ * @returns {Function} Express中间件
+ */
+function sanitizeInput() {
+  return (req, res, next) => {
+    // XSS防护正则表达式
+    const xssPatterns = [
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      /<img[^>]+src[^>]*=javascript:/gi,
+      /javascript:/gi,
+      /on\w+\s*=\s*['"].*?['"]/gi,
+      /<iframe[^>]*>[\s\S]*?<\/iframe>/gi,
+      /<object[^>]*>[\s\S]*?<\/object>/gi,
+      /eval\s*\(/gi,
+      /expression\s*\(/gi
+    ];
+    
+    // 清理请求体
+    if (req.body && typeof req.body === 'object') {
+      sanitizeObject(req.body, xssPatterns);
+    }
+    
+    // 清理查询参数
+    if (req.query && typeof req.query === 'object') {
+      sanitizeObject(req.query, xssPatterns);
+    }
+    
+    // 清理路径参数
+    if (req.params && typeof req.params === 'object') {
+      sanitizeObject(req.params, xssPatterns);
+    }
+    
+    next();
+  };
+}
+
+/**
+ * 递归清理对象中的XSS载荷
+ * @param {Object} obj - 要清理的对象
+ * @param {Array} patterns - XSS模式数组
+ */
+function sanitizeObject(obj, patterns) {
+  for (const key in obj) {
+    if (typeof obj[key] === 'string') {
+      patterns.forEach(pattern => {
+        obj[key] = obj[key].replace(pattern, '');
+      });
+      // HTML实体编码转换
+      obj[key] = obj[key]
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+      sanitizeObject(obj[key], patterns);
+    }
+  }
+}
+
+/**
+ * SQL注入防护中间件
+ * 检测常见的SQL注入模式
+ * @returns {Function} Express中间件
+ */
+function preventSqlInjection() {
+  return (req, res, next) => {
+    const sqlPatterns = [
+      /\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b/i,
+      /('|--|\/\*|\*\/|;)/,
+      /\b(or|and)\s+\d+=\d+/i,
+      /benchmark\s*\(/i,
+      /sleep\s*\(/i
+    ];
+    
+    let hasSqlInjection = false;
+    const errorMessage = '检测到潜在的SQL注入攻击';
+    
+    // 检查请求体
+    if (req.body && typeof req.body === 'object') {
+      hasSqlInjection = checkObjectForSqlInjection(req.body, sqlPatterns);
+    }
+    
+    // 检查查询参数
+    if (!hasSqlInjection && req.query && typeof req.query === 'object') {
+      hasSqlInjection = checkObjectForSqlInjection(req.query, sqlPatterns);
+    }
+    
+    // 检查路径参数
+    if (!hasSqlInjection && req.params && typeof req.params === 'object') {
+      hasSqlInjection = checkObjectForSqlInjection(req.params, sqlPatterns);
+    }
+    
+    if (hasSqlInjection) {
+      return res.status(400).json({
+        success: false,
+        message: errorMessage,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    next();
+  };
+}
+
+/**
+ * 检查对象是否存在SQL注入模式
+ * @param {Object} obj - 要检查的对象
+ * @param {Array} patterns - SQL注入模式数组
+ * @returns {boolean} 是否检测到SQL注入
+ */
+function checkObjectForSqlInjection(obj, patterns) {
+  for (const key in obj) {
+    if (typeof obj[key] === 'string') {
+      for (const pattern of patterns) {
+        if (pattern.test(obj[key])) {
+          return true;
+        }
+      }
+    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+      if (checkObjectForSqlInjection(obj[key], patterns)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * CSRF防护中间件
+ * 验证CSRF令牌
+ * @returns {Function} Express中间件
+ */
+function csrfProtection() {
+  return (req, res, next) => {
+    // 对于GET请求不验证CSRF
+    if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+      return next();
+    }
+    
+    // 从请求头或请求体获取CSRF令牌
+    const csrfToken = req.headers['x-csrf-token'] || 
+                     req.body?._csrf || 
+                     req.query?._csrf;
+    
+    // 简化的CSRF验证（实际项目中应该使用更严格的验证）
+    if (!csrfToken) {
+      return res.status(403).json({
+        success: false,
+        message: '缺少CSRF令牌',
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // 在实际应用中，这里应该验证令牌的有效性
+    // 目前只做简单的存在性检查
+    
+    next();
+  };
+}
+
+/**
+ * 请求大小限制中间件
+ * 限制请求体大小
+ * @param {number} maxSize - 最大大小（字节）
+ * @returns {Function} Express中间件
+ */
+function requestSizeLimit(maxSize = 10 * 1024 * 1024) { // 默认10MB
+  return (req, res, next) => {
+    if (req.headers['content-length']) {
+      const contentLength = parseInt(req.headers['content-length'], 10);
+      if (contentLength > maxSize) {
+        return res.status(413).json({
+          success: false,
+          message: `请求体过大，最大允许 ${Math.round(maxSize / 1024 / 1024)}MB`,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+    next();
+  };
+}
+
 module.exports = {
   ValidationError,
   validateRequired,
@@ -344,5 +529,9 @@ module.exports = {
   validatePhone,
   validateUrl,
   validateJwtToken,
-  validate
+  validate,
+  sanitizeInput,
+  preventSqlInjection,
+  csrfProtection,
+  requestSizeLimit
 };

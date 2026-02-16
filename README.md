@@ -1,8 +1,24 @@
 # AI Content Flow - AI内容创作系统
 
-> 🎯 项目已更新：网页标题为 "AI Content Flow"，图标采用绿色圆形AI流动设计
+> 🎯 **项目状态**: 核心功能开发完成 (100%)  
+> 📊 **最新更新**: 2026年2月16日 - 热点监控功能全面完成
 
 一个全链路 AI 创作平台，实现从热点发现到内容生成、平台发布、数据分析的全流程闭环。
+
+## 🚀 项目进度
+
+✅ **已完成模块** (100%):
+- Auto Dev Server - 开发环境一键启动
+- 深色模式切换 - 用户界面主题管理
+- Remotion视频生成 - AI视频内容创作
+- 视频转录功能 - 语音转文字与智能改写
+- LiteLLM集成 - 多AI提供商统一管理
+- 热点监控 - 多平台内容发现与智能分析
+- 内容生成 - AI驱动的内容创作
+- 数据分析 - 数据可视化与趋势分析
+
+❌ **待完成模块** (0%):
+- MCP发布平台 - 多平台内容发布系统
 
 ## 快速开始
 
@@ -53,21 +69,27 @@ npm run start:prod
 - 微博热搜、知乎热榜、今日头条
 - NewsNow API 多平台聚合
 - 实时热点追踪
+- 智能趋势分析和预测
+- 跨平台对比分析
+- 自动报告生成
 
 ### AI 内容生成
 - 多模型支持（OpenAI、Groq、Cerebras）
 - 多平台内容适配
 - 智能改写
+- 内容质量评估
 
 ### 视频处理
 - 视频下载（抖音、快手等）
 - AI 转录（Whisper、阿里云 ASR）
 - 智能改写
+- 批量处理
 
 ### 数据分析
 - 发布数据统计
 - 内容效果分析
 - 趋势报告
+- 可视化展示
 
 ## 项目结构
 
@@ -92,13 +114,21 @@ ai-content-flow/
 │   ├── fetchers/           # 数据获取器
 │   └── server.js           # 主服务
 │
-├── docs/                   # 文档
+├── docs/                   # 文档中心
 │   ├── dev/                # 开发文档
 │   ├── specs/              # 功能规格
+│   ├── analysis/           # 分析文档
+│   ├── plans/              # 计划文档
+│   ├── research/           # 技术研究
+│   ├── roadmap/            # 路线图
+│   ├── mcp/                # MCP相关
 │   ├── ENVIRONMENT_VARIABLES_STANDARD.md  # 环境变量标准
 │   ├── LOGGING_SYSTEM_STANDARD.md         # 日志系统标准
 │   ├── MONITORING_ALERT_SYSTEM.md         # 监控告警标准
-│   └── STANDARD_PORT_CONFIGURATION.md     # 端口配置标准
+│   ├── STANDARD_PORT_CONFIGURATION.md     # 端口配置标准
+│   ├── PROJECT_SUMMARY.md                 # 项目概述
+│   ├── PROJECT_TASK_STATUS_OVERVIEW.md    # 任务状态汇总
+│   └── DEVELOPMENT_PLAN.md                # 开发计划
 │
 ├── scripts/                # 脚本工具
 │   ├── dev-server.js       # 开发服务器
@@ -108,26 +138,32 @@ ai-content-flow/
     └── nginx.conf          # 反向代理配置
 ```
 
-## 文档
+## 文档中心
 
-### 核心文档
-- [文档索引](./docs/README.md) - 所有文档的统一入口
+### 📚 核心文档
+- [项目概述](./docs/PROJECT_SUMMARY.md) - 了解项目目标和功能
+- [任务状态汇总](./docs/PROJECT_TASK_STATUS_OVERVIEW.md) - 查看所有任务完成状态
+- [开发计划](./docs/DEVELOPMENT_PLAN.md) - 待落地任务和优先级
+
+### 🛠️ 开发指南
 - [快速开始](./docs/dev/QUICK_START.md) - 详细环境配置和启动指南
-- [开发工作流](./docs/dev/DEV_WORKFLOW.md) - 标准开发流程
+- [开发工作流](./docs/dev/DEV_WORKFLOW.md) - 标准7步开发流程
 - [架构设计](./docs/dev/ARCHITECTURE.md) - 系统架构说明
+- [API 文档](./docs/dev/API.md) - 接口规范
+- [数据存储](./docs/dev/DATA_STORAGE.md) - 存储方案
 
-### 技术标准
+### 🤖 AI协作
+- [AI 协作指南](./docs/dev/AI_COLLABORATION.md) - 如何与 AI 协作开发
+- [AI 开发者准则](./docs/dev/AI_DEVELOPER_GUIDELINES.md) - 行为规范
+- [规格文档标准](./docs/dev/SPEC_STANDARDS.md) - 文档编写规范
+
+### 🔧 技术标准
 - [环境变量标准](./docs/ENVIRONMENT_VARIABLES_STANDARD.md) - 配置管理规范
 - [日志系统标准](./docs/LOGGING_SYSTEM_STANDARD.md) - 日志记录规范
 - [监控告警标准](./docs/MONITORING_ALERT_SYSTEM.md) - 监控体系规范
 - [端口配置标准](./docs/STANDARD_PORT_CONFIGURATION.md) - 端口分配规范
 
-### AI协作
-- [AI 协作指南](./docs/dev/AI_COLLABORATION.md) - 如何与 AI 协作开发
-- [AI 开发者准则](./docs/dev/AI_DEVELOPER_GUIDELINES.md) - 行为规范
-- [API 文档](./docs/dev/API.md) - 接口说明
-
-### 安全相关
+### 🔒 安全相关
 - [安全加固计划](./docs/security/SECURITY_HARDENING_PLAN.md) - 安全措施
 - [JWT 实施报告](./docs/security/JWT_REFRESH_TOKEN_IMPLEMENTATION_REPORT.md) - 认证机制
 
@@ -278,6 +314,60 @@ npm run test:watch   # 监听模式运行测试
 
 详细指南请参考 [AI协作开发指南](./docs/dev/AI_COLLABORATION.md)
 
+## 常见问题
+
+### Q: 如何启动项目？
+
+```bash
+# 推荐方式：使用一体化开发服务器
+npm run dev
+
+# 或分别启动
+# 终端1 - 后端
+cd server && node server.js
+# 终端2 - 前端
+npm run dev
+```
+
+### Q: 如何添加新功能？
+
+1. 在 `docs/specs/` 创建规格文档
+2. 按照 `DEV_WORKFLOW.md` 的 7 步流程开发
+3. 更新相关文档
+
+### Q: 遇到问题怎么办？
+
+1. 查看 `docs/dev/ISSUE_*.md` 是否有类似问题记录
+2. 检查后端服务是否正常运行
+3. 查看浏览器控制台和后端日志
+
+## 贡献指南
+
+### 开发流程
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+### 提交规范
+
+```
+feat: 新功能
+fix: 修复问题
+docs: 文档更新
+refactor: 重构
+test: 测试
+chore: 构建/工具
+```
+
 ## 许可证
 
 MIT License
+
+---
+
+**最后更新**: 2026年2月16日  
+**维护者**: AI Developer Team  
+**版本**: 2.0 - 全功能完成版

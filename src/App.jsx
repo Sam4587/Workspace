@@ -19,6 +19,9 @@ const App = () => (
               {navItems.map(({ to, page }) => (
                 <Route key={to} path={to} element={page} />
               ))}
+              {/* 参数化路由 */}
+              <Route path="/transcription/:videoId" element={<TranscriptionResult />} />
+              <Route path="/content-rewrite" element={<ContentRewrite />} />
             </Routes>
           </Layout>
         </HashRouter>

@@ -7,12 +7,16 @@ const router = express.Router();
 const { transcriptionEngine } = require('../transcription');
 const logger = require('../utils/logger');
 const videoStorage = require('../video/VideoStorage');
+const { validateRequired, validateTypes } = require('../middleware/validation');
 
 /**
  * POST /api/transcription/submit
  * 提交转录任务
  */
-router.post('/submit', async (req, res) => {
+router.post('/submit', 
+  validateRequired(['videoId']),
+  validateTypes({ videoId: 'string', engine: 'string', options: 'object' }),
+  async (req, res) => {
   try {
     const { videoId, engine, options } = req.body;
 
@@ -122,7 +126,10 @@ router.get('/engines/list', (req, res) => {
  * POST /api/transcription/transcribe
  * 同步转录（立即执行）
  */
-router.post('/transcribe', async (req, res) => {
+router.post('/transcribe', 
+  validateRequired(['videoId']),
+  validateTypes({ videoId: 'string', engine: 'string', options: 'object' }),
+  async (req, res) => {
   try {
     const { videoId, engine, options } = req.body;
 

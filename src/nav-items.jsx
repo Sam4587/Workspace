@@ -1,9 +1,11 @@
-import { HomeIcon, TrendingUp, FileText, BarChart3, Video } from "lucide-react";
+import { HomeIcon, TrendingUp, FileText, BarChart3, Video, FileTextIcon } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import HotTopics from "./pages/HotTopics.jsx";
 import ContentGeneration from "./pages/ContentGeneration.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import VideoGeneration from "./pages/VideoGeneration.jsx";
+import TranscriptionResult from "./pages/TranscriptionResult.jsx";
+import ContentRewrite from "./pages/ContentRewrite.jsx";
 
 /**
  * Central place for defining the navigation items. Used for navigation components and routing.
@@ -42,4 +44,17 @@ export const navItems = [
     icon: <Video className="h-4 w-4" />,
     page: <VideoGeneration />,
   },
+  // 隐藏路由（不在导航菜单中显示）
+  {
+    title: "转录结果",
+    to: "/transcription/:videoId",
+    page: <TranscriptionResult />,
+    hidden: true
+  },
+  {
+    title: "内容改写",
+    to: "/content-rewrite",
+    page: <ContentRewrite />,
+    hidden: true
+  }
 ];

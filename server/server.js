@@ -8,7 +8,7 @@ const configLoader = require('./utils/configLoader');
 const enhancedLogger = require('./utils/enhancedLogger');
 const rateLimiter = require('./utils/rateLimiter');
 const { loggingMiddleware, errorLoggingMiddleware, auditLoggingMiddleware } = require('./middleware/loggingMiddleware');
-const { validateRequired, validateTypes, validateEmail } = require('./middleware/validation');
+const { validateRequired, validateTypes, validateEmail, sanitizeInput, preventSqlInjection, csrfProtection, requestSizeLimit } = require('./middleware/validation');
 const healthRoutes = require('./routes/health');
 const { metricsCollector } = require('./middleware/metricsMiddleware');
 const alertService = require('./services/alertService');
@@ -50,6 +50,12 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 安全中间件
+app.use(requestSizeLimit(10 * 1024 * 1024)); // 限制请求体大小为10MB
+app.use(sanitizeInput()); // XSS防护
+app.use(preventSqlInjection()); // SQL注入防护
+app.use(csrfProtection()); // CSRF防护
 
 // 日志中间件
 app.use(loggingMiddleware);
@@ -753,7 +759,7 @@ app.post('/api/content/generate', (req, res) => {
 app.use('/api/contents', require('./routes/contents'));
 
 // 注册视频管理路由
-app.use('/api/video', require('./routes/video'));
+app.use('/api/video', require('./routes/videoDownload'));
 
 // 注册视频下载路由
 app.use('/api/video-download', require('./routes/videoDownload'));
@@ -763,6 +769,9 @@ app.use('/api/transcription', require('./routes/transcription'));
 
 // 注册任务队列管理路由
 app.use('/api/task-queue', require('./routes/taskQueue'));
+
+// 注册视频生成路由
+app.use('/api/video-generation', require('./routes/video'));
 
 // 兼容旧的内容API路由
 app.get('/api/content/:id', (req, res) => {

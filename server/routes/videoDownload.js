@@ -9,6 +9,7 @@ const logger = require('../utils/logger');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const { validateRequired, validateUrl, validateTypes } = require('../middleware/validation');
 
 // 配置文件上传
 const storage = multer.diskStorage({
@@ -42,7 +43,11 @@ const upload = multer({
  * POST /api/video/download
  * 下载视频
  */
-router.post('/download', async (req, res) => {
+router.post('/download', 
+  validateRequired(['url']),
+  validateUrl(['url']),
+  validateTypes({ removeWatermark: 'boolean' }),
+  async (req, res) => {
   try {
     const { url, removeWatermark } = req.body;
 
@@ -237,7 +242,10 @@ router.get('/platforms/list', (req, res) => {
  * POST /api/video/metadata
  * 获取视频元数据（不下载）
  */
-router.post('/metadata', async (req, res) => {
+router.post('/metadata', 
+  validateRequired(['url']),
+  validateUrl(['url']),
+  async (req, res) => {
   try {
     const { url } = req.body;
 
