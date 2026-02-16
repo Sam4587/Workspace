@@ -36,6 +36,9 @@ cookies/*.json
 publisher-core/cookies/*.json
 douyin-toutiao/cookies/*.json
 
+# Data directories (runtime generated)
+data/
+
 # PID and log files
 pids/
 logs/
