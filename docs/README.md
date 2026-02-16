@@ -16,10 +16,16 @@ docs/
 │   ├── AI_COLLABORATION.md     # AI 协作指南
 │   ├── SPEC_STANDARDS.md       # 规格文档标准
 │   ├── QUICK_REFERENCE.md      # 快速参考卡
+│   ├── QUICK_REFERENCE_CARD.md # 开发快速参考卡
 │   ├── ARCHITECTURE.md         # 系统架构
 │   ├── API.md                  # API 文档
 │   ├── DATA_STORAGE.md         # 数据存储方案
 │   └── ISSUE_*.md              # 问题修复记录
+│
+├── ENVIRONMENT_VARIABLES_STANDARD.md  # 环境变量标准
+├── LOGGING_SYSTEM_STANDARD.md         # 日志系统标准
+├── MONITORING_ALERT_SYSTEM.md         # 监控告警标准
+├── STANDARD_PORT_CONFIGURATION.md     # 端口配置标准
 │
 ├── specs/                       # 功能规格文档
 │   ├── auto-dev-server/        # 自动开发服务器
@@ -55,6 +61,7 @@ docs/
 | [项目概述](PROJECT_SUMMARY.md) | 了解项目目标和功能 | 必读 |
 | [快速开始](dev/QUICK_START.md) | 环境搭建和启动 | 必读 |
 | [开发工作流](dev/DEV_WORKFLOW.md) | 7 步开发流程 | 必读 |
+| [开发快速参考卡](dev/QUICK_REFERENCE_CARD.md) | 日常开发速查 | 常用 |
 
 ### AI 开发者必读
 
@@ -73,6 +80,15 @@ docs/
 | [数据存储](dev/DATA_STORAGE.md) | MongoDB/Memory 存储方案 |
 | [项目分离记录](PROJECT_SEPARATION.md) | 发布功能独立历史 |
 | [开发计划](DEVELOPMENT_PLAN.md) | 待落地任务汇总 |
+
+### 技术标准
+
+| 文档 | 说明 |
+|------|------|
+| [环境变量标准](ENVIRONMENT_VARIABLES_STANDARD.md) | 配置管理规范 |
+| [日志系统标准](LOGGING_SYSTEM_STANDARD.md) | 日志记录规范 |
+| [监控告警标准](MONITORING_ALERT_SYSTEM.md) | 监控体系规范 |
+| [端口配置标准](STANDARD_PORT_CONFIGURATION.md) | 端口分配规范 |
 
 ### 问题修复记录
 
@@ -115,9 +131,12 @@ chore: 构建/工具
 ### Q: 如何启动项目？
 
 ```bash
+# 推荐方式：使用一体化开发服务器
+npm run dev
+
+# 或分别启动
 # 终端1 - 后端
 cd server && node server.js
-
 # 终端2 - 前端
 npm run dev
 ```
@@ -152,3 +171,4 @@ npm run dev
 
 **最后更新**: 2026-02-16  
 **维护者**: AI Developer Team
+**版本**: 2.0 - 基础设施完善版

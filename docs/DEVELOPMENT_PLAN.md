@@ -60,12 +60,13 @@
 **目标**: 实现前后端服务一键启动
 
 **任务列表**:
-- [ ] 创建技能目录结构
-- [ ] 实现 ConfigManager（配置管理器）
-- [ ] 实现 ProcessManager（进程管理器）
-- [ ] 实现 AutoDevServer 主控制器
-- [ ] 创建 CLI 入口
-- [ ] 编写测试和文档
+- [x] 创建技能目录结构
+- [x] 实现 ConfigManager（配置管理器）
+- [x] 实现 ProcessManager（进程管理器）
+- [x] 实现 AutoDevServer 主控制器
+- [x] 创建 CLI 入口
+- [x] 编写测试和文档
+- [x] 集成到主项目 npm scripts
 
 **规格文档**: `docs/specs/auto-dev-server/tasklist.md`
 

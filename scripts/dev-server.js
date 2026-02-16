@@ -31,8 +31,8 @@ function printBanner() {
   console.log(`${colors.bright}${colors.cyan}╔═══════════════════════════════════════════════════════════╗${colors.reset}`);
   console.log(`${colors.bright}${colors.cyan}║                    TrendRadar 开发服务器                    ║${colors.reset}`);
   console.log(`${colors.bright}${colors.cyan}╠═══════════════════════════════════════════════════════════╣${colors.reset}`);
-  console.log(`${colors.bright}${colors.cyan}║  前端: http://localhost:5174                               ║${colors.reset}`);
-  console.log(`${colors.bright}${colors.cyan}║  后端: http://localhost:5001                               ║${colors.reset}`);
+  console.log(`${colors.bright}${colors.cyan}║  前端: http://localhost:5174 (标准端口)                    ║${colors.reset}`);
+  console.log(`${colors.bright}${colors.cyan}║  后端: http://localhost:5001 (标准端口)                    ║${colors.reset}`);
   console.log(`${colors.bright}${colors.cyan}╚═══════════════════════════════════════════════════════════╝${colors.reset}`);
   console.log('\n');
 }
@@ -173,8 +173,8 @@ async function main() {
   }, 1000);
 
   log('INFO', '所有服务已启动！按 Ctrl+C 停止', colors.green);
-  log('INFO', '前端地址: http://localhost:5174', colors.cyan);
-  log('INFO', '后端地址: http://localhost:5001', colors.cyan);
+  log('INFO', '前端地址: http://localhost:5174 (标准端口)', colors.cyan);
+  log('INFO', '后端地址: http://localhost:5001 (标准端口)', colors.cyan);
   log('INFO', 'API 文档: http://localhost:5001/api/docs', colors.cyan);
 }
 

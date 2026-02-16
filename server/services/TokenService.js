@@ -10,6 +10,24 @@ class TokenService {
   constructor() {
     this.refreshTokens = new Map(); // 内存存储刷新令牌
     this.blacklistedTokens = new Set(); // 黑名单存储已撤销的访问令牌
+    
+    // 启动定时清理任务
+    this.startCleanupTask();
+  }
+  
+  /**
+   * 启动定时清理任务
+   */
+  startCleanupTask() {
+    // 每小时清理一次过期令牌
+    setInterval(() => {
+      this.cleanupExpiredTokens();
+    }, 60 * 60 * 1000); // 1小时
+    
+    // 立即执行一次清理
+    setTimeout(() => {
+      this.cleanupExpiredTokens();
+    }, 10000); // 10秒后执行
   }
 
   /**
@@ -19,33 +37,61 @@ class TokenService {
    * @returns {Object} 包含access_token和refresh_token的对象
    */
   generateTokens(payload, userId) {
-    // 生成访问令牌 (24小时有效期)
+    // 从环境变量获取配置
+    const accessTokenExpiry = process.env.JWT_ACCESS_TOKEN_EXPIRES || '24h';
+    const refreshTokenDays = parseInt(process.env.JWT_REFRESH_TOKEN_DAYS) || 7;
+    
+    // 生成访问令牌
     const accessToken = jwt.sign(
-      { ...payload, type: 'access' },
+      { ...payload, type: 'access', iat: Math.floor(Date.now() / 1000) },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: accessTokenExpiry }
     );
 
-    // 生成刷新令牌 (7天有效期)
+    // 生成刷新令牌
     const refreshToken = uuidv4();
-    const refreshTokenExpiry = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7天后过期
+    const refreshTokenExpiry = Date.now() + refreshTokenDays * 24 * 60 * 60 * 1000;
 
     // 存储刷新令牌信息
     this.refreshTokens.set(refreshToken, {
       userId,
       payload,
       expiry: refreshTokenExpiry,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      userAgent: payload.userAgent || 'unknown'
     });
 
+    console.log(`[TokenService] 为用户 ${userId} 生成新的令牌对`);
+    
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
       token_type: 'Bearer',
-      expires_in: 24 * 60 * 60 // 24小时，单位秒
+      expires_in: this.parseExpiryTime(accessTokenExpiry)
     };
   }
 
+  /**
+   * 解析过期时间字符串为秒数
+   * @param {string} timeStr - 时间字符串 (如 '24h', '7d', '30m')
+   * @returns {number} 秒数
+   */
+  parseExpiryTime(timeStr) {
+    const match = timeStr.match(/^([0-9]+)([smhd])$/);
+    if (!match) return 24 * 60 * 60; // 默认24小时
+    
+    const [, num, unit] = match;
+    const number = parseInt(num);
+    
+    switch (unit) {
+      case 's': return number;
+      case 'm': return number * 60;
+      case 'h': return number * 60 * 60;
+      case 'd': return number * 24 * 60 * 60;
+      default: return 24 * 60 * 60;
+    }
+  }
+  
   /**
    * 使用刷新令牌获取新的访问令牌
    * @param {string} refreshToken - 刷新令牌
@@ -56,26 +102,31 @@ class TokenService {
 
     // 检查刷新令牌是否存在
     if (!tokenData) {
+      console.warn(`[TokenService] 刷新令牌不存在: ${refreshToken.substring(0, 10)}...`);
       return null;
     }
 
     // 检查是否过期
     if (tokenData.expiry < Date.now()) {
+      console.warn(`[TokenService] 刷新令牌已过期: ${refreshToken.substring(0, 10)}...`);
       this.revokeRefreshToken(refreshToken);
       return null;
     }
 
     // 生成新的访问令牌
+    const accessTokenExpiry = process.env.JWT_ACCESS_TOKEN_EXPIRES || '24h';
     const newAccessToken = jwt.sign(
-      { ...tokenData.payload, type: 'access' },
+      { ...tokenData.payload, type: 'access', iat: Math.floor(Date.now() / 1000) },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: accessTokenExpiry }
     );
 
+    console.log(`[TokenService] 为用户 ${tokenData.userId} 刷新访问令牌`);
+    
     return {
       access_token: newAccessToken,
       token_type: 'Bearer',
-      expires_in: 24 * 60 * 60
+      expires_in: this.parseExpiryTime(accessTokenExpiry)
     };
   }
 

@@ -8,7 +8,7 @@ const DouyinDownloader = require('./downloaders/DouyinDownloader');
 const KuaishouDownloader = require('./downloaders/KuaishouDownloader');
 const GenericDownloader = require('./downloaders/GenericDownloader');
 const WatermarkRemover = require('./WatermarkRemover');
-const VideoStorage = require('./VideoStorage');
+const videoStorage = require('./VideoStorage');
 const logger = require('../utils/logger');
 
 /**
@@ -16,7 +16,7 @@ const logger = require('../utils/logger');
  */
 class VideoManager {
   constructor() {
-    this.storage = new VideoStorage();
+    this.storage = videoStorage;
     this.watermarkRemover = new WatermarkRemover();
     this.downloaders = new Map();
 
@@ -149,5 +149,5 @@ module.exports = {
   KuaishouDownloader,
   GenericDownloader,
   WatermarkRemover,
-  VideoStorage
+  VideoStorage: videoStorage
 };

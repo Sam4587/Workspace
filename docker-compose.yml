@@ -46,7 +46,7 @@ services:
       - mongodb
       - redis
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - ./logs:/app/logs
     networks:

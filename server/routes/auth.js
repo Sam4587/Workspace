@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const tokenService = require('../services/TokenService');
+const { validateRequired, validateTypes } = require('../middleware/validation');
 
 const router = express.Router();
 
@@ -17,7 +18,10 @@ if (!JWT_SECRET) {
 }
 
 // 用户登录
-router.post('/login', async (req, res) => {
+router.post('/login', 
+  validateRequired(['username', 'password']),
+  validateTypes({ username: 'string', password: 'string' }),
+  async (req, res) => {
   console.log('[AUTH] 新的认证路由被调用!!!');
   try {
     const { username, password } = req.body;
@@ -83,7 +87,10 @@ router.post('/login', async (req, res) => {
 });
 
 // 刷新访问令牌
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', 
+  validateRequired(['refresh_token']),
+  validateTypes({ refresh_token: 'string' }),
+  async (req, res) => {
   try {
     const { refresh_token } = req.body;
     

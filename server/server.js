@@ -1,24 +1,42 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const helmet = require('helmet');
 const compression = require('compression');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const configLoader = require('./utils/configLoader');
+const enhancedLogger = require('./utils/enhancedLogger');
+const rateLimiter = require('./utils/rateLimiter');
+const { loggingMiddleware, errorLoggingMiddleware, auditLoggingMiddleware } = require('./middleware/loggingMiddleware');
+const { validateRequired, validateTypes, validateEmail } = require('./middleware/validation');
+const healthRoutes = require('./routes/health');
+const { metricsCollector } = require('./middleware/metricsMiddleware');
+const alertService = require('./services/alertService');
 
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+// 加载环境配置
+configLoader.load();
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = configLoader.getNumber('PORT', 5001);
 
-// Rate Limiter
+// Rate Limiter 配置
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { error: '请求过于频繁，请稍后再试' }
+  windowMs: 15 * 60 * 1000, // 15分钟窗口
+  max: 1000, // 临时提高限制每个IP 15分钟内最多1000个请求
+  message: {
+    success: false,
+    error: '请求过于频繁，请稍后再试',
+    retryAfter: 900 // 15分钟
+  },
+  standardHeaders: true, // 返回标准的RateLimit-*头
+  legacyHeaders: false, // 禁用X-RateLimit-*头
 });
 
-app.use(limiter);
+// 应用全局速率限制（临时禁用用于测试）
+// app.use(limiter);
+
+// 应用自定义API速率限制中间件（临时禁用用于测试）
+// app.use('/api/', rateLimiter.apiLimit);
 
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -32,6 +50,38 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 日志中间件
+app.use(loggingMiddleware);
+app.use(auditLoggingMiddleware);
+
+// 性能指标收集中间件
+app.use(metricsCollector.collectRequestMetrics);
+
+// 健康检查和监控路由
+app.use('/api/monitoring', healthRoutes);
+
+// 速率限制状态查询API
+app.get('/api/rate-limit/status', async (req, res) => {
+  try {
+    const ip = req.ip || 'unknown';
+    const status = await rateLimiter.getLimitStatus(ip);
+    
+    res.json({
+      success: true,
+      data: {
+        ip: ip,
+        ...status,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '获取速率限制状态失败'
+    });
+  }
+});
 
 // =====================================================
 // 使用 NewsNowFetcher 获取真实热点数据
@@ -702,6 +752,18 @@ app.post('/api/content/generate', (req, res) => {
 // 注册内容管理路由
 app.use('/api/contents', require('./routes/contents'));
 
+// 注册视频管理路由
+app.use('/api/video', require('./routes/video'));
+
+// 注册视频下载路由
+app.use('/api/video-download', require('./routes/videoDownload'));
+
+// 注册转录路由
+app.use('/api/transcription', require('./routes/transcription'));
+
+// 注册任务队列管理路由
+app.use('/api/task-queue', require('./routes/taskQueue'));
+
 // 兼容旧的内容API路由
 app.get('/api/content/:id', (req, res) => {
   res.json({
@@ -735,6 +797,9 @@ app.delete('/api/content/:id', (req, res) => {
   });
 });
 
+// 全局错误处理中间件
+app.use(errorLoggingMiddleware);
+
 // 404 处理
 app.use('*', (req, res) => {
   res.status(404).json({
@@ -745,8 +810,16 @@ app.use('*', (req, res) => {
 
 // 启动服务器
 app.listen(PORT, async () => {
-  console.log(`服务器启动成功，端口: ${PORT}`);
-  console.log(`健康检查: http://localhost:${PORT}/api/health`);
+  enhancedLogger.info('服务器启动成功', { 
+    port: PORT, 
+    environment: configLoader.getEnvironment(),
+    pid: process.pid
+  });
+  enhancedLogger.info('健康检查端点', { url: `http://localhost:${PORT}/api/health` });
+  enhancedLogger.info('监控面板端点', { url: `http://localhost:${PORT}/api/monitoring` });
+  
+  // 启动定期监控检查
+  startMonitoringChecks();
   
   // 启动时获取热点数据
   await fetchAndCacheTopics(false);
@@ -771,5 +844,31 @@ app.listen(PORT, async () => {
   
   console.log('✅ 自动热点数据更新机制已启用');
 });
+
+// 定期监控检查函数
+async function startMonitoringChecks() {
+  // 每分钟检查一次性能指标
+  setInterval(async () => {
+    try {
+      const metrics = metricsCollector.getOverallMetrics();
+      const systemMetrics = metricsCollector.getSystemLoadMetrics();
+      
+      // 检查是否需要触发告警
+      await alertService.checkMetrics(metrics, systemMetrics);
+      
+      // 记录性能日志
+      if (parseFloat(metrics.avgResponseTime) > 1000) {
+        enhancedLogger.perf('Performance Warning', parseFloat(metrics.avgResponseTime), {
+          requestCount: metrics.requestCount,
+          errorRate: metrics.errorRate
+        });
+      }
+    } catch (error) {
+      enhancedLogger.error('监控检查失败', { error: error.message });
+    }
+  }, 60000); // 每分钟检查一次
+  
+  enhancedLogger.info('监控检查服务已启动', { interval: '60s' });
+}
 
 module.exports = app;

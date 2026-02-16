@@ -1,4 +1,4 @@
-const PQueue = require('p-queue');
+const { default: PQueue } = require('p-queue');
 const videoRenderService = require('./videoRenderService');
 
 class VideoQueue {

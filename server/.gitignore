@@ -5,6 +5,9 @@ node_modules/
 .env
 .env.local
 .env.*.local
+.env.development
+.env.test
+.env.production
 
 # 日志
 logs/

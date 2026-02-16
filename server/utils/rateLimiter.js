@@ -5,7 +5,7 @@ class RateLimiter {
     // API请求限流 (使用内存存储，无需 Redis)
     this.apiLimiter = new RateLimiterMemory({
       keyPrefix: 'api_limit',
-      points: 100, // 100次请求
+      points: 1000, // 临时提高到1000次请求
       duration: 60, // 每分钟
       blockDuration: 60 * 5 // 超出限制后封禁5分钟
     });

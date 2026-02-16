@@ -111,7 +111,7 @@ router.post('/upload', upload.single('video'), async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
-    const storage = require('../video/VideoStorage');
+    const storage = videoManager.storage;
     await storage.saveVideo(videoId, videoInfo);
 
     logger.info('[VideoAPI] 视频上传成功', { videoId, filename: req.file.originalname });
@@ -281,8 +281,7 @@ router.post('/metadata', async (req, res) => {
  * 获取存储统计
  */
 router.get('/storage/stats', (req, res) => {
-  const storage = require('../video/VideoStorage');
-  const stats = storage.getStats();
+  const stats = videoManager.storage.getStats();
 
   res.json({
     success: true,

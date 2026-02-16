@@ -8,6 +8,7 @@ const BaseTranscriber = require('./BaseTranscriber');
 const WhisperLocalTranscriber = require('./WhisperLocalTranscriber');
 const AliyunASRTranscriber = require('./AliyunASRTranscriber');
 const TaskQueue = require('./TaskQueue');
+const { EnhancedTaskQueue } = require('./EnhancedTaskQueue');
 const path = require('path');
 
 class TranscriptionEngine {
@@ -16,6 +17,11 @@ class TranscriptionEngine {
     this.defaultEngine = null;
     this.fallbackOrder = [];
     this.taskQueue = new TaskQueue();
+    this.enhancedTaskQueue = new EnhancedTaskQueue({
+      maxConcurrent: 3,
+      defaultTimeout: 600000, // 10分钟
+      retryAttempts: 2
+    });
     this.config = null;
 
     // 初始化引擎
