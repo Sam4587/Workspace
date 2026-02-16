@@ -332,9 +332,9 @@ const EnhancedAnalyticsDashboard = () => {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {contentTypeData.map((entry, index) => (
+                      {contentTypeData && Array.isArray(contentTypeData) ? contentTypeData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
+                      )) : null}
                     </Pie>
                     <Tooltip />
                   </PieChart>

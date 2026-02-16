@@ -22,6 +22,7 @@ const ContentGeneration = () => {
   const [optimizations, setOptimizations] = useState(['seo', 'readability']);
   const [availableTemplates, setAvailableTemplates] = useState([]);
   const [availableStyles, setAvailableStyles] = useState([]);
+  const [useWorkflow, setUseWorkflow] = useState(false);
 
   const contentTypes = [
     {
@@ -109,6 +110,21 @@ const ContentGeneration = () => {
     },
     onSuccess: (data) => {
       setGeneratedContent(data);
+      showSuccess('增强内容生成成功');
+    },
+    onError: (error) => {
+      showError('内容生成失败: ' + error.message);
+    }
+  });
+
+  // AI增强内容生成的mutation
+  const generateMutation = useMutation({
+    mutationFn: async ({ formData, type }) => {
+      const response = await api.generateAIContent(formData, type);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setGeneratedContent(data.content);
       showSuccess('增强内容生成成功');
     },
     onError: (error) => {
