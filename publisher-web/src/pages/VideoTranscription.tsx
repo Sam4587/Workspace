@@ -5,9 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import VideoActionPanel from '@/components/VideoActionPanel'
 import ContentRewritePanel from '@/components/ContentRewritePanel'
+import { publishAsync } from '@/lib/api'
 import type { TranscriptResult } from '@/lib/api'
+import { useNavigate } from 'react-router-dom'
 
 export default function VideoTranscription() {
+  const navigate = useNavigate()
   const [transcript, setTranscript] = useState<TranscriptResult | null>(null)
   const [activeStep, setActiveStep] = useState<'download' | 'transcribe' | 'rewrite'>('download')
 
@@ -15,6 +18,32 @@ export default function VideoTranscription() {
   function handleTranscriptionComplete(result: TranscriptResult) {
     setTranscript(result)
     setActiveStep('rewrite')
+  }
+
+  // 发布到平台
+  async function handlePublish(platform: string, content: any) {
+    try {
+      const publishContent = {
+        platform: platform as any,
+        type: 'images' as const, // 默认图文类型
+        title: content.title || '无标题',
+        body: content.content || content.mainContent || '',
+        tags: content.tags || [],
+      }
+
+      const response = await publishAsync(publishContent)
+      
+      if (response.success && response.data) {
+        alert(`发布任务已创建，任务ID: ${response.data.task_id}`)
+        // 跳转到历史页面查看任务状态
+        navigate('/history')
+      } else {
+        alert(response.error || '发布失败')
+      }
+    } catch (error) {
+      console.error('发布失败:', error)
+      alert('发布失败，请重试')
+    }
   }
 
   // 步骤配置
@@ -154,10 +183,7 @@ export default function VideoTranscription() {
       {transcript && (
         <ContentRewritePanel
           transcript={transcript}
-          onPublish={(platform, content) => {
-            console.log('Publish to', platform, content)
-            // TODO: 调用发布 API
-          }}
+          onPublish={handlePublish}
         />
       )}
     </div>

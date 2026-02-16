@@ -9,6 +9,31 @@ import { useState, useEffect } from "react"
 import { getPlatforms, checkLogin, publishAsync } from "@/lib/api"
 import type { Platform, AccountStatus } from "@/types/api"
 
+
+// 文件上传函数
+async function uploadFile(file: File): Promise<string | null> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const response = await fetch('/api/v1/storage/upload', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const result = await response.json()
+    if (result.success && result.data) {
+      return result.data.storage_path
+    } else {
+      console.error('文件上传失败:', result.error)
+      return null
+    }
+  } catch (error) {
+    console.error('文件上传失败:', error)
+    return null
+  }
+}
+
 const platformNames: Record<Platform, string> = {
   douyin: "抖音",
   toutiao: "今日头条",
@@ -203,11 +228,12 @@ export default function Publish() {
                     multiple
                     accept="image/*"
                     className="mt-1"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const files = e.target.files
                       if (files) {
-                        // TODO: 实现文件上传到服务器
-                        const paths = Array.from(files).map((f) => f.name)
+                        // 上传文件到服务器
+                        const uploadPromises = Array.from(files).map(file => uploadFile(file))
+                        const paths = (await Promise.all(uploadPromises)).filter((p): p is string => p !== null)
                         setImages(paths)
                       }
                     }}
@@ -226,11 +252,14 @@ export default function Publish() {
                     type="file"
                     accept="video/*"
                     className="mt-1"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (file) {
-                        // TODO: 实现文件上传到服务器
-                        setVideo(file.name)
+                        // 上传文件到服务器
+                        const path = await uploadFile(file)
+                        if (path) {
+                          setVideo(path)
+                        }
                       }
                     }}
                   />

@@ -172,6 +172,24 @@ func (a *BaseAdapter) CheckLoginStatus(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
+// Logout 登出平台
+func (a *BaseAdapter) Logout(ctx context.Context) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	logrus.Infof("[%s] 执行登出操作", a.platform)
+
+	// 删除 Cookie
+	if err := a.cookieMgr.Delete(ctx, a.platform); err != nil {
+		logrus.Warnf("[%s] 删除 Cookie 失败: %v", a.platform, err)
+		return err
+	}
+
+	logrus.Infof("[%s] 登出成功", a.platform)
+	return nil
+}
+
+
 	if !exists {
 		return false, nil
 	}

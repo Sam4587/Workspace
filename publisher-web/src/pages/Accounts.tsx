@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
-import { getPlatforms, checkLogin, login } from "@/lib/api"
+import { getPlatforms, checkLogin, login, logout } from "@/lib/api"
 import type { Platform, AccountStatus } from "@/types/api"
 
 const platformNames: Record<Platform, string> = {
@@ -76,7 +76,31 @@ export default function Accounts() {
           // 已经登录成功
           await checkAllStatuses(platforms)
         }
+      }
+
+  async function handleLogout(platform: Platform) {
+    if (!confirm("确定要登出该账号吗？")) {
+      return
+    }
+
+    try {
+      const response = await logout(platform)
+      if (response.success) {
+        // 清除登录状态
+        setAccountStatuses((prev) => ({
+          ...prev,
+          [platform]: null,
+        }))
+        alert("登出成功")
       } else {
+        alert(response.error || "登出失败")
+      }
+    } catch (error) {
+      console.error("登出失败:", error)
+      alert("登出失败，请重试")
+    }
+  }
+ else {
         alert(response.error || "登录失败")
       }
     } catch (error) {
@@ -158,10 +182,7 @@ export default function Accounts() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => {
-                          // TODO: 实现登出功能
-                          alert("登出功能开发中")
-                        }}
+                        onClick={() => handleLogout(platform)}
                       >
                         登出
                       </Button>

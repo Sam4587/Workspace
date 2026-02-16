@@ -17,6 +17,7 @@ func NewAPIHandler(service *AnalyticsService) *APIHandler {
 	return &APIHandler{service: service}
 }
 
+
 func (h *APIHandler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/api/analytics/dashboard", h.GetDashboard).Methods("GET")
 	router.HandleFunc("/api/analytics/posts", h.ListPostMetrics).Methods("GET")
@@ -24,7 +25,11 @@ func (h *APIHandler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/api/analytics/trends", h.GetTrends).Methods("GET")
 	router.HandleFunc("/api/analytics/refresh", h.RefreshMetrics).Methods("POST")
 	router.HandleFunc("/api/analytics/mock", h.GenerateMockData).Methods("POST")
+	router.HandleFunc("/api/analytics/report/weekly", h.GetWeeklyReport).Methods("GET")
+	router.HandleFunc("/api/analytics/report/monthly", h.GetMonthlyReport).Methods("GET")
+	router.HandleFunc("/api/analytics/report/export", h.ExportReport).Methods("GET")
 }
+
 
 type APIResponse struct {
 	Success   bool        `json:"success"`
@@ -141,4 +146,57 @@ func (h *APIHandler) GenerateMockData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.jsonError(w, "Storage does not support mock data generation", http.StatusBadRequest)
+}
+
+func (h *APIHandler) GetWeeklyReport(w http.ResponseWriter, r *http.Request) {
+	generator := NewReportGenerator(h.service.storage)
+	report, err := generator.GenerateWeeklyReport()
+	if err != nil {
+		h.jsonError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	h.jsonSuccess(w, report)
+}
+
+func (h *APIHandler) GetMonthlyReport(w http.ResponseWriter, r *http.Request) {
+	generator := NewReportGenerator(h.service.storage)
+	report, err := generator.GenerateMonthlyReport()
+	if err != nil {
+		h.jsonError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	h.jsonSuccess(w, report)
+}
+
+func (h *APIHandler) ExportReport(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	format := query.Get("format")
+	if format == "" {
+		format = "json"
+	}
+
+	generator := NewReportGenerator(h.service.storage)
+	report, err := generator.GenerateWeeklyReport()
+	if err != nil {
+		h.jsonError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if format == "markdown" || format == "md" {
+		md := generator.ExportMarkdown(report)
+		w.Header().Set("Content-Type", "text/markdown")
+		w.Header().Set("Content-Disposition", "attachment; filename=report.md")
+		w.Write([]byte(md))
+		return
+	}
+
+	// 默认JSON格式
+	json, err := generator.ExportJSON(report)
+	if err != nil {
+		h.jsonError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Disposition", "attachment; filename=report.json")
+	w.Write([]byte(json))
 }

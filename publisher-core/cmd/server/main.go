@@ -15,6 +15,7 @@ import (
 	"github.com/monkeycode/publisher-core/ai"
 	"github.com/monkeycode/publisher-core/ai/provider"
 	"github.com/monkeycode/publisher-core/analytics"
+	"github.com/monkeycode/publisher-core/analytics/collectors"
 	"github.com/monkeycode/publisher-core/api"
 	"github.com/monkeycode/publisher-core/hotspot"
 	"github.com/monkeycode/publisher-core/hotspot/sources"
@@ -123,6 +124,11 @@ func main() {
 	}
 	analyticsService := analytics.NewService(analyticsStorage)
 
+	// 注册数据采集器
+	analyticsService.RegisterCollector(collectors.NewDouyinCollector())
+	analyticsService.RegisterCollector(collectors.NewXiaohongshuCollector())
+	analyticsService.RegisterCollector(collectors.NewToutiaoCollector())
+
 	// 注册分析 API 路由
 	analyticsAPI := analytics.NewAPIHandler(analyticsService)
 	analyticsAPI.RegisterRoutes(server.Router())
@@ -219,6 +225,24 @@ func (s *PublisherService) CheckLogin(platform string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
+func (s *PublisherService) Logout(platform string) (interface{}, error) {
+	pub, err := s.factory.Create(platform)
+	if err != nil {
+		return nil, err
+	}
+
+	err = pub.Logout(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"platform": platform,
+		"message":  "登出成功",
+	}, nil
+}
+
 
 	return map[string]interface{}{
 		"platform":  platform,

@@ -85,8 +85,13 @@ type Publisher interface {
 	// Cancel 取消发布任务
 	Cancel(ctx context.Context, taskID string) error
 
+
+	// Logout 登出平台，清除登录状态
+	Logout(ctx context.Context) error
+
 	// Close 关闭发布器，释放资源
 	Close() error
+
 }
 
 // PublisherFactory 发布器工厂接口

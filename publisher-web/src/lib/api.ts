@@ -46,6 +46,14 @@ export async function checkLogin(platform: Platform): Promise<APIResponse<Accoun
 }
 
 // 发布内容
+
+// 登出
+export async function logout(platform: Platform): Promise<APIResponse<{ platform: string; message: string }>> {
+  return request<{ platform: string; message: string }>(`${API_BASE}/platforms/${platform}/logout`, {
+    method: 'POST',
+  })
+}
+
 export async function publish(content: PublishContent): Promise<APIResponse<PublishResult>> {
   return request<PublishResult>(`${API_BASE}/publish`, {
     method: 'POST',
@@ -223,6 +231,14 @@ export interface TranscriptResult {
     processingTime: number
   }
 }
+
+// 登出
+export async function logout(platform: Platform): Promise<APIResponse<{ platform: string; message: string }>> {
+  return request<{ platform: string; message: string }>(`${API_BASE}/platforms/${platform}/logout`, {
+    method: 'POST',
+  })
+}
+
 
 // 转录片段
 export interface TranscriptSegment {

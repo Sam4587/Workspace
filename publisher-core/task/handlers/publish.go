@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/monkeycode/publisher-core/adapters"
+	"github.com/monkeycode/publisher-core/interfaces/publisher"
 	"github.com/monkeycode/publisher-core/task"
 	"github.com/sirupsen/logrus"
 )
@@ -20,11 +21,13 @@ func NewPublishHandler(factory *adapters.PublisherFactory) *PublishHandler {
 func (h *PublishHandler) Handle(ctx context.Context, t *task.Task) error {
 	logrus.Infof("开始执行发布任务: %s, 平台: %s", t.ID, t.Platform)
 
+	// 提取平台信息
 	platform, ok := t.Payload["platform"].(string)
 	if !ok {
 		return fmt.Errorf("invalid platform in payload")
 	}
 
+	// 提取内容信息
 	title, _ := t.Payload["title"].(string)
 	content, _ := t.Payload["content"].(string)
 	contentType, _ := t.Payload["type"].(string)
@@ -52,16 +55,52 @@ func (h *PublishHandler) Handle(ctx context.Context, t *task.Task) error {
 	logrus.Infof("发布内容: platform=%s, type=%s, title=%s, content_len=%d, images=%d, video=%s, tags=%d",
 		platform, contentType, title, len(content), len(images), video, len(tags))
 
-	t.Result = map[string]interface{}{
-		"platform":     platform,
-		"title":        title,
-		"type":         contentType,
-		"images_count": len(images),
-		"tags_count":   len(tags),
-		"status":       "processed",
-		"message":      "发布任务已处理（模拟）",
+	// 创建发布器
+	pub, err := h.factory.Create(platform)
+	if err != nil {
+		logrus.Errorf("创建发布器失败: %v", err)
+		return fmt.Errorf("创建发布器失败: %w", err)
 	}
 
-	logrus.Infof("发布任务处理完成: %s", t.ID)
+	// 构造发布内容
+	publishContent := &publisher.Content{
+		Type:       publisher.ContentType(contentType),
+		Title:      title,
+		Body:       content,
+		ImagePaths: images,
+		VideoPath:  video,
+		Tags:       tags,
+	}
+
+	// 执行发布
+	result, err := pub.Publish(ctx, publishContent)
+	if err != nil {
+		logrus.Errorf("发布失败: %v", err)
+		t.Result = map[string]interface{}{
+			"platform": platform,
+			"title":    title,
+			"status":   "failed",
+			"error":    err.Error(),
+		}
+		return err
+	}
+
+	// 更新任务结果
+	t.Result = map[string]interface{}{
+		"platform":   platform,
+		"title":      title,
+		"type":       contentType,
+		"task_id":    result.TaskID,
+		"status":     string(result.Status),
+		"post_id":    result.PostID,
+		"post_url":   result.PostURL,
+		"created_at": result.CreatedAt,
+	}
+
+	if result.FinishedAt != nil {
+		t.Result["finished_at"] = result.FinishedAt
+	}
+
+	logrus.Infof("发布任务完成: %s, 状态: %s", t.ID, result.Status)
 	return nil
 }
