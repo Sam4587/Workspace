@@ -3,10 +3,13 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -349,10 +352,52 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: 实现同步发布逻辑
+	if req.Platform == "" {
+		s.jsonError(w, "INVALID_PLATFORM", "平台不能为空", http.StatusBadRequest)
+		return
+	}
+
+	if req.Title == "" {
+		s.jsonError(w, "INVALID_TITLE", "标题不能为空", http.StatusBadRequest)
+		return
+	}
+
+	if s.taskManager == nil {
+		s.jsonError(w, "SERVICE_UNAVAILABLE", "任务管理服务未初始化", http.StatusServiceUnavailable)
+		return
+	}
+
+	payload := map[string]interface{}{
+		"platform": req.Platform,
+		"type":     req.Type,
+		"title":    req.Title,
+		"content":  req.Content,
+		"images":   req.Images,
+		"video":    req.Video,
+		"tags":     req.Tags,
+	}
+
+	newTask, err := s.taskManager.CreateTask("publish", req.Platform, payload)
+	if err != nil {
+		s.jsonError(w, "CREATE_FAILED", err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	taskID := ""
+	if t, ok := newTask.(map[string]interface{}); ok {
+		if id, ok := t["id"].(string); ok {
+			taskID = id
+		}
+	} else if t, ok := newTask.(*struct{ ID string }); ok {
+		taskID = t.ID
+	}
+
 	s.jsonSuccess(w, map[string]interface{}{
-		"message": "发布请求已接收",
-		"request": req,
+		"task_id":  taskID,
+		"status":   "created",
+		"message":  "发布任务已创建",
+		"platform": req.Platform,
+		"title":    req.Title,
 	})
 }
 
@@ -363,16 +408,98 @@ func (s *Server) publishAsync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: 实现异步发布逻辑
+	if req.Platform == "" {
+		s.jsonError(w, "INVALID_PLATFORM", "平台不能为空", http.StatusBadRequest)
+		return
+	}
+
+	if req.Title == "" {
+		s.jsonError(w, "INVALID_TITLE", "标题不能为空", http.StatusBadRequest)
+		return
+	}
+
+	if s.taskManager == nil {
+		s.jsonError(w, "SERVICE_UNAVAILABLE", "任务管理服务未初始化", http.StatusServiceUnavailable)
+		return
+	}
+
+	payload := map[string]interface{}{
+		"platform": req.Platform,
+		"type":     req.Type,
+		"title":    req.Title,
+		"content":  req.Content,
+		"images":   req.Images,
+		"video":    req.Video,
+		"tags":     req.Tags,
+	}
+
+	newTask, err := s.taskManager.CreateTask("publish", req.Platform, payload)
+	if err != nil {
+		s.jsonError(w, "CREATE_FAILED", err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	taskID := ""
+	if t, ok := newTask.(map[string]interface{}); ok {
+		if id, ok := t["id"].(string); ok {
+			taskID = id
+		}
+	} else if t, ok := newTask.(*struct{ ID string }); ok {
+		taskID = t.ID
+	}
+
 	s.jsonSuccess(w, map[string]interface{}{
-		"message": "异步发布任务已创建",
-		"task_id": "pending",
+		"task_id":  taskID,
+		"status":   "pending",
+		"message":  "异步发布任务已创建",
+		"platform": req.Platform,
 	})
 }
 
 func (s *Server) uploadFile(w http.ResponseWriter, r *http.Request) {
-	// TODO: 实现文件上传
-	s.jsonError(w, "NOT_IMPLEMENTED", "功能开发中", http.StatusNotImplemented)
+	if s.storage == nil {
+		s.jsonError(w, "SERVICE_UNAVAILABLE", "存储服务未初始化", http.StatusServiceUnavailable)
+		return
+	}
+
+	maxSize := int64(100 * 1024 * 1024) // 100MB
+	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
+
+	if err := r.ParseMultipartForm(maxSize); err != nil {
+		s.jsonError(w, "FILE_TOO_LARGE", "文件大小超过限制(100MB)", http.StatusBadRequest)
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		s.jsonError(w, "INVALID_FILE", "无法读取上传文件", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	data := make([]byte, header.Size)
+	if _, err := file.Read(data); err != nil {
+		s.jsonError(w, "READ_FAILED", "读取文件内容失败", http.StatusInternalServerError)
+		return
+	}
+
+	// 生成存储路径
+	ext := filepath.Ext(header.Filename)
+	filename := fmt.Sprintf("%s%s", uuid.New().String(), ext)
+	storagePath := filepath.Join("uploads", time.Now().Format("2006/01/02"), filename)
+
+	url, err := s.storage.Upload(data, storagePath)
+	if err != nil {
+		s.jsonError(w, "UPLOAD_FAILED", err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	s.jsonSuccess(w, map[string]interface{}{
+		"filename":     header.Filename,
+		"size":         header.Size,
+		"storage_path": storagePath,
+		"url":          url,
+	})
 }
 
 func (s *Server) downloadFile(w http.ResponseWriter, r *http.Request) {

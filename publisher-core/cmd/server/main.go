@@ -17,6 +17,7 @@ import (
 	"github.com/monkeycode/publisher-core/hotspot/sources"
 	"github.com/monkeycode/publisher-core/storage"
 	"github.com/monkeycode/publisher-core/task"
+	"github.com/monkeycode/publisher-core/task/handlers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -57,6 +58,10 @@ func main() {
 
 	// 创建发布器工厂
 	factory := adapters.DefaultFactory()
+
+	// 注册任务处理器
+	publishHandler := handlers.NewPublishHandler(factory)
+	taskMgr.RegisterHandler("publish", publishHandler.Handle)
 
 	// 创建API服务器
 	server := api.NewServer()
@@ -227,7 +232,19 @@ type TaskService struct {
 }
 
 func (s *TaskService) CreateTask(taskType string, platform string, payload map[string]interface{}) (interface{}, error) {
-	return s.taskMgr.CreateTask(taskType, platform, payload)
+	t, err := s.taskMgr.CreateTask(taskType, platform, payload)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"id":         t.ID,
+		"type":       t.Type,
+		"status":     t.Status,
+		"platform":   t.Platform,
+		"payload":    t.Payload,
+		"progress":   t.Progress,
+		"created_at": t.CreatedAt,
+	}, nil
 }
 
 func (s *TaskService) GetTask(taskID string) (interface{}, error) {
