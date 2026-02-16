@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+<<<<<<< HEAD
   mongodb:
     image: mongo:6.0
     container_name: ai-content-mongodb
@@ -61,22 +62,60 @@ services:
           memory: 512M
 
   frontend:
+=======
+  # 后端API服务
+  publisher-server:
+>>>>>>> publisher-tools
     build:
       context: .
-      target: frontend
-    container_name: ai-content-frontend
-    restart: always
+      dockerfile: Dockerfile
+    container_name: publisher-server
+    restart: unless-stopped
     ports:
-      - "3000:3000"
-    depends_on:
-      - backend
+      - "8080:8080"
+    environment:
+      - TZ=Asia/Shanghai
+      - HEADLESS=true
+      - DEBUG=false
+    volumes:
+      - ./uploads:/app/uploads
+      - ./cookies:/app/cookies
+      - ./data:/app/data
+      - ./logs:/app/logs
     networks:
-      - ai-content-network
+      - publisher-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-volumes:
-  mongodb_data:
-  redis_data:
+  # 前端开发服务（开发模式）
+  publisher-web:
+    image: node:18-alpine
+    container_name: publisher-web
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./publisher-web:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    networks:
+      - publisher-network
+    depends_on:
+      - publisher-server
 
 networks:
-  ai-content-network:
+  publisher-network:
     driver: bridge
+
+volumes:
+  uploads:
+  cookies:
+  data:
+  logs:
