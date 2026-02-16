@@ -29,10 +29,13 @@ export interface LoginResult {
 // 发布状态
 export type PublishStatus = 'pending' | 'processing' | 'success' | 'failed'
 
+// 发布内容类型
+export type ContentType = 'text' | 'images' | 'video' | 'article'
+
 // 发布内容
 export interface PublishContent {
   platform: Platform
-  type: 'images' | 'video'
+  type: ContentType
   title: string
   body: string
   images?: string[]

@@ -6,20 +6,20 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
-	"github.com/monkeycode/publisher-core/analytics"
-	"github.com/monkeycode/publisher-core/browser"
-	"github.com/monkeycode/publisher-core/cookies"
+	"publisher-core/analytics"
+	"publisher-core/browser"
+	"publisher-core/cookies"
 	"github.com/sirupsen/logrus"
 )
 
-// RealDouyinCollector 真实抖音数据采集器
+// RealDouyinCollector 真实抖音数据采集�?
 type RealDouyinCollector struct {
 	enabled   bool
 	browser   *browser.Browser
 	cookieMgr *cookies.Manager
 }
 
-// NewRealDouyinCollector 创建真实抖音采集器
+// NewRealDouyinCollector 创建真实抖音采集�?
 func NewRealDouyinCollector(cookieMgr *cookies.Manager) *RealDouyinCollector {
 	return &RealDouyinCollector{
 		enabled:   true,
@@ -32,12 +32,12 @@ func (c *RealDouyinCollector) Platform() analytics.Platform {
 	return analytics.PlatformDouyin
 }
 
-// IsEnabled 检查是否启用
+// IsEnabled 检查是否启�?
 func (c *RealDouyinCollector) IsEnabled() bool {
 	return c.enabled
 }
 
-// SetEnabled 设置启用状态
+// SetEnabled 设置启用状�?
 func (c *RealDouyinCollector) SetEnabled(enabled bool) {
 	c.enabled = enabled
 }
@@ -81,7 +81,7 @@ func (c *RealDouyinCollector) CollectPostMetrics(ctx context.Context, postID str
 		}
 	}
 
-	// 访问创作者中心
+	// 访问创作者中�?
 	creatorURL := fmt.Sprintf("https://creator.douyin.com/creator-micro/content/manage?videoId=%s", postID)
 	if err := page.MustNavigate(creatorURL).WaitLoad(); err != nil {
 		return nil, fmt.Errorf("navigate failed: %w", err)
@@ -91,8 +91,8 @@ func (c *RealDouyinCollector) CollectPostMetrics(ctx context.Context, postID str
 	time.Sleep(2 * time.Second)
 
 	// TODO: 解析页面数据
-	// 这里需要根据实际的页面结构来解析
-	// 使用 page.MustElement() 等方法获取数据
+	// 这里需要根据实际的页面结构来解�?
+	// 使用 page.MustElement() 等方法获取数�?
 
 	metrics := &analytics.PostMetrics{
 		PostID:      postID,
@@ -139,7 +139,7 @@ func (c *RealDouyinCollector) CollectAccountMetrics(ctx context.Context, account
 		}
 	}
 
-	// 访问创作者中心首页
+	// 访问创作者中心首�?
 	creatorURL := "https://creator.douyin.com/"
 	if err := page.MustNavigate(creatorURL).WaitLoad(); err != nil {
 		return nil, fmt.Errorf("navigate failed: %w", err)

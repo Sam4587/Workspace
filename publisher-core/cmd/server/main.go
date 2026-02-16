@@ -11,17 +11,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/monkeycode/publisher-core/adapters"
-	"github.com/monkeycode/publisher-core/ai"
-	"github.com/monkeycode/publisher-core/ai/provider"
-	"github.com/monkeycode/publisher-core/analytics"
-	"github.com/monkeycode/publisher-core/analytics/collectors"
-	"github.com/monkeycode/publisher-core/api"
-	"github.com/monkeycode/publisher-core/hotspot"
-	"github.com/monkeycode/publisher-core/hotspot/sources"
-	"github.com/monkeycode/publisher-core/storage"
-	"github.com/monkeycode/publisher-core/task"
-	"github.com/monkeycode/publisher-core/task/handlers"
+	"publisher-core/adapters"
+	"publisher-core/ai"
+	"publisher-core/ai/provider"
+	"publisher-core/analytics"
+	"publisher-core/analytics/collectors"
+	"publisher-core/api"
+	"publisher-core/hotspot"
+	"publisher-core/hotspot/sources"
+	"publisher-core/storage"
+	"publisher-core/task"
+	"publisher-core/task/handlers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -67,7 +67,7 @@ func main() {
 	publishHandler := handlers.NewPublishHandler(factory)
 	taskMgr.RegisterHandler("publish", publishHandler.Handle)
 
-	// 创建API服务器
+	// 创建API服务
 	server := api.NewServer()
 	server.WithMiddleware(api.LoggingMiddleware)
 	server.WithMiddleware(api.CORSMiddleware)
@@ -90,7 +90,7 @@ func main() {
 
 	// 创建 AI 服务
 	aiService := ai.NewServiceWithDefaults()
-	// 注册 AI 提供商 (需要配置 API Key)
+	// 注册 AI 提供商(需要配置API Key)
 	// aiService.RegisterProvider(provider.NewOpenRouterProvider("your-api-key"))
 	// aiService.RegisterProvider(provider.NewDeepSeekProvider("your-api-key"))
 
@@ -110,7 +110,7 @@ func main() {
 		hotspotService.RegisterSource(src)
 	}
 
-	// 注册模拟数据源 (用于测试)
+	// 注册模拟数据源(用于测试)
 	hotspotService.RegisterSource(sources.NewMockSource("mock", "测试数据源"))
 
 	// 注册热点 API 路由
@@ -133,18 +133,18 @@ func main() {
 	analyticsAPI := analytics.NewAPIHandler(analyticsService)
 	analyticsAPI.RegisterRoutes(server.Router())
 
-	// 启动服务器
+	// 启动服务
 	go func() {
 		addr := fmt.Sprintf(":%d", port)
 		if err := server.Start(addr); err != nil && err != http.ErrServerClosed {
-			logrus.Fatalf("启动服务器失败: %v", err)
+			logrus.Fatalf("启动服务器失败 %v", err)
 		}
 	}()
 
 	logrus.Info("发布服务已启动")
 	logrus.Infof("API地址: http://localhost:%d", port)
 	logrus.Infof("支持平台: %v", factory.SupportedPlatforms())
-	logrus.Info("热点服务已启用")
+	logrus.Info("热点服务已启动")
 
 	// 等待退出信号
 	quit := make(chan os.Signal, 1)
@@ -156,7 +156,7 @@ func main() {
 	defer cancel()
 
 	if err := server.Shutdown(); err != nil {
-		logrus.Errorf("关闭服务器失败: %v", err)
+		logrus.Errorf("关闭服务器失败 %v", err)
 	}
 
 	select {
@@ -226,6 +226,12 @@ func (s *PublisherService) CheckLogin(platform string) (interface{}, error) {
 		return nil, err
 	}
 
+	return map[string]interface{}{
+		"platform":  platform,
+		"logged_in": loggedIn,
+	}, nil
+}
+
 func (s *PublisherService) Logout(platform string) (interface{}, error) {
 	pub, err := s.factory.Create(platform)
 	if err != nil {
@@ -240,13 +246,6 @@ func (s *PublisherService) Logout(platform string) (interface{}, error) {
 	return map[string]interface{}{
 		"platform": platform,
 		"message":  "登出成功",
-	}, nil
-}
-
-
-	return map[string]interface{}{
-		"platform":  platform,
-		"logged_in": loggedIn,
 	}, nil
 }
 

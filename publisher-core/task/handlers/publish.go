@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/monkeycode/publisher-core/adapters"
-	"github.com/monkeycode/publisher-core/interfaces/publisher"
-	"github.com/monkeycode/publisher-core/task"
+	"publisher-core/adapters"
+	"publisher-core/interfaces/publisher"
+	"publisher-core/task"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,7 +19,7 @@ func NewPublishHandler(factory *adapters.PublisherFactory) *PublishHandler {
 }
 
 func (h *PublishHandler) Handle(ctx context.Context, t *task.Task) error {
-	logrus.Infof("开始执行发布任务: %s, 平台: %s", t.ID, t.Platform)
+	logrus.Infof("开始执行发布任�? %s, 平台: %s", t.ID, t.Platform)
 
 	// 提取平台信息
 	platform, ok := t.Payload["platform"].(string)
@@ -55,14 +55,14 @@ func (h *PublishHandler) Handle(ctx context.Context, t *task.Task) error {
 	logrus.Infof("发布内容: platform=%s, type=%s, title=%s, content_len=%d, images=%d, video=%s, tags=%d",
 		platform, contentType, title, len(content), len(images), video, len(tags))
 
-	// 创建发布器
+	// 创建发布�?
 	pub, err := h.factory.Create(platform)
 	if err != nil {
-		logrus.Errorf("创建发布器失败: %v", err)
-		return fmt.Errorf("创建发布器失败: %w", err)
+		logrus.Errorf("创建发布器失�? %v", err)
+		return fmt.Errorf("创建发布器失�? %w", err)
 	}
 
-	// 构造发布内容
+	// 构造发布内�?
 	publishContent := &publisher.Content{
 		Type:       publisher.ContentType(contentType),
 		Title:      title,
@@ -101,6 +101,6 @@ func (h *PublishHandler) Handle(ctx context.Context, t *task.Task) error {
 		t.Result["finished_at"] = result.FinishedAt
 	}
 
-	logrus.Infof("发布任务完成: %s, 状态: %s", t.ID, result.Status)
+	logrus.Infof("发布任务完成: %s, 状�? %s", t.ID, result.Status)
 	return nil
 }

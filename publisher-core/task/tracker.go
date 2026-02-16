@@ -24,7 +24,7 @@ type TaskEvent struct {
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 }
 
-// TaskTracker 任务跟踪器
+// TaskTracker 任务跟踪�?
 type TaskTracker struct {
 	mu       sync.RWMutex
 	storage  EventStorage
@@ -32,7 +32,7 @@ type TaskTracker struct {
 	watchers map[string][]TaskWatcher
 }
 
-// TaskWatcher 任务监听器
+// TaskWatcher 任务监听�?
 type TaskWatcher func(event TaskEvent)
 
 // EventStorage 事件存储接口
@@ -41,7 +41,7 @@ type EventStorage interface {
 	ListEvents(taskID string, limit int) ([]*TaskEvent, error)
 }
 
-// NewTaskTracker 创建任务跟踪器
+// NewTaskTracker 创建任务跟踪�?
 func NewTaskTracker(storage EventStorage) *TaskTracker {
 	return &TaskTracker{
 		storage:  storage,
@@ -74,7 +74,7 @@ func (t *TaskTracker) RecordEvent(event *TaskEvent) error {
 		logrus.Warn("Task event channel full, dropping event")
 	}
 
-	// 调用监听器
+	// 调用监听�?
 	if watchers, ok := t.watchers[event.TaskID]; ok {
 		for _, watcher := range watchers {
 			go watcher(*event)
@@ -144,7 +144,7 @@ func (s *JSONEventStorage) ListEvents(taskID string, limit int) ([]*TaskEvent, e
 
 	var events []*TaskEvent
 
-	// 查找所有日期目录
+	// 查找所有日期目�?
 	dirs, err := filepath.Glob(filepath.Join(s.dataDir, "*"))
 	if err != nil {
 		return nil, err
@@ -172,7 +172,7 @@ func (s *JSONEventStorage) ListEvents(taskID string, limit int) ([]*TaskEvent, e
 		}
 	}
 
-	// 按时间排序（最新的在前）
+	// 按时间排序（最新的在前�?
 	sortEventsByTime(events)
 
 	// 应用限制
@@ -183,13 +183,13 @@ func (s *JSONEventStorage) ListEvents(taskID string, limit int) ([]*TaskEvent, e
 	return events, nil
 }
 
-// TaskProgressReporter 任务进度报告器
+// TaskProgressReporter 任务进度报告�?
 type TaskProgressReporter struct {
 	tracker *TaskTracker
 	taskID  string
 }
 
-// NewTaskProgressReporter 创建进度报告器
+// NewTaskProgressReporter 创建进度报告�?
 func NewTaskProgressReporter(tracker *TaskTracker, taskID string) *TaskProgressReporter {
 	return &TaskProgressReporter{
 		tracker: tracker,
@@ -209,7 +209,7 @@ func (r *TaskProgressReporter) ReportProgress(progress int, message string, meta
 	return r.tracker.RecordEvent(event)
 }
 
-// ReportStart 报告开始
+// ReportStart 报告开�?
 func (r *TaskProgressReporter) ReportStart(message string) error {
 	event := &TaskEvent{
 		TaskID:  r.taskID,
@@ -244,9 +244,9 @@ func (r *TaskProgressReporter) ReportError(message string, err error) error {
 	return r.tracker.RecordEvent(event)
 }
 
-// sortEventsByTime 按时间排序事件
+// sortEventsByTime 按时间排序事�?
 func sortEventsByTime(events []*TaskEvent) {
-	// 简单的冒泡排序（实际项目可使用 sort.Slice）
+	// 简单的冒泡排序（实际项目可使用 sort.Slice�?
 	for i := 0; i < len(events)-1; i++ {
 		for j := 0; j < len(events)-i-1; j++ {
 			if events[j].Timestamp.Before(events[j+1].Timestamp) {

@@ -1,4 +1,4 @@
-// Package adapters 提供各平台的发布器适配器实现
+// Package adapters 提供各平台的发布器适配器实�?
 package adapters
 
 import (
@@ -13,14 +13,14 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/monkeycode/publisher-core/browser"
-	"github.com/monkeycode/publisher-core/cookies"
-	publisher "github.com/monkeycode/publisher-core/interfaces"
-	"github.com/monkeycode/publisher-core/storage"
-	"github.com/monkeycode/publisher-core/task"
+	"publisher-core/browser"
+	"publisher-core/cookies"
+	publisher "publisher-core/interfaces"
+	"publisher-core/storage"
+	"publisher-core/task"
 )
 
-// BaseAdapter 基础适配器
+// BaseAdapter 基础适配�?
 type BaseAdapter struct {
 	mu         sync.Mutex
 	browser    *browser.Browser
@@ -39,7 +39,7 @@ type BaseAdapter struct {
 	cookieDir string
 }
 
-// NewBaseAdapter 创建基础适配器
+// NewBaseAdapter 创建基础适配�?
 func NewBaseAdapter(platform string, opts *publisher.Options) *BaseAdapter {
 	if opts == nil {
 		opts = publisher.DefaultOptions()
@@ -85,11 +85,11 @@ func (a *BaseAdapter) Login(ctx context.Context) (*publisher.LoginResult, error)
 	// 检查是否已登录
 	loggedIn, err := a.CheckLoginStatus(ctx)
 	if err != nil {
-		logrus.Warnf("[%s] 检查登录状态失败: %v", a.platform, err)
+		logrus.Warnf("[%s] 检查登录状态失�? %v", a.platform, err)
 	}
 
 	if loggedIn {
-		logrus.Infof("[%s] 已登录", a.platform)
+		logrus.Infof("[%s] 已登�?, a.platform)
 		return &publisher.LoginResult{Success: true}, nil
 	}
 
@@ -97,19 +97,19 @@ func (a *BaseAdapter) Login(ctx context.Context) (*publisher.LoginResult, error)
 	page := a.browser.MustPage()
 	defer page.Close()
 
-	// 导航到登录页面
+	// 导航到登录页�?
 	helper := browser.NewPageHelper(page)
 	if err := helper.Navigate(a.loginURL); err != nil {
-		return nil, errors.Wrap(err, "导航到登录页面失败")
+		return nil, errors.Wrap(err, "导航到登录页面失�?)
 	}
 
 	// 等待页面加载
 	time.Sleep(2 * time.Second)
 
-	// 检查是否需要扫码
+	// 检查是否需要扫�?
 	qrcodeURL, err := a.getQrcodeURL(page)
 	if err != nil {
-		logrus.Warnf("[%s] 获取二维码失败: %v", a.platform, err)
+		logrus.Warnf("[%s] 获取二维码失�? %v", a.platform, err)
 	}
 
 	return &publisher.LoginResult{
@@ -148,7 +148,7 @@ func (a *BaseAdapter) WaitForLogin(ctx context.Context) error {
 				// 提取关键 Cookie
 				keyCookies := cookies.ExtractCookies(cookiesData, a.cookieKeys)
 				if len(keyCookies) == 0 {
-					logrus.Warnf("[%s] 未找到关键 Cookie", a.platform)
+					logrus.Warnf("[%s] 未找到关�?Cookie", a.platform)
 					continue
 				}
 
@@ -157,16 +157,16 @@ func (a *BaseAdapter) WaitForLogin(ctx context.Context) error {
 					return errors.Wrap(err, "保存 Cookie 失败")
 				}
 
-				logrus.Infof("[%s] 登录成功，已保存 %d 个 Cookie", a.platform, len(keyCookies))
+				logrus.Infof("[%s] 登录成功，已保存 %d �?Cookie", a.platform, len(keyCookies))
 				return nil
 			}
 		}
 	}
 }
 
-// CheckLoginStatus 检查登录状态
+// CheckLoginStatus 检查登录状�?
 func (a *BaseAdapter) CheckLoginStatus(ctx context.Context) (bool, error) {
-	// 检查 Cookie 是否存在
+	// 检�?Cookie 是否存在
 	exists, err := a.cookieMgr.Exists(ctx, a.platform)
 	if err != nil {
 		return false, err
@@ -194,8 +194,8 @@ func (a *BaseAdapter) Logout(ctx context.Context) error {
 		return false, nil
 	}
 
-	// 可以进一步验证 Cookie 是否有效
-	// 这里简化处理，只检查文件是否存在
+	// 可以进一步验�?Cookie 是否有效
+	// 这里简化处理，只检查文件是否存�?
 	return true, nil
 }
 
@@ -254,7 +254,7 @@ func (a *BaseAdapter) PublishAsync(ctx context.Context, content *publisher.Conte
 	return t.ID, nil
 }
 
-// QueryStatus 查询任务状态
+// QueryStatus 查询任务状�?
 func (a *BaseAdapter) QueryStatus(ctx context.Context, taskID string) (*publisher.PublishResult, error) {
 	t, err := a.taskMgr.GetTask(taskID)
 	if err != nil {
@@ -282,7 +282,7 @@ func (a *BaseAdapter) QueryStatus(ctx context.Context, taskID string) (*publishe
 		result.Error = t.Error
 	case task.TaskStatusCancelled:
 		result.Status = publisher.StatusFailed
-		result.Error = "任务已取消"
+		result.Error = "任务已取�?
 	}
 
 	return result, nil
@@ -293,7 +293,7 @@ func (a *BaseAdapter) Cancel(ctx context.Context, taskID string) error {
 	return a.taskMgr.Cancel(taskID)
 }
 
-// Close 关闭适配器
+// Close 关闭适配�?
 func (a *BaseAdapter) Close() error {
 	if a.browser != nil {
 		return a.browser.Close()
@@ -312,11 +312,11 @@ func (a *BaseAdapter) validateContent(content *publisher.Content) error {
 	}
 
 	if len(content.Title) > a.limits.TitleMaxLength {
-		return fmt.Errorf("标题超过最大长度 %d", a.limits.TitleMaxLength)
+		return fmt.Errorf("标题超过最大长�?%d", a.limits.TitleMaxLength)
 	}
 
 	if len(content.Body) > a.limits.BodyMaxLength {
-		return fmt.Errorf("正文超过最大长度 %d", a.limits.BodyMaxLength)
+		return fmt.Errorf("正文超过最大长�?%d", a.limits.BodyMaxLength)
 	}
 
 	if content.Type == publisher.ContentTypeImages && len(content.ImagePaths) == 0 {
@@ -345,14 +345,14 @@ func (a *BaseAdapter) doPublish(ctx context.Context, content *publisher.Content)
 	return nil
 }
 
-// ============== 抖音适配器 ==============
+// ============== 抖音适配�?==============
 
-// DouyinAdapter 抖音发布器适配器
+// DouyinAdapter 抖音发布器适配�?
 type DouyinAdapter struct {
 	BaseAdapter
 }
 
-// NewDouyinAdapter 创建抖音适配器
+// NewDouyinAdapter 创建抖音适配�?
 func NewDouyinAdapter(opts *publisher.Options) *DouyinAdapter {
 	base := NewBaseAdapter("douyin", opts)
 	base.loginURL = "https://creator.douyin.com/creator-micro/content/publish"
@@ -379,15 +379,15 @@ func (a *DouyinAdapter) getQrcodeURL(page *rod.Page) (string, error) {
 		return "", nil
 	}
 
-	// 获取二维码
+	// 获取二维�?
 	elem, err = page.Element(".qrcode-img")
 	if err != nil {
-		return "", errors.Wrap(err, "查找二维码元素失败")
+		return "", errors.Wrap(err, "查找二维码元素失�?)
 	}
 
 	src, err := elem.Attribute("src")
 	if err != nil || src == nil {
-		return "", errors.New("获取二维码链接失败")
+		return "", errors.New("获取二维码链接失�?)
 	}
 
 	return *src, nil
@@ -420,14 +420,14 @@ func (a *DouyinAdapter) doPublish(ctx context.Context, content *publisher.Conten
 
 	helper := browser.NewPageHelper(page)
 
-	// 导航到发布页面
+	// 导航到发布页�?
 	if err := helper.Navigate(a.publishURL); err != nil {
-		return errors.Wrap(err, "导航到发布页面失败")
+		return errors.Wrap(err, "导航到发布页面失�?)
 	}
 
 	time.Sleep(3 * time.Second)
 
-	// 检查登录状态
+	// 检查登录状�?
 	has, _, _ := page.Has(".login-avatar")
 	if !has {
 		return errors.New("未登录，请先执行登录")
@@ -459,17 +459,17 @@ func (a *DouyinAdapter) doPublish(ctx context.Context, content *publisher.Conten
 }
 
 func (a *DouyinAdapter) uploadVideo(page *rod.Page, videoPath string) error {
-	// 检查文件是否存在
+	// 检查文件是否存�?
 	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
-		return fmt.Errorf("视频文件不存在: %s", videoPath)
+		return fmt.Errorf("视频文件不存�? %s", videoPath)
 	}
 
 	logrus.Infof("[%s] 上传视频: %s", a.platform, videoPath)
 
-	// 查找视频上传输入框
+	// 查找视频上传输入�?
 	fileInput, err := page.Element("input[type='file'][accept*='video']")
 	if err != nil {
-		return errors.Wrap(err, "查找视频上传输入框失败")
+		return errors.Wrap(err, "查找视频上传输入框失�?)
 	}
 
 	if err := fileInput.SetFiles([]string{videoPath}); err != nil {
@@ -487,14 +487,14 @@ func (a *DouyinAdapter) uploadImages(page *rod.Page, imagePaths []string) error 
 
 	for i, imgPath := range imagePaths {
 		if _, err := os.Stat(imgPath); os.IsNotExist(err) {
-			return fmt.Errorf("图片文件不存在: %s", imgPath)
+			return fmt.Errorf("图片文件不存�? %s", imgPath)
 		}
 
 		logrus.Infof("[%s] 上传图片 %d/%d: %s", a.platform, i+1, len(imagePaths), imgPath)
 
 		fileInput, err := page.Element("input[type='file'][accept*='image']")
 		if err != nil {
-			return errors.Wrap(err, "查找图片上传输入框失败")
+			return errors.Wrap(err, "查找图片上传输入框失�?)
 		}
 
 		if err := fileInput.SetFiles([]string{imgPath}); err != nil {
@@ -532,7 +532,7 @@ func (a *DouyinAdapter) fillContent(page *rod.Page, content *publisher.Content) 
 	for _, tag := range content.Tags {
 		tagInput, err := page.Element("input[placeholder*='话题']")
 		if err != nil {
-			logrus.Warnf("[%s] 查找话题输入框失败: %v", a.platform, err)
+			logrus.Warnf("[%s] 查找话题输入框失�? %v", a.platform, err)
 			continue
 		}
 
@@ -555,7 +555,7 @@ func (a *DouyinAdapter) submitPublish(page *rod.Page) error {
 
 	vis, err := publishBtn.Visible()
 	if err != nil || !vis {
-		return errors.New("发布按钮不可见")
+		return errors.New("发布按钮不可�?)
 	}
 
 	helper.RandomDelay(1, 2)
@@ -570,14 +570,14 @@ func (a *DouyinAdapter) submitPublish(page *rod.Page) error {
 	return nil
 }
 
-// ============== 今日头条适配器 ==============
+// ============== 今日头条适配�?==============
 
-// ToutiaoAdapter 今日头条发布器适配器
+// ToutiaoAdapter 今日头条发布器适配�?
 type ToutiaoAdapter struct {
 	DouyinAdapter
 }
 
-// NewToutiaoAdapter 创建今日头条适配器
+// NewToutiaoAdapter 创建今日头条适配�?
 func NewToutiaoAdapter(opts *publisher.Options) *ToutiaoAdapter {
 	base := NewBaseAdapter("toutiao", opts)
 	base.loginURL = "https://mp.toutiao.com/"
@@ -600,25 +600,25 @@ func (a *ToutiaoAdapter) getQrcodeURL(page *rod.Page) (string, error) {
 
 	elem, err = page.Element(".qrcode-img, .qr-code")
 	if err != nil {
-		return "", errors.Wrap(err, "查找二维码元素失败")
+		return "", errors.Wrap(err, "查找二维码元素失�?)
 	}
 
 	src, err := elem.Attribute("src")
 	if err != nil || src == nil {
-		return "", errors.New("获取二维码链接失败")
+		return "", errors.New("获取二维码链接失�?)
 	}
 
 	return *src, nil
 }
 
-// ============== 小红书适配器 ==============
+// ============== 小红书适配�?==============
 
-// XiaohongshuAdapter 小红书发布器适配器
+// XiaohongshuAdapter 小红书发布器适配�?
 type XiaohongshuAdapter struct {
 	BaseAdapter
 }
 
-// NewXiaohongshuAdapter 创建小红书适配器
+// NewXiaohongshuAdapter 创建小红书适配�?
 func NewXiaohongshuAdapter(opts *publisher.Options) *XiaohongshuAdapter {
 	base := NewBaseAdapter("xiaohongshu", opts)
 	base.loginURL = "https://creator.xiaohongshu.com/"
@@ -650,12 +650,12 @@ func (a *XiaohongshuAdapter) getQrcodeURL(page *rod.Page) (string, error) {
 
 	elem, err := page.Element(".qrcode-img, img[class*='qrcode']")
 	if err != nil {
-		return "", errors.Wrap(err, "查找二维码元素失败")
+		return "", errors.Wrap(err, "查找二维码元素失�?)
 	}
 
 	src, err := elem.Attribute("src")
 	if err != nil || src == nil {
-		return "", errors.New("获取二维码链接失败")
+		return "", errors.New("获取二维码链接失�?)
 	}
 
 	return *src, nil
@@ -683,12 +683,12 @@ func (a *XiaohongshuAdapter) doPublish(ctx context.Context, content *publisher.C
 	helper := browser.NewPageHelper(page)
 
 	if err := helper.Navigate(a.publishURL); err != nil {
-		return errors.Wrap(err, "导航到发布页面失败")
+		return errors.Wrap(err, "导航到发布页面失�?)
 	}
 
 	time.Sleep(3 * time.Second)
 
-	// 检查登录状态
+	// 检查登录状�?
 	has, _, _ := page.Has(".avatar-wrapper, .user-info")
 	if !has {
 		return errors.New("未登录，请先执行登录")
@@ -721,14 +721,14 @@ func (a *XiaohongshuAdapter) doPublish(ctx context.Context, content *publisher.C
 
 func (a *XiaohongshuAdapter) uploadVideo(page *rod.Page, videoPath string) error {
 	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
-		return fmt.Errorf("视频文件不存在: %s", videoPath)
+		return fmt.Errorf("视频文件不存�? %s", videoPath)
 	}
 
 	logrus.Infof("[%s] 上传视频: %s", a.platform, videoPath)
 
 	fileInput, err := page.Element("input[type='file'][accept*='video']")
 	if err != nil {
-		return errors.Wrap(err, "查找视频上传输入框失败")
+		return errors.Wrap(err, "查找视频上传输入框失�?)
 	}
 
 	if err := fileInput.SetFiles([]string{videoPath}); err != nil {
@@ -746,14 +746,14 @@ func (a *XiaohongshuAdapter) uploadImages(page *rod.Page, imagePaths []string) e
 
 	for i, imgPath := range imagePaths {
 		if _, err := os.Stat(imgPath); os.IsNotExist(err) {
-			return fmt.Errorf("图片文件不存在: %s", imgPath)
+			return fmt.Errorf("图片文件不存�? %s", imgPath)
 		}
 
 		logrus.Infof("[%s] 上传图片 %d/%d: %s", a.platform, i+1, len(imagePaths), imgPath)
 
 		fileInput, err := page.Element("input[type='file'][accept*='image']")
 		if err != nil {
-			return errors.Wrap(err, "查找图片上传输入框失败")
+			return errors.Wrap(err, "查找图片上传输入框失�?)
 		}
 
 		if err := fileInput.SetFiles([]string{imgPath}); err != nil {
@@ -769,7 +769,7 @@ func (a *XiaohongshuAdapter) uploadImages(page *rod.Page, imagePaths []string) e
 func (a *XiaohongshuAdapter) fillContent(page *rod.Page, content *publisher.Content) error {
 	helper := browser.NewPageHelper(page)
 
-	// 小红书标题限制20字
+	// 小红书标题限�?0�?
 	title := content.Title
 	if len(title) > 20 {
 		title = title[:20]
@@ -784,7 +784,7 @@ func (a *XiaohongshuAdapter) fillContent(page *rod.Page, content *publisher.Cont
 		helper.RandomDelay(0.5, 1)
 	}
 
-	// 小红书正文限制1000字
+	// 小红书正文限�?000�?
 	body := content.Body
 	if len(body) > 1000 {
 		body = body[:1000]
@@ -803,7 +803,7 @@ func (a *XiaohongshuAdapter) fillContent(page *rod.Page, content *publisher.Cont
 	for _, tag := range content.Tags {
 		tagInput, err := page.Element("input[placeholder*='标签'], input[placeholder*='话题']")
 		if err != nil {
-			logrus.Warnf("[%s] 查找标签输入框失败: %v", a.platform, err)
+			logrus.Warnf("[%s] 查找标签输入框失�? %v", a.platform, err)
 			continue
 		}
 
@@ -825,7 +825,7 @@ func (a *XiaohongshuAdapter) submitPublish(page *rod.Page) error {
 
 	vis, err := publishBtn.Visible()
 	if err != nil || !vis {
-		return errors.New("发布按钮不可见")
+		return errors.New("发布按钮不可�?)
 	}
 
 	helper.RandomDelay(1, 2)
@@ -842,7 +842,7 @@ func (a *XiaohongshuAdapter) submitPublish(page *rod.Page) error {
 
 // ============== 工厂 ==============
 
-// PublisherFactory 发布器工厂
+// PublisherFactory 发布器工�?
 type PublisherFactory struct {
 	adapters map[string]func(*publisher.Options) publisher.Publisher
 }
@@ -854,12 +854,12 @@ func NewPublisherFactory() *PublisherFactory {
 	}
 }
 
-// Register 注册平台适配器
+// Register 注册平台适配�?
 func (f *PublisherFactory) Register(platform string, creator func(*publisher.Options) publisher.Publisher) {
 	f.adapters[platform] = creator
 }
 
-// Create 创建发布器
+// Create 创建发布�?
 func (f *PublisherFactory) Create(platform string, opts ...publisher.Option) (publisher.Publisher, error) {
 	creator, exists := f.adapters[platform]
 	if !exists {
@@ -874,7 +874,7 @@ func (f *PublisherFactory) Create(platform string, opts ...publisher.Option) (pu
 	return creator(cfg), nil
 }
 
-// SupportedPlatforms 返回支持的平台列表
+// SupportedPlatforms 返回支持的平台列�?
 func (f *PublisherFactory) SupportedPlatforms() []string {
 	platforms := make([]string, 0, len(f.adapters))
 	for p := range f.adapters {

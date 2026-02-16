@@ -14,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Server API服务器
+// Server API服务�?
 type Server struct {
 	router      *mux.Router
 	taskManager TaskManagerAPI
@@ -25,7 +25,7 @@ type Server struct {
 	server      *http.Server
 }
 
-// TaskManagerAPI 任务管理器接口
+// TaskManagerAPI 任务管理器接�?
 type TaskManagerAPI interface {
 	CreateTask(taskType string, platform string, payload map[string]interface{}) (interface{}, error)
 	GetTask(taskID string) (interface{}, error)
@@ -33,7 +33,7 @@ type TaskManagerAPI interface {
 	CancelTask(taskID string) error
 }
 
-// PublisherAPI 发布器接口
+// PublisherAPI 发布器接�?
 type PublisherAPI interface {
 	GetPlatforms() []string
 	GetPlatformInfo(platform string) (interface{}, error)
@@ -50,7 +50,7 @@ type StorageAPI interface {
 	Delete(path string) error
 }
 
-// Middleware 中间件
+// Middleware 中间�?
 type Middleware func(http.Handler) http.Handler
 
 // APIResponse 统一API响应
@@ -62,7 +62,7 @@ type APIResponse struct {
 	Timestamp int64       `json:"timestamp"`
 }
 
-// NewServer 创建API服务器
+// NewServer 创建API服务�?
 func NewServer() *Server {
 	s := &Server{
 		router: mux.NewRouter(),
@@ -71,13 +71,13 @@ func NewServer() *Server {
 	return s
 }
 
-// WithTaskManager 设置任务管理器
+// WithTaskManager 设置任务管理�?
 func (s *Server) WithTaskManager(tm TaskManagerAPI) *Server {
 	s.taskManager = tm
 	return s
 }
 
-// WithPublisher 设置发布器
+// WithPublisher 设置发布�?
 func (s *Server) WithPublisher(p PublisherAPI) *Server {
 	s.publisher = p
 	return s
@@ -89,14 +89,14 @@ func (s *Server) WithStorage(st StorageAPI) *Server {
 	return s
 }
 
-// WithMiddleware 添加中间件
+// WithMiddleware 添加中间�?
 func (s *Server) WithMiddleware(m Middleware) *Server {
 	s.middleware = append(s.middleware, m)
 	return s
 }
 
 func (s *Server) setupRoutes() {
-	// 健康检查
+	// 健康检�?
 	s.router.HandleFunc("/health", s.healthCheck).Methods("GET")
 
 	// 平台相关
@@ -126,16 +126,16 @@ func (s *Server) setupRoutes() {
 	s.setupAIRoutes()
 }
 
-// Router 返回路由器
+// Router 返回路由�?
 func (s *Server) Router() *mux.Router {
 	return s.router
 }
 
-// Start 启动服务器
+// Start 启动服务�?
 func (s *Server) Start(addr string) error {
 	var handler http.Handler = s.router
 
-	// 应用中间件
+	// 应用中间�?
 	for i := len(s.middleware) - 1; i >= 0; i-- {
 		handler = s.middleware[i](handler)
 	}
@@ -148,11 +148,11 @@ func (s *Server) Start(addr string) error {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	logrus.Infof("API服务器启动: %s", addr)
+	logrus.Infof("API服务器启�? %s", addr)
 	return s.server.ListenAndServe()
 }
 
-// Shutdown 关闭服务器
+// Shutdown 关闭服务�?
 func (s *Server) Shutdown() error {
 	if s.server != nil {
 		return s.server.Shutdown(nil)
@@ -290,7 +290,7 @@ func (s *Server) createTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.jsonError(w, "INVALID_REQUEST", "请求体格式错误", http.StatusBadRequest)
+		s.jsonError(w, "INVALID_REQUEST", "请求体格式错�?, http.StatusBadRequest)
 		return
 	}
 
@@ -363,13 +363,13 @@ func (s *Server) cancelTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.jsonSuccess(w, map[string]string{"message": "任务已取消"})
+	s.jsonSuccess(w, map[string]string{"message": "任务已取�?})
 }
 
 func (s *Server) publish(w http.ResponseWriter, r *http.Request) {
 	var req PublishRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.jsonError(w, "INVALID_REQUEST", "请求体格式错误", http.StatusBadRequest)
+		s.jsonError(w, "INVALID_REQUEST", "请求体格式错�?, http.StatusBadRequest)
 		return
 	}
 
@@ -416,7 +416,7 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request) {
 	s.jsonSuccess(w, map[string]interface{}{
 		"task_id":  taskID,
 		"status":   "created",
-		"message":  "发布任务已创建",
+		"message":  "发布任务已创�?,
 		"platform": req.Platform,
 		"title":    req.Title,
 	})
@@ -425,7 +425,7 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request) {
 func (s *Server) publishAsync(w http.ResponseWriter, r *http.Request) {
 	var req PublishRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.jsonError(w, "INVALID_REQUEST", "请求体格式错误", http.StatusBadRequest)
+		s.jsonError(w, "INVALID_REQUEST", "请求体格式错�?, http.StatusBadRequest)
 		return
 	}
 
@@ -472,7 +472,7 @@ func (s *Server) publishAsync(w http.ResponseWriter, r *http.Request) {
 	s.jsonSuccess(w, map[string]interface{}{
 		"task_id":  taskID,
 		"status":   "pending",
-		"message":  "异步发布任务已创建",
+		"message":  "异步发布任务已创�?,
 		"platform": req.Platform,
 	})
 }
@@ -541,7 +541,7 @@ func (s *Server) downloadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 设置响应头
+	// 设置响应�?
 	filename := filepath.Base(path)
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 	w.Header().Set("Content-Type", "application/octet-stream")
@@ -590,7 +590,7 @@ func (s *Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.jsonSuccess(w, map[string]string{
-		"message": "文件已删除",
+		"message": "文件已删�?,
 		"path":    path,
 	})
 }
@@ -607,7 +607,7 @@ type PublishRequest struct {
 	ScheduleAt *string  `json:"schedule_at"` // 定时发布时间
 }
 
-// LoggingMiddleware 日志中间件
+// LoggingMiddleware 日志中间�?
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -617,7 +617,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// CORSMiddleware CORS中间件
+// CORSMiddleware CORS中间�?
 func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")

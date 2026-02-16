@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Sparkles, Loader2, Copy, RefreshCw, CheckCircle } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Sparkles, Loader2, Copy, RefreshCw, CheckCircle, Upload, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { aiContentGenerate, aiContentRewrite } from '@/lib/api'
+import { aiContentGenerate, aiContentRewrite, publish } from '@/lib/api'
+import type { Platform, ContentType } from '@/types/api'
 
 const styles = [
   { value: '轻松幽默', label: '轻松幽默' },
@@ -27,6 +28,7 @@ const platforms = [
 
 export default function ContentGeneration() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [topic, setTopic] = useState('')
   const [style, setStyle] = useState('轻松幽默')
   const [platform, setPlatform] = useState('general')
@@ -35,6 +37,7 @@ export default function ContentGeneration() {
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [rewriting, setRewriting] = useState(false)
+  const [publishing, setPublishing] = useState(false)
 
   // 接收来自热点页面的参数
   useEffect(() => {
@@ -116,6 +119,57 @@ export default function ContentGeneration() {
     }
   }
 
+  const handlePublish = async () => {
+    if (!generatedContent.trim()) {
+      alert('没有内容可以发布')
+      return
+    }
+
+    setPublishing(true)
+
+    try {
+      // 根据选择的平台确定内容类型
+      let contentType = 'text'
+      if (platform === 'douyin' || platform === 'xiaohongshu') {
+        contentType = 'images'
+      } else if (platform === 'toutiao') {
+        contentType = 'article'
+      }
+
+      const response = await publish({
+        platform: (platform === 'general' ? 'toutiao' : platform) as Platform,
+        type: contentType as ContentType,
+        title: topic || 'AI生成内容',
+        body: generatedContent,
+        tags: [topic, style, 'AI生成'].filter(Boolean)
+      })
+
+      if (response.success) {
+        alert(`内容已成功发布到${getPlatformName(platform)}!`)
+        // 跳转到发布历史页面
+        navigate('/history')
+      } else {
+        alert(response.error || '发布失败')
+      }
+    } catch (error) {
+      console.error('Publish failed:', error)
+      alert('发布失败，请重试')
+    } finally {
+      setPublishing(false)
+    }
+  }
+
+  const getPlatformName = (platformCode: string) => {
+    const platformMap: Record<string, string> = {
+      'douyin': '抖音',
+      'toutiao': '今日头条',
+      'xiaohongshu': '小红书',
+      'weibo': '微博',
+      'general': '通用平台'
+    }
+    return platformMap[platformCode] || platformCode
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -187,7 +241,11 @@ export default function ContentGeneration() {
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleGenerate} disabled={loading || !topic.trim()}>
+              <Button 
+                onClick={handleGenerate} 
+                disabled={loading || !topic.trim()}
+                className="flex-1"
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -200,6 +258,20 @@ export default function ContentGeneration() {
                   </>
                 )}
               </Button>
+              {generatedContent && (
+                <Button 
+                  onClick={handlePublish} 
+                  disabled={publishing}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {publishing ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                  )}
+                  发布
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -213,18 +285,43 @@ export default function ContentGeneration() {
               </div>
               {generatedContent && (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleRewrite} disabled={rewriting}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleRewrite} 
+                    disabled={rewriting}
+                    title="改写内容"
+                  >
                     {rewriting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <RefreshCw className="h-4 w-4" />
                     )}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleCopy}
+                    title="复制内容"
+                  >
                     {copied ? (
                       <CheckCircle className="h-4 w-4 text-green-500" />
                     ) : (
                       <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={handlePublish} 
+                    disabled={publishing || !generatedContent.trim()}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    title="一键发布"
+                  >
+                    {publishing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
                     )}
                   </Button>
                 </div>

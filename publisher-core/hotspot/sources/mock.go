@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/monkeycode/publisher-core/hotspot"
+	"publisher-core/hotspot"
 )
 
 type MockSource struct {
@@ -57,7 +57,7 @@ func (s *MockSource) Fetch(ctx context.Context, maxItems int) ([]hotspot.Topic, 
 		},
 		{
 			ID:        uuid.New().String(),
-			Title:     "测试热点2: AI 技术发展趋势分析",
+			Title:     "测试热点2: AI 技术发展趋势分�?,
 			Category:  hotspot.CategoryTech,
 			Heat:      88,
 			Trend:     hotspot.TrendUp,

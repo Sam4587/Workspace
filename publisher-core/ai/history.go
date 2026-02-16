@@ -24,21 +24,21 @@ type ContentHistory struct {
 	Provider     string                 `json:"provider"`
 	Model        string                 `json:"model"`
 	Tokens       TokenUsage             `json:"tokens"`
-	Rating       int                    `json:"rating"` // 1-5星
+	Rating       int                    `json:"rating"` // 1-5�?
 	Tags         []string               `json:"tags"`
 	Metadata     map[string]interface{} `json:"metadata"`
 	CreatedAt    time.Time              `json:"created_at"`
 	PublishedAt  *time.Time             `json:"published_at,omitempty"`
 }
 
-// TokenUsage Token使用量
+// TokenUsage Token使用�?
 type TokenUsage struct {
 	Input  int `json:"input"`
 	Output int `json:"output"`
 	Total  int `json:"total"`
 }
 
-// HistoryManager 历史管理器
+// HistoryManager 历史管理�?
 type HistoryManager struct {
 	mu      sync.RWMutex
 	storage HistoryStorage
@@ -53,7 +53,7 @@ type HistoryStorage interface {
 	GetStats(platform string, days int) (*HistoryStats, error)
 }
 
-// HistoryFilter 历史过滤器
+// HistoryFilter 历史过滤�?
 type HistoryFilter struct {
 	Platform string
 	Type     string
@@ -81,7 +81,7 @@ type ModelUsage struct {
 	AvgRating int    `json:"avg_rating"`
 }
 
-// NewHistoryManager 创建历史管理器
+// NewHistoryManager 创建历史管理�?
 func NewHistoryManager(storage HistoryStorage) *HistoryManager {
 	return &HistoryManager{
 		storage: storage,

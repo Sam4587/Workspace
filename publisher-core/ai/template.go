@@ -38,7 +38,7 @@ type TemplateVariable struct {
 	Options     []string `json:"options,omitempty"`
 }
 
-// TemplateManager 模板管理器
+// TemplateManager 模板管理�?
 type TemplateManager struct {
 	mu        sync.RWMutex
 	templates map[string]*ContentTemplate
@@ -53,7 +53,7 @@ type TemplateStorage interface {
 	Delete(id string) error
 }
 
-// TemplateFilter 模板过滤器
+// TemplateFilter 模板过滤�?
 type TemplateFilter struct {
 	Platform string
 	Category string
@@ -61,7 +61,7 @@ type TemplateFilter struct {
 	Limit    int
 }
 
-// NewTemplateManager 创建模板管理器
+// NewTemplateManager 创建模板管理�?
 func NewTemplateManager(storage TemplateStorage) *TemplateManager {
 	tm := &TemplateManager{
 		templates: make(map[string]*ContentTemplate),
@@ -77,7 +77,7 @@ func (tm *TemplateManager) loadDefaults() {
 		{
 			ID:          "news-hotspot",
 			Name:        "热点新闻评论",
-			Description: "针对热点事件生成评论性内容",
+			Description: "针对热点事件生成评论性内�?,
 			Platform:    "all",
 			Category:    "新闻",
 			Template:    "【{title}】{event}
@@ -98,12 +98,12 @@ func (tm *TemplateManager) loadDefaults() {
 		{
 			ID:          "tutorial-guide",
 			Name:        "教程指南",
-			Description: "生成教程类内容",
+			Description: "生成教程类内�?,
 			Platform:    "xiaohongshu",
 			Category:    "教程",
-			Template:    "【{title}】
+			Template:    "【{title}�?
 
-✨ {intro}
+�?{intro}
 
 📝 {steps}
 
@@ -112,9 +112,9 @@ func (tm *TemplateManager) loadDefaults() {
 #{tags}",
 			Variables: []TemplateVariable{
 				{Name: "title", Description: "教程标题", Type: "text", Required: true},
-				{Name: "intro", Description: "简介", Type: "text", Required: true},
+				{Name: "intro", Description: "简�?, Type: "text", Required: true},
 				{Name: "steps", Description: "步骤说明", Type: "text", Required: true},
-				{Name: "tips", Description: "小贴士", Type: "text", Required: false},
+				{Name: "tips", Description: "小贴�?, Type: "text", Required: false},
 				{Name: "tags", Description: "话题标签", Type: "text", Required: false},
 			},
 			Tags:      []string{"教程", "指南", "干货"},
@@ -124,10 +124,10 @@ func (tm *TemplateManager) loadDefaults() {
 		{
 			ID:          "lifestyle-share",
 			Name:        "生活分享",
-			Description: "生活类内容分享模板",
+			Description: "生活类内容分享模�?,
 			Platform:    "xiaohongshu",
 			Category:    "生活",
-			Template:    "【{title}】
+			Template:    "【{title}�?
 
 {content}
 
@@ -150,16 +150,16 @@ func (tm *TemplateManager) loadDefaults() {
 		{
 			ID:          "entertainment-review",
 			Name:        "娱乐测评",
-			Description: "娱乐类内容测评模板",
+			Description: "娱乐类内容测评模�?,
 			Platform:    "douyin",
 			Category:    "娱乐",
-			Template:    "【{title}】
+			Template:    "【{title}�?
 
 🎯 {overview}
 
-✅ 优点：{pros}
+�?优点：{pros}
 
-❌ 缺点：{cons}
+�?缺点：{cons}
 
 💰 价格：{price}
 

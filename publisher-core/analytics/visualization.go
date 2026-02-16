@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// VisualizationData 可视化数据
+// VisualizationData 可视化数�?
 type VisualizationData struct {
 	Charts    []Chart     `json:"charts"`
 	Summary   Summary     `json:"summary"`
@@ -45,7 +45,7 @@ type ChartOptions struct {
 	Stacked    bool   `json:"stacked"`
 }
 
-// Summary 汇总数据
+// Summary 汇总数�?
 type Summary struct {
 	TotalViews      int64     `json:"total_views"`
 	TotalLikes      int64     `json:"total_likes"`
@@ -68,7 +68,7 @@ func NewVisualizationGenerator(storage MetricsStorage) *VisualizationGenerator {
 	}
 }
 
-// GenerateDashboardCharts 生成仪表盘图表
+// GenerateDashboardCharts 生成仪表盘图�?
 func (g *VisualizationGenerator) GenerateDashboardCharts(platform string, days int) (*VisualizationData, error) {
 	endTime := time.Now()
 	startTime := endTime.AddDate(0, 0, -days)
@@ -97,7 +97,7 @@ func (g *VisualizationGenerator) GenerateDashboardCharts(platform string, days i
 		vizData.Charts = append(vizData.Charts, *barChart)
 	}
 
-	// 4. 发布时间热力图
+	// 4. 发布时间热力�?
 	heatmap, err := g.generatePublishTimeHeatmap(platform)
 	if err == nil {
 		vizData.Charts = append(vizData.Charts, *heatmap)
@@ -106,7 +106,7 @@ func (g *VisualizationGenerator) GenerateDashboardCharts(platform string, days i
 	return vizData, nil
 }
 
-// generateTrendChart 生成趋势图
+// generateTrendChart 生成趋势�?
 func (g *VisualizationGenerator) generateTrendChart(platform string, days int) (*Chart, error) {
 	trends, err := g.storage.GetTrendData(MetricTypeViews, Platform(platform), days)
 	if err != nil {
@@ -116,21 +116,21 @@ func (g *VisualizationGenerator) generateTrendChart(platform string, days int) (
 	chart := &Chart{
 		ID:    "views_trend",
 		Type:  "line",
-		Title: "浏览量趋势",
+		Title: "浏览量趋�?,
 		Data: ChartData{
 			Labels: make([]string, 0),
 			Series: make([]ChartSeries, 0),
 		},
 		Options: ChartOptions{
 			XAxis:      "日期",
-			YAxis:      "浏览量",
+			YAxis:      "浏览�?,
 			ShowLegend: true,
 			ShowGrid:   true,
 		},
 	}
 
 	viewsSeries := ChartSeries{
-		Name:   "浏览量",
+		Name:   "浏览�?,
 		Values: make([]float64, 0),
 		Color:  "#3b82f6",
 	}
@@ -151,7 +151,7 @@ func (g *VisualizationGenerator) generatePlatformPieChart(days int) (*Chart, err
 		Type:  "pie",
 		Title: "平台内容分布",
 		Data: ChartData{
-			Labels: []string{"抖音", "小红书", "头条"},
+			Labels: []string{"抖音", "小红�?, "头条"},
 			Series: make([]ChartSeries, 0),
 		},
 		Options: ChartOptions{
@@ -180,7 +180,7 @@ func (g *VisualizationGenerator) generatePlatformPieChart(days int) (*Chart, err
 	}
 
 	series := ChartSeries{
-		Name:   "浏览量分布",
+		Name:   "浏览量分�?,
 		Values: values,
 	}
 	chart.Data.Series = append(chart.Data.Series, series)
@@ -193,14 +193,14 @@ func (g *VisualizationGenerator) generateEngagementBarChart(platform string, day
 	chart := &Chart{
 		ID:    "engagement_bar",
 		Type:  "bar",
-		Title: "互动率对比",
+		Title: "互动率对�?,
 		Data: ChartData{
 			Labels: make([]string, 0),
 			Series: make([]ChartSeries, 0),
 		},
 		Options: ChartOptions{
 			XAxis:      "日期",
-			YAxis:      "互动率(%)",
+			YAxis:      "互动�?%)",
 			ShowLegend: false,
 			ShowGrid:   true,
 		},
@@ -212,7 +212,7 @@ func (g *VisualizationGenerator) generateEngagementBarChart(platform string, day
 	}
 
 	engagementSeries := ChartSeries{
-		Name:   "互动率",
+		Name:   "互动�?,
 		Values: make([]float64, 0),
 		Color:  "#10b981",
 	}
@@ -231,12 +231,12 @@ func (g *VisualizationGenerator) generateEngagementBarChart(platform string, day
 	return chart, nil
 }
 
-// generatePublishTimeHeatmap 生成发布时间热力图
+// generatePublishTimeHeatmap 生成发布时间热力�?
 func (g *VisualizationGenerator) generatePublishTimeHeatmap(platform string) (*Chart, error) {
 	chart := &Chart{
 		ID:    "publish_heatmap",
 		Type:  "heatmap",
-		Title: "最佳发布时间",
+		Title: "最佳发布时�?,
 		Data: ChartData{
 			Labels: []string{"周一", "周二", "周三", "周四", "周五", "周六", "周日"},
 			Series: make([]ChartSeries, 0),
@@ -246,17 +246,17 @@ func (g *VisualizationGenerator) generatePublishTimeHeatmap(platform string) (*C
 		},
 	}
 
-	// 生成时间段标签
+	// 生成时间段标�?
 	for hour := 0; hour < 24; hour++ {
 		chart.Data.Labels = append(chart.Data.Labels, fmt.Sprintf("%02d:00", hour))
 	}
 
-	// TODO: 从实际数据中统计各时间段的发布效果
+	// TODO: 从实际数据中统计各时间段的发布效�?
 	// 当前使用模拟数据
 	for i := 0; i < 7; i++ {
 		values := make([]float64, 24)
 		for j := 0; j < 24; j++ {
-			// 模拟数据：早晚高峰效果更好
+			// 模拟数据：早晚高峰效果更�?
 			if j >= 8 && j <= 10 || j >= 18 && j <= 22 {
 				values[j] = float64(60 + (i*j)%40)
 			} else {

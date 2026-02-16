@@ -1,4 +1,4 @@
-// Package main 提供命令行工具入口
+// Package main 提供命令行工具入�?
 package main
 
 import (
@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	publisher "github.com/monkeycode/publisher-core/interfaces"
-	"github.com/monkeycode/publisher-core/adapters"
-	"github.com/monkeycode/publisher-core/storage"
-	"github.com/monkeycode/publisher-core/task"
+	publisher "publisher-core/interfaces"
+	"publisher-core/adapters"
+	"publisher-core/storage"
+	"publisher-core/task"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,18 +36,18 @@ var (
 )
 
 func init() {
-	flag.StringVar(&platform, "platform", "", "平台: douyin(抖音), toutiao(今日头条), xiaohongshu(小红书)")
+	flag.StringVar(&platform, "platform", "", "平台: douyin(抖音), toutiao(今日头条), xiaohongshu(小红�?")
 	flag.BoolVar(&headless, "headless", true, "无头模式")
 	flag.BoolVar(&login, "login", false, "登录")
-	flag.BoolVar(&check, "check", false, "检查登录状态")
+	flag.BoolVar(&check, "check", false, "检查登录状�?)
 	flag.StringVar(&title, "title", "", "标题")
 	flag.StringVar(&content, "content", "", "正文内容")
 	flag.StringVar(&images, "images", "", "图片路径(逗号分隔)")
 	flag.StringVar(&video, "video", "", "视频路径")
 	flag.StringVar(&tags, "tags", "", "话题标签(逗号分隔)")
 	flag.BoolVar(&async, "async", false, "异步发布")
-	flag.StringVar(&taskID, "task-id", "", "任务ID(用于查询状态)")
-	flag.BoolVar(&status, "status", false, "查询任务状态")
+	flag.StringVar(&taskID, "task-id", "", "任务ID(用于查询状�?")
+	flag.BoolVar(&status, "status", false, "查询任务状�?)
 	flag.BoolVar(&list, "list", false, "列出任务")
 	flag.StringVar(&cookieDir, "cookie-dir", "./cookies", "Cookie存储目录")
 	flag.BoolVar(&debug, "debug", false, "调试模式")
@@ -63,10 +63,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	// 创建发布器
+	// 创建发布�?
 	factory := adapters.DefaultFactory()
 
-	// 任务管理器
+	// 任务管理�?
 	taskMgr := task.NewTaskManager(task.NewMemoryStorage())
 
 	// 存储服务
@@ -81,16 +81,16 @@ func main() {
 		return
 	}
 
-	// 查询任务状态
+	// 查询任务状�?
 	if status && taskID != "" {
 		queryTaskStatus(taskMgr, taskID)
 		return
 	}
 
-	// 创建平台发布器
+	// 创建平台发布�?
 	pub, err := factory.Create(platform, publisher.WithHeadless(headless), publisher.WithCookieDir(cookieDir))
 	if err != nil {
-		logrus.Fatalf("创建发布器失败: %v", err)
+		logrus.Fatalf("创建发布器失�? %v", err)
 	}
 	defer pub.Close()
 
@@ -100,7 +100,7 @@ func main() {
 		return
 	}
 
-	// 检查登录状态
+	// 检查登录状�?
 	if check {
 		doCheckLogin(ctx, pub)
 		return
@@ -125,7 +125,7 @@ func setupLogger() {
 }
 
 func printUsage() {
-	fmt.Println("多平台内容发布工具")
+	fmt.Println("多平台内容发布工�?)
 	fmt.Println()
 	fmt.Println("用法:")
 	fmt.Println("  publisher [选项]")
@@ -134,7 +134,7 @@ func printUsage() {
 	fmt.Println("  publisher -platform douyin -login")
 	fmt.Println("  publisher -platform xiaohongshu -login")
 	fmt.Println()
-	fmt.Println("检查登录状态:")
+	fmt.Println("检查登录状�?")
 	fmt.Println("  publisher -platform douyin -check")
 	fmt.Println()
 	fmt.Println("发布图文:")
@@ -146,7 +146,7 @@ func printUsage() {
 	fmt.Println("异步发布:")
 	fmt.Println("  publisher -platform douyin -title \"标题\" -content \"正文\" -video \"video.mp4\" -async")
 	fmt.Println()
-	fmt.Println("查询任务状态:")
+	fmt.Println("查询任务状�?")
 	fmt.Println("  publisher -task-id <task_id> -status")
 	fmt.Println()
 	fmt.Println("列出任务:")
@@ -157,7 +157,7 @@ func printUsage() {
 }
 
 func doLogin(ctx context.Context, pub publisher.Publisher) {
-	logrus.Infof("开始 %s 登录...", pub.Platform())
+	logrus.Infof("开�?%s 登录...", pub.Platform())
 
 	result, err := pub.Login(ctx)
 	if err != nil {
@@ -165,12 +165,12 @@ func doLogin(ctx context.Context, pub publisher.Publisher) {
 	}
 
 	if result.Success {
-		logrus.Info("已登录")
+		logrus.Info("已登�?)
 		return
 	}
 
 	if result.QrcodeURL != "" {
-		fmt.Printf("请使用 %s App 扫码登录\n", pub.Platform())
+		fmt.Printf("请使�?%s App 扫码登录\n", pub.Platform())
 		fmt.Printf("登录页面: %s\n", result.QrcodeURL)
 	}
 
@@ -184,17 +184,17 @@ func doLogin(ctx context.Context, pub publisher.Publisher) {
 }
 
 func doCheckLogin(ctx context.Context, pub publisher.Publisher) {
-	logrus.Info("检查登录状态...")
+	logrus.Info("检查登录状�?..")
 
 	loggedIn, err := pub.CheckLoginStatus(ctx)
 	if err != nil {
-		logrus.Fatalf("检查失败: %v", err)
+		logrus.Fatalf("检查失�? %v", err)
 	}
 
 	if loggedIn {
-		logrus.Info("已登录")
+		logrus.Info("已登�?)
 	} else {
-		logrus.Warn("未登录")
+		logrus.Warn("未登�?)
 		logrus.Info("请先运行: publisher -platform <platform> -login")
 	}
 }
@@ -222,7 +222,7 @@ func doPublish(ctx context.Context, pub publisher.Publisher, taskMgr *task.TaskM
 		logrus.Fatalf("内容验证失败: %v", err)
 	}
 
-	logrus.Infof("准备发布 %s 内容到 %s...", content.Type, pub.Platform())
+	logrus.Infof("准备发布 %s 内容�?%s...", content.Type, pub.Platform())
 
 	if async {
 		// 异步发布
@@ -231,9 +231,9 @@ func doPublish(ctx context.Context, pub publisher.Publisher, taskMgr *task.TaskM
 			logrus.Fatalf("创建发布任务失败: %v", err)
 		}
 
-		logrus.Info("异步发布任务已创建")
+		logrus.Info("异步发布任务已创�?)
 		logrus.Infof("任务ID: %s", taskID)
-		logrus.Info("使用以下命令查询状态:")
+		logrus.Info("使用以下命令查询状�?")
 		fmt.Printf("  publisher -task-id %s -status\n", taskID)
 		return
 	}
@@ -286,7 +286,7 @@ func listTasks(taskMgr *task.TaskManager) {
 	fmt.Println("----------------------------------------")
 	for _, t := range tasks {
 		fmt.Printf("ID: %s\n", t.ID)
-		fmt.Printf("  类型: %s | 平台: %s | 状态: %s\n", t.Type, t.Platform, t.Status)
+		fmt.Printf("  类型: %s | 平台: %s | 状�? %s\n", t.Type, t.Platform, t.Status)
 		fmt.Printf("  创建时间: %s\n", t.CreatedAt.Format(time.RFC3339))
 		if t.Error != "" {
 			fmt.Printf("  错误: %s\n", t.Error)

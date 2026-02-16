@@ -35,7 +35,7 @@ type Storage interface {
 	// Delete 删除文件
 	Delete(ctx context.Context, path string) error
 
-	// Exists 检查文件是否存在
+	// Exists 检查文件是否存�?
 	Exists(ctx context.Context, path string) (bool, error)
 
 	// Stat 获取文件信息
@@ -47,7 +47,7 @@ type Storage interface {
 	// GetURL 获取访问URL
 	GetURL(ctx context.Context, path string) (string, error)
 
-	// GetSignedURL 获取带签名的访问URL(用于云存储)
+	// GetSignedURL 获取带签名的访问URL(用于云存�?
 	GetSignedURL(ctx context.Context, path string, expiry time.Duration) (string, error)
 }
 
@@ -74,10 +74,10 @@ const (
 // Config 存储配置
 type Config struct {
 	Type      StorageType
-	RootDir   string // 本地存储根目录
-	Bucket    string // 云存储桶名
-	Region    string // 云存储区域
-	Endpoint  string // 云存储端点
+	RootDir   string // 本地存储根目�?
+	Bucket    string // 云存储桶�?
+	Region    string // 云存储区�?
+	Endpoint  string // 云存储端�?
 	AccessKey string // 访问密钥
 	SecretKey string // 密钥
 	BaseURL   string // 基础URL
@@ -107,11 +107,11 @@ func NewLocalStorage(rootDir string, baseURL string) (*LocalStorage, error) {
 	}, nil
 }
 
-// normalizePath 规范化路径
+// normalizePath 规范化路�?
 func (s *LocalStorage) normalizePath(path string) string {
 	// 移除前导斜杠
 	path = strings.TrimPrefix(path, "/")
-	// 替换路径分隔符
+	// 替换路径分隔�?
 	return filepath.FromSlash(path)
 }
 
@@ -120,14 +120,14 @@ func (s *LocalStorage) resolvePath(path string) (string, error) {
 	normalized := s.normalizePath(path)
 	absPath := filepath.Join(s.rootDir, normalized)
 
-	// 安全检查：确保路径在根目录内
+	// 安全检查：确保路径在根目录�?
 	relPath, err := filepath.Rel(s.rootDir, absPath)
 	if err != nil {
 		return "", fmt.Errorf("无效路径: %w", err)
 	}
 
 	if strings.HasPrefix(relPath, "..") {
-		return "", errors.New("路径超出存储根目录")
+		return "", errors.New("路径超出存储根目�?)
 	}
 
 	return absPath, nil
@@ -140,7 +140,7 @@ func (s *LocalStorage) Write(ctx context.Context, path string, data []byte) erro
 		return err
 	}
 
-	// 创建父目录
+	// 创建父目�?
 	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
 		return fmt.Errorf("创建目录失败: %w", err)
 	}
@@ -160,7 +160,7 @@ func (s *LocalStorage) WriteStream(ctx context.Context, path string, reader io.R
 		return err
 	}
 
-	// 创建父目录
+	// 创建父目�?
 	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
 		return fmt.Errorf("创建目录失败: %w", err)
 	}
@@ -224,7 +224,7 @@ func (s *LocalStorage) Delete(ctx context.Context, path string) error {
 	return nil
 }
 
-// Exists 检查文件是否存在
+// Exists 检查文件是否存�?
 func (s *LocalStorage) Exists(ctx context.Context, path string) (bool, error) {
 	absPath, err := s.resolvePath(path)
 	if err != nil {
@@ -308,13 +308,13 @@ func (s *LocalStorage) GetSignedURL(ctx context.Context, path string, expiry tim
 
 // detectMimeType 检测MIME类型
 func detectMimeType(path string, data []byte) string {
-	// 先通过内容检测
+	// 先通过内容检�?
 	mimeType := http.DetectContentType(data)
 	if mimeType != "application/octet-stream" {
 		return mimeType
 	}
 
-	// 再通过扩展名检测
+	// 再通过扩展名检�?
 	ext := filepath.Ext(path)
 	if ext != "" {
 		mimeType = mime.TypeByExtension(ext)

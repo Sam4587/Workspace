@@ -1,6 +1,6 @@
 import type { Platform, PlatformInfo, LoginResult, PublishResult, Task, AccountStatus, APIResponse, PublishContent, HotTopic, HotSource, Pagination, CrossPlatformAnalysis, AIAnalysisResult } from '@/types/api'
 
-const API_BASE = '/api/v1'
+const API_BASE = 'http://localhost:3001/api'
 const HOT_API_BASE = '/api/hot-topics'
 
 // 平台列表响应类型
@@ -46,13 +46,6 @@ export async function checkLogin(platform: Platform): Promise<APIResponse<Accoun
 }
 
 // 发布内容
-
-// 登出
-export async function logout(platform: Platform): Promise<APIResponse<{ platform: string; message: string }>> {
-  return request<{ platform: string; message: string }>(`${API_BASE}/platforms/${platform}/logout`, {
-    method: 'POST',
-  })
-}
 
 export async function publish(content: PublishContent): Promise<APIResponse<PublishResult>> {
   return request<PublishResult>(`${API_BASE}/publish`, {

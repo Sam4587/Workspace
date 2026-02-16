@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ScheduledCollector 定时采集器
+// ScheduledCollector 定时采集�?
 type ScheduledCollector struct {
 	mu         sync.RWMutex
 	service    *AnalyticsService
@@ -32,7 +32,7 @@ type CollectionTask struct {
 	MaxRetries int
 }
 
-// NewScheduledCollector 创建定时采集器
+// NewScheduledCollector 创建定时采集�?
 func NewScheduledCollector(service *AnalyticsService, interval time.Duration) *ScheduledCollector {
 	return &ScheduledCollector{
 		service:    service,
@@ -104,7 +104,7 @@ func (sc *ScheduledCollector) executeTasks(ctx context.Context) {
 
 	logrus.Infof("Executing %d collection tasks", len(tasks))
 
-	// 使用工作池并发执行
+	// 使用工作池并发执�?
 	taskChan := make(chan CollectionTask, len(tasks))
 	resultChan := make(chan error, len(tasks))
 
@@ -113,7 +113,7 @@ func (sc *ScheduledCollector) executeTasks(ctx context.Context) {
 		go sc.worker(ctx, taskChan, resultChan)
 	}
 
-	// 发送任务
+	// 发送任�?
 	for _, task := range tasks {
 		taskChan <- task
 	}

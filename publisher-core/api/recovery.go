@@ -15,7 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ErrorHandler 错误处理器
+// ErrorHandler 错误处理�?
 type ErrorHandler struct {
 	mu           sync.RWMutex
 	errorCounts  map[string]int
@@ -24,7 +24,7 @@ type ErrorHandler struct {
 	windowPeriod time.Duration
 }
 
-// NewErrorHandler 创建错误处理器
+// NewErrorHandler 创建错误处理�?
 func NewErrorHandler(maxErrors int, windowPeriod time.Duration) *ErrorHandler {
 	return &ErrorHandler{
 		errorCounts:  make(map[string]int),
@@ -53,7 +53,7 @@ func (h *ErrorHandler) RecordError(err error) {
 	h.errorCounts[errKey]++
 	h.lastErrors[errKey] = now
 
-	// 检查是否达到阈值
+	// 检查是否达到阈�?
 	if h.errorCounts[errKey] >= h.maxErrors {
 		logrus.Errorf("Error threshold reached: %s (count: %d)", errKey, h.errorCounts[errKey])
 	}
@@ -70,7 +70,7 @@ func (h *ErrorHandler) IsCircuitOpen(err error) bool {
 	return count >= h.maxErrors
 }
 
-// RecoveryMiddleware 恢复中间件
+// RecoveryMiddleware 恢复中间�?
 func RecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -88,7 +88,7 @@ Stack: %s", recovered, string(stack))
 	})
 }
 
-// TimeoutMiddleware 超时中间件
+// TimeoutMiddleware 超时中间�?
 func TimeoutMiddleware(timeout time.Duration) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +114,7 @@ func TimeoutMiddleware(timeout time.Duration) func(http.Handler) http.Handler {
 	}
 }
 
-// RateLimitMiddleware 限流中间件
+// RateLimitMiddleware 限流中间�?
 type RateLimiter struct {
 	mu       sync.RWMutex
 	requests map[string][]time.Time
@@ -198,7 +198,7 @@ func Retry(ctx context.Context, maxRetries int, delay time.Duration, fn func() e
 			lastErr = err
 			logrus.Warnf("Retry %d/%d failed: %v", i+1, maxRetries, err)
 
-			// 检查上下文是否已取消
+			// 检查上下文是否已取�?
 			if ctx.Err() != nil {
 				return ctx.Err()
 			}
@@ -215,12 +215,12 @@ func Retry(ctx context.Context, maxRetries int, delay time.Duration, fn func() e
 
 // getIPAddress 获取客户端IP地址
 func getIPAddress(r *http.Request) string {
-	// 尝试从 X-Forwarded-For 获取
+	// 尝试�?X-Forwarded-For 获取
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
 		return xff
 	}
 
-	// 尝试从 X-Real-IP 获取
+	// 尝试�?X-Real-IP 获取
 	if xri := r.Header.Get("X-Real-IP"); xri != "" {
 		return xri
 	}

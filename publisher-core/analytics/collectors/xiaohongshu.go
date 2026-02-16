@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/monkeycode/publisher-core/analytics"
+	"publisher-core/analytics"
 	"github.com/sirupsen/logrus"
 )
 
@@ -27,12 +27,12 @@ func (c *XiaohongshuCollector) Platform() analytics.Platform {
 	return analytics.PlatformXiaohongshu
 }
 
-// IsEnabled 检查是否启用
+// IsEnabled 检查是否启�?
 func (c *XiaohongshuCollector) IsEnabled() bool {
 	return c.enabled
 }
 
-// SetEnabled 设置启用状态
+// SetEnabled 设置启用状�?
 func (c *XiaohongshuCollector) SetEnabled(enabled bool) {
 	c.enabled = enabled
 }
@@ -46,14 +46,14 @@ func (c *XiaohongshuCollector) CollectPostMetrics(ctx context.Context, postID st
 	logrus.Infof("[Xiaohongshu] Collecting metrics for post: %s", postID)
 
 	// TODO: 实现真实的数据采集逻辑
-	// 需要使用浏览器自动化访问小红书创作者中心
+	// 需要使用浏览器自动化访问小红书创作者中�?
 	// 当前返回模拟数据用于测试
 	
 	rand.Seed(time.Now().UnixNano())
 	metrics := &analytics.PostMetrics{
 		PostID:      postID,
 		Platform:    analytics.PlatformXiaohongshu,
-		Title:       fmt.Sprintf("小红书笔记 %s", postID),
+		Title:       fmt.Sprintf("小红书笔�?%s", postID),
 		Views:       rand.Int63n(50000),
 		Likes:       rand.Int63n(5000),
 		Comments:    rand.Int63n(500),
@@ -91,7 +91,7 @@ func (c *XiaohongshuCollector) CollectAccountMetrics(ctx context.Context, accoun
 	metrics := &analytics.AccountMetrics{
 		AccountID:   accountID,
 		Platform:    analytics.PlatformXiaohongshu,
-		Username:    fmt.Sprintf("小红书用户%s", accountID),
+		Username:    fmt.Sprintf("小红书用�?s", accountID),
 		Followers:   rand.Int63n(500000),
 		Following:   rand.Int63n(500),
 		Posts:       rand.Int63n(300),

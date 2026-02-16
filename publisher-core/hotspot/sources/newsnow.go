@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/monkeycode/publisher-core/hotspot"
+	"publisher-core/hotspot"
 	"github.com/sirupsen/logrus"
 )
 

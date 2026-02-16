@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// HealthStatus 健康状态
+// HealthStatus 健康状�?
 type HealthStatus struct {
 	Status      string            `json:"status"` // healthy, unhealthy, degraded
 	Timestamp   time.Time         `json:"timestamp"`
@@ -19,7 +19,7 @@ type HealthStatus struct {
 	System      SystemHealth      `json:"system"`
 }
 
-// ServiceHealth 服务健康状态
+// ServiceHealth 服务健康状�?
 type ServiceHealth struct {
 	Status    string    `json:"status"`
 	Message   string    `json:"message,omitempty"`
@@ -27,7 +27,7 @@ type ServiceHealth struct {
 	LastCheck time.Time `json:"last_check"`
 }
 
-// SystemHealth 系统健康状态
+// SystemHealth 系统健康状�?
 type SystemHealth struct {
 	GoVersion    string `json:"go_version"`
 	NumGoroutine int    `json:"num_goroutine"`
@@ -44,7 +44,7 @@ type HealthChecker struct {
 	checks    map[string]HealthCheck
 }
 
-// HealthCheck 健康检查函数
+// HealthCheck 健康检查函�?
 type HealthCheck func() ServiceHealth
 
 // NewHealthChecker 创建健康检查器
@@ -56,18 +56,18 @@ func NewHealthChecker(version string) *HealthChecker {
 	}
 }
 
-// RegisterCheck 注册健康检查
+// RegisterCheck 注册健康检�?
 func (h *HealthChecker) RegisterCheck(name string, check HealthCheck) {
 	h.checks[name] = check
 	logrus.Infof("Health check registered: %s", name)
 }
 
-// Check 执行健康检查
+// Check 执行健康检�?
 func (h *HealthChecker) Check() HealthStatus {
 	overallStatus := "healthy"
 	services := make(map[string]ServiceHealth)
 
-	// 执行所有健康检查
+	// 执行所有健康检�?
 	for name, check := range h.checks {
 		serviceHealth := check()
 		services[name] = serviceHealth
@@ -111,7 +111,7 @@ func (s *Server) healthCheckHandler(checker *HealthChecker) http.HandlerFunc {
 		if status.Status == "unhealthy" {
 			statusCode = http.StatusServiceUnavailable
 		} else if status.Status == "degraded" {
-			statusCode = http.StatusOK // degraded仍然返回200，但标记状态
+			statusCode = http.StatusOK // degraded仍然返回200，但标记状�?
 		}
 
 		w.Header().Set("Content-Type", "application/json")

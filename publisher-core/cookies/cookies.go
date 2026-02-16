@@ -96,7 +96,7 @@ func (m *Manager) Save(ctx context.Context, platform string, cookies []*proto.Ne
 
 	data, err := json.MarshalIndent(cookieMap, "", "  ")
 	if err != nil {
-		return fmt.Errorf("序列化 cookie 失败: %w", err)
+		return fmt.Errorf("序列�?cookie 失败: %w", err)
 	}
 
 	if err := os.WriteFile(path, data, 0600); err != nil {
@@ -220,7 +220,7 @@ func SaveCookies(cookies map[string]string, platform string) error {
 
 	data, err := json.MarshalIndent(cookies, "", "  ")
 	if err != nil {
-		return fmt.Errorf("序列化 cookie 失败: %w", err)
+		return fmt.Errorf("序列�?cookie 失败: %w", err)
 	}
 
 	return os.WriteFile(path, data, 0600)

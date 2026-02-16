@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/monkeycode/publisher-core/hotspot"
+	"publisher-core/hotspot"
 	"github.com/sirupsen/logrus"
 )
 
-// BaiduSource 百度热搜数据源
+// BaiduSource 百度热搜数据�?
 type BaiduSource struct {
 	name        string
 	displayName string
@@ -18,7 +18,7 @@ type BaiduSource struct {
 	client      *http.Client
 }
 
-// NewBaiduSource 创建百度数据源
+// NewBaiduSource 创建百度数据�?
 func NewBaiduSource() *BaiduSource {
 	return &BaiduSource{
 		name:        "baidu",
@@ -30,7 +30,7 @@ func NewBaiduSource() *BaiduSource {
 	}
 }
 
-// Name 返回数据源名称
+// Name 返回数据源名�?
 func (s *BaiduSource) Name() string {
 	return s.name
 }
@@ -40,12 +40,12 @@ func (s *BaiduSource) DisplayName() string {
 	return s.displayName
 }
 
-// IsEnabled 检查是否启用
+// IsEnabled 检查是否启�?
 func (s *BaiduSource) IsEnabled() bool {
 	return s.enabled
 }
 
-// SetEnabled 设置启用状态
+// SetEnabled 设置启用状�?
 func (s *BaiduSource) SetEnabled(enabled bool) {
 	s.enabled = enabled
 }
@@ -58,8 +58,8 @@ func (s *BaiduSource) Fetch(ctx context.Context, maxItems int) ([]hotspot.Topic,
 
 	logrus.Infof("[Baidu] Fetching hot topics, maxItems=%d", maxItems)
 
-	// TODO: 实现真实的百度热搜抓取
-	// 可以使用百度API或网页抓取
+	// TODO: 实现真实的百度热搜抓�?
+	// 可以使用百度API或网页抓�?
 	
 	topics := s.generateMockTopics(maxItems)
 	
@@ -76,18 +76,18 @@ func (s *BaiduSource) generateMockTopics(count int) []hotspot.Topic {
 		heat  int
 		url   string
 	}{
-		{"百度热搜榜", 999999, "https://top.baidu.com/board?tab=realtime"},
+		{"百度热搜�?, 999999, "https://top.baidu.com/board?tab=realtime"},
 		{"科技新闻热点", 888888, "https://top.baidu.com/board?tab=tech"},
 		{"娱乐八卦新闻", 777777, "https://top.baidu.com/board?tab=ent"},
 		{"社会民生事件", 666666, "https://top.baidu.com/board?tab=soc"},
-		{"财经股市动态", 555555, "https://top.baidu.com/board?tab=finance"},
+		{"财经股市动�?, 555555, "https://top.baidu.com/board?tab=finance"},
 	}
 
 	for i := 0; i < count && i < len(mockData); i++ {
 		topics = append(topics, hotspot.Topic{
 			ID:          fmt.Sprintf("baidu_%d", time.Now().UnixNano()+int64(i)),
 			Title:       mockData[i].title,
-			Description: fmt.Sprintf("百度热搜话题：%s", mockData[i].title),
+			Description: fmt.Sprintf("百度热搜话题�?s", mockData[i].title),
 			Category:    hotspot.CategoryNews,
 			Heat:        mockData[i].heat,
 			Trend:       "up",

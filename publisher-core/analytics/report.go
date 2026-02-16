@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-// ReportGenerator 报告生成器
+// ReportGenerator 报告生成�?
 type ReportGenerator struct {
 	storage MetricsStorage
 }
 
-// NewReportGenerator 创建报告生成器
+// NewReportGenerator 创建报告生成�?
 func NewReportGenerator(storage MetricsStorage) *ReportGenerator {
 	return &ReportGenerator{
 		storage: storage,
@@ -77,7 +77,7 @@ func (g *ReportGenerator) GenerateReport(period TimeRange) (*Report, error) {
 		Insights:    []string{},
 	}
 
-	// 收集各平台数据
+	// 收集各平台数�?
 	platforms := []Platform{PlatformDouyin, PlatformXiaohongshu, PlatformToutiao}
 	
 	for _, platform := range platforms {
@@ -115,7 +115,7 @@ func (g *ReportGenerator) GenerateReport(period TimeRange) (*Report, error) {
 		report.Platforms = append(report.Platforms, platformData)
 	}
 
-	// 计算平均互动率
+	// 计算平均互动�?
 	if report.Summary.TotalViews > 0 {
 		report.Summary.AvgEngagement = CalculateEngagement(
 			report.Summary.TotalLikes,
@@ -147,20 +147,20 @@ func (g *ReportGenerator) generateInsights(report *Report) []string {
 	if report.Summary.TotalPosts > 0 {
 		avgViews := report.Summary.TotalViews / report.Summary.TotalPosts
 		insights = append(insights,
-			fmt.Sprintf("本周期共发布 %d 条内容，平均每条获得 %d 次浏览",
+			fmt.Sprintf("本周期共发布 %d 条内容，平均每条获得 %d 次浏�?,
 				report.Summary.TotalPosts, avgViews))
 	}
 	
-	// 互动率分析
+	// 互动率分�?
 	if report.Summary.AvgEngagement > 5.0 {
 		insights = append(insights,
-			"整体互动率表现优秀，内容质量较高")
+			"整体互动率表现优秀，内容质量较�?)
 	} else if report.Summary.AvgEngagement > 2.0 {
 		insights = append(insights,
-			"互动率处于中等水平，可尝试优化内容形式")
+			"互动率处于中等水平，可尝试优化内容形�?)
 	} else {
 		insights = append(insights,
-			"互动率偏低，建议加强内容质量和发布时机优化")
+			"互动率偏低，建议加强内容质量和发布时机优�?)
 	}
 	
 	// 平台对比
@@ -172,7 +172,7 @@ func (g *ReportGenerator) generateInsights(report *Report) []string {
 			}
 		}
 		insights = append(insights,
-			fmt.Sprintf("%s 平台表现最佳，建议加大该平台内容投入",
+			fmt.Sprintf("%s 平台表现最佳，建议加大该平台内容投�?,
 				bestPlatform.Platform))
 	}
 	
@@ -196,7 +196,7 @@ func (g *ReportGenerator) ExportMarkdown(report *Report) string {
 	md += fmt.Sprintf("**生成时间**: %s
 
 ", report.GeneratedAt.Format("2006-01-02 15:04:05"))
-	md += fmt.Sprintf("**报告周期**: %s 至 %s
+	md += fmt.Sprintf("**报告周期**: %s �?%s
 
 ",
 		report.Period.Start.Format("2006-01-02"),
@@ -213,7 +213,7 @@ func (g *ReportGenerator) ExportMarkdown(report *Report) string {
 ", report.Summary.TotalLikes)
 	md += fmt.Sprintf("- 总评论数: %d
 ", report.Summary.TotalComments)
-	md += fmt.Sprintf("- 平均互动率: %.2f%%
+	md += fmt.Sprintf("- 平均互动�? %.2f%%
 
 ", report.Summary.AvgEngagement)
 	
@@ -224,13 +224,13 @@ func (g *ReportGenerator) ExportMarkdown(report *Report) string {
 		md += fmt.Sprintf("### %s
 
 ", p.Platform)
-		md += fmt.Sprintf("- 发布数: %d
+		md += fmt.Sprintf("- 发布�? %d
 ", p.Posts)
-		md += fmt.Sprintf("- 浏览量: %d
+		md += fmt.Sprintf("- 浏览�? %d
 ", p.Views)
-		md += fmt.Sprintf("- 点赞数: %d
+		md += fmt.Sprintf("- 点赞�? %d
 ", p.Likes)
-		md += fmt.Sprintf("- 互动率: %.2f%%
+		md += fmt.Sprintf("- 互动�? %.2f%%
 
 ", p.Engagement)
 	}

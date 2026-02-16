@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/monkeycode/publisher-core/ai/provider"
+	"publisher-core/ai/provider"
 	"github.com/sirupsen/logrus"
 )
 

@@ -6,16 +6,16 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/monkeycode/publisher-core/analytics"
+	"publisher-core/analytics"
 	"github.com/sirupsen/logrus"
 )
 
-// ToutiaoCollector 今日头条数据采集器
+// ToutiaoCollector 今日头条数据采集�?
 type ToutiaoCollector struct {
 	enabled bool
 }
 
-// NewToutiaoCollector 创建头条采集器
+// NewToutiaoCollector 创建头条采集�?
 func NewToutiaoCollector() *ToutiaoCollector {
 	return &ToutiaoCollector{
 		enabled: true,
@@ -27,12 +27,12 @@ func (c *ToutiaoCollector) Platform() analytics.Platform {
 	return analytics.PlatformToutiao
 }
 
-// IsEnabled 检查是否启用
+// IsEnabled 检查是否启�?
 func (c *ToutiaoCollector) IsEnabled() bool {
 	return c.enabled
 }
 
-// SetEnabled 设置启用状态
+// SetEnabled 设置启用状�?
 func (c *ToutiaoCollector) SetEnabled(enabled bool) {
 	c.enabled = enabled
 }

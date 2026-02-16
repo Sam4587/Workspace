@@ -77,6 +77,13 @@ export default function Accounts() {
           await checkAllStatuses(platforms)
         }
       }
+    } catch (error) {
+      console.error("登录失败:", error)
+      alert("登录失败，请重试")
+    } finally {
+      setLoginning(null)
+    }
+  }
 
   async function handleLogout(platform: Platform) {
     if (!confirm("确定要登出该账号吗？")) {
@@ -98,16 +105,6 @@ export default function Accounts() {
     } catch (error) {
       console.error("登出失败:", error)
       alert("登出失败，请重试")
-    }
-  }
- else {
-        alert(response.error || "登录失败")
-      }
-    } catch (error) {
-      console.error("登录失败:", error)
-      alert("登录失败，请重试")
-    } finally {
-      setLoginning(null)
     }
   }
 

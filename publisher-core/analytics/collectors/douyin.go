@@ -6,16 +6,16 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/monkeycode/publisher-core/analytics"
+	"publisher-core/analytics"
 	"github.com/sirupsen/logrus"
 )
 
-// DouyinCollector 抖音数据采集器
+// DouyinCollector 抖音数据采集�?
 type DouyinCollector struct {
 	enabled bool
 }
 
-// NewDouyinCollector 创建抖音采集器
+// NewDouyinCollector 创建抖音采集�?
 func NewDouyinCollector() *DouyinCollector {
 	return &DouyinCollector{
 		enabled: true,
@@ -27,12 +27,12 @@ func (c *DouyinCollector) Platform() analytics.Platform {
 	return analytics.PlatformDouyin
 }
 
-// IsEnabled 检查是否启用
+// IsEnabled 检查是否启�?
 func (c *DouyinCollector) IsEnabled() bool {
 	return c.enabled
 }
 
-// SetEnabled 设置启用状态
+// SetEnabled 设置启用状�?
 func (c *DouyinCollector) SetEnabled(enabled bool) {
 	c.enabled = enabled
 }
@@ -46,7 +46,7 @@ func (c *DouyinCollector) CollectPostMetrics(ctx context.Context, postID string)
 	logrus.Infof("[Douyin] Collecting metrics for post: %s", postID)
 
 	// TODO: 实现真实的数据采集逻辑
-	// 需要使用浏览器自动化访问抖音创作者中心
+	// 需要使用浏览器自动化访问抖音创作者中�?
 	// 当前返回模拟数据用于测试
 	
 	rand.Seed(time.Now().UnixNano())
