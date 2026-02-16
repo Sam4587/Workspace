@@ -1,5 +1,25 @@
 # 🚀 快速启动指南
 
+## 方案0：桌面快捷方式启动（最简单推荐）
+
+### 创建桌面快捷方式
+```bash
+# 在项目根目录运行
+powershell -ExecutionPolicy Bypass -File create-desktop-shortcuts.ps1
+```
+
+运行后将在桌面创建三个快捷方式：
+- **Publisher Tools Start.lnk** - PowerShell版本启动器（推荐）
+- **Publisher Tools Start(BAT).lnk** - 批处理版本启动器
+- **Publisher Tools Stop.lnk** - 服务停止器
+
+### 使用方法
+1. 双击 **Publisher Tools Start** 快捷方式启动服务
+2. 服务启动后浏览器会自动打开前端界面
+3. 使用完毕后双击 **Publisher Tools Stop** 停止服务
+
+> **注意**: 启动后不要关闭命令行窗口，那是服务运行的载体
+
 ## ⚠️ 当前环境说明
 
 由于当前环境限制，前端开发服务器可能无法直接运行（Bus error）。
