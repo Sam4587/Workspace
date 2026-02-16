@@ -13,6 +13,8 @@ import (
 
 	"github.com/monkeycode/publisher-core/adapters"
 	"github.com/monkeycode/publisher-core/api"
+	"github.com/monkeycode/publisher-core/hotspot"
+	"github.com/monkeycode/publisher-core/hotspot/sources"
 	"github.com/monkeycode/publisher-core/storage"
 	"github.com/monkeycode/publisher-core/task"
 	"github.com/sirupsen/logrus"
@@ -23,6 +25,7 @@ var (
 	headless   bool
 	cookieDir  string
 	storageDir string
+	dataDir    string
 	baseURL    string
 	debug      bool
 )
@@ -32,6 +35,7 @@ func init() {
 	flag.BoolVar(&headless, "headless", true, "浏览器无头模式")
 	flag.StringVar(&cookieDir, "cookie-dir", "./cookies", "Cookie存储目录")
 	flag.StringVar(&storageDir, "storage-dir", "./uploads", "文件存储目录")
+	flag.StringVar(&dataDir, "data-dir", "./data", "数据存储目录")
 	flag.StringVar(&baseURL, "base-url", "", "文件访问基础URL")
 	flag.BoolVar(&debug, "debug", false, "调试模式")
 }
@@ -75,6 +79,25 @@ func main() {
 	server.WithStorage(storageService)
 	server.WithTaskManager(taskService)
 
+	// 创建热点服务
+	hotspotStorage, err := hotspot.NewJSONStorage(dataDir)
+	if err != nil {
+		logrus.Fatalf("创建热点存储失败: %v", err)
+	}
+	hotspotService := hotspot.NewService(hotspotStorage)
+
+	// 注册真实数据源
+	for _, src := range sources.CreateAllSources() {
+		hotspotService.RegisterSource(src)
+	}
+
+	// 注册模拟数据源 (用于测试)
+	hotspotService.RegisterSource(sources.NewMockSource("mock", "测试数据源"))
+
+	// 注册热点 API 路由
+	hotspotAPI := hotspot.NewAPIHandler(hotspotService)
+	hotspotAPI.RegisterRoutes(server.Router())
+
 	// 启动服务器
 	go func() {
 		addr := fmt.Sprintf(":%d", port)
@@ -86,6 +109,7 @@ func main() {
 	logrus.Info("发布服务已启动")
 	logrus.Infof("API地址: http://localhost:%d", port)
 	logrus.Infof("支持平台: %v", factory.SupportedPlatforms())
+	logrus.Info("热点服务已启用")
 
 	// 等待退出信号
 	quit := make(chan os.Signal, 1)
