@@ -22,6 +22,10 @@
 
 | 任务 | 说明 | 状态 |
 |------|------|------|
+| SEC-001: 移除硬编码密钥 | 全面扫描并移除代码中的硬编码凭证 | ⚠️ 部分完成 |
+| SEC-002: 完善JWT认证 | 增强JWT安全性，实现刷新令牌机制 | ⚠️ 部分完成 |
+| SEC-003: API速率限制 | 配置和优化请求频率限制 | ⚠️ 代码存在但需完善 |
+| SEC-004: 请求验证中间件 | 实现输入验证和防护机制 | ❌ 未开始 |
 | 清理 .env 中的硬编码密钥 | 已移除 QWEN_API_KEY、OPENROUTER_API_KEY | ✅ 已完成 |
 | 移除默认密码 | 已移除 ADMIN_PASSWORD 默认值 | ✅ 已完成 |
 | 创建 .env.example | 已创建配置模板 | ✅ 已完成 |
@@ -151,6 +155,7 @@
 - [开发工作流](dev/DEV_WORKFLOW.md)
 - [规格文档标准](dev/SPEC_STANDARDS.md)
 - [问题修复记录](dev/ISSUE_HOT_TOPICS_MOCK_DATA.md)
+- [未落地任务清单](UNIMPLEMENTED_TASKS.md) ← 新增：详细任务分解和优先级排序
 
 ---
 

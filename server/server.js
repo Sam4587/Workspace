@@ -6,10 +6,10 @@ const compression = require('compression');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Rate Limiter
 const limiter = rateLimit({
@@ -40,7 +40,7 @@ const { newsNowFetcher, NewsNowFetcher } = require('./fetchers/NewsNowFetcher');
 
 let cachedTopics = [];
 let lastFetchTime = null;
-const CACHE_DURATION = 10 * 60 * 1000; // 10 分钟缓存
+const CACHE_DURATION = 5 * 60 * 1000; // 5 分钟缓存（平衡实时性与安全性）
 
 /**
  * 格式化时间为相对时间
@@ -638,26 +638,8 @@ app.get('/api/content/publish/status', (req, res) => {
 
 // ========== 认证相关 API ==========
 
-app.post('/api/auth/login', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      token: 'mock_token_' + Date.now(),
-      user: { id: '1', username: 'admin' }
-    }
-  });
-});
-
-app.get('/api/auth/me', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      id: '1',
-      username: 'admin',
-      role: 'admin'
-    }
-  });
-});
+// 注册认证路由
+app.use('/api/auth', require('./routes/auth'));
 
 // ========== 数据分析相关 API ==========
 
@@ -768,6 +750,26 @@ app.listen(PORT, async () => {
   
   // 启动时获取热点数据
   await fetchAndCacheTopics(false);
+  
+  // 启动定时清理过期令牌任务（每小时执行一次）
+  const tokenService = require('./services/TokenService');
+  setInterval(() => {
+    tokenService.cleanupExpiredTokens();
+  }, 60 * 60 * 1000); // 每小时
+  
+  console.log('✅ JWT刷新令牌机制已启用');
+  
+  // 启动定时自动更新热点数据任务（每15分钟执行一次，降低频率确保安全）
+  setInterval(async () => {
+    try {
+      const topics = await fetchAndCacheTopics();
+      console.log(`[自动更新] 热点数据更新完成，获取 ${topics.length} 条数据`);
+    } catch (error) {
+      console.error('[自动更新] 热点数据更新失败:', error.message);
+    }
+  }, 15 * 60 * 1000); // 每15分钟（更安全的频率）
+  
+  console.log('✅ 自动热点数据更新机制已启用');
 });
 
 module.exports = app;

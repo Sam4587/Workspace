@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const hotTopicService = require('./services/hotTopicService');
 const app = require('./index');
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // 确保数据库连接成功后启动服务器
 mongoose.connection.once('open', async () => {

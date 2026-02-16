@@ -10,7 +10,7 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("AI-Content-Creator")
 
 # 后端 API 基础地址
-API_BASE_URL = "http://localhost:5000/api"
+API_BASE_URL = "http://localhost:5001/api"
 
 
 async def call_api(method: str, endpoint: str, data: dict = None):

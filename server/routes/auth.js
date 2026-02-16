@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const tokenService = require('../services/TokenService');
 
 const router = express.Router();
 
@@ -17,37 +18,48 @@ if (!JWT_SECRET) {
 
 // 用户登录
 router.post('/login', async (req, res) => {
+  console.log('[AUTH] 新的认证路由被调用!!!');
   try {
     const { username, password } = req.body;
     
-    // 从环境变量读取凭证
-    const validUsername = ADMIN_USERNAME || 'admin';
-    const validPassword = ADMIN_PASSWORD || 'admin123';
+    console.log('[DEBUG] 接收到登录请求:', { username, password });
+    console.log('[DEBUG] 环境变量 ADMIN_USERNAME:', process.env.ADMIN_USERNAME);
+    console.log('[DEBUG] 环境变量 ADMIN_PASSWORD:', process.env.ADMIN_PASSWORD ? '[已设置]' : '[未设置]');
+    
+    // 直接从环境变量读取凭证
+    const validUsername = process.env.ADMIN_USERNAME || 'admin';
+    const validPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    
+    console.log('[DEBUG] 有效凭证:', { validUsername, validPassword });
+    console.log('[DEBUG] 匹配结果:', { 
+      usernameMatch: username === validUsername,
+      passwordMatch: password === validPassword 
+    });
     
     // 检查凭证
     if (username === validUsername && password === validPassword) {
       // 如果使用默认密码，发出警告
-      if (!ADMIN_PASSWORD || ADMIN_PASSWORD === 'admin123') {
+      if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'admin123') {
         console.warn('⚠️ 警告: 正在使用默认密码，请在生产环境中配置 ADMIN_PASSWORD');
       }
       
-      if (!JWT_SECRET) {
+      if (!process.env.JWT_SECRET) {
         return res.status(500).json({
           success: false,
           message: '服务器配置错误: JWT_SECRET 未配置'
         });
       }
       
-      const token = jwt.sign(
+      // 使用TokenService生成令牌
+      const tokens = tokenService.generateTokens(
         { userId: 'admin', username: validUsername },
-        JWT_SECRET,
-        { expiresIn: '24h' }
+        'admin'
       );
       
       res.json({
         success: true,
         data: {
-          token,
+          ...tokens,
           user: {
             id: 'admin',
             username: validUsername,
@@ -70,6 +82,69 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// 刷新访问令牌
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refresh_token } = req.body;
+    
+    if (!refresh_token) {
+      return res.status(400).json({
+        success: false,
+        message: '刷新令牌是必需的'
+      });
+    }
+    
+    const newTokens = tokenService.refreshAccessToken(refresh_token);
+    
+    if (!newTokens) {
+      return res.status(401).json({
+        success: false,
+        message: '无效或过期的刷新令牌'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: newTokens
+    });
+  } catch (error) {
+    console.error('刷新令牌失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '刷新令牌失败'
+    });
+  }
+});
+
+// 用户登出
+router.post('/logout', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const { refresh_token } = req.body;
+    
+    // 撤销访问令牌
+    if (token) {
+      tokenService.revokeAccessToken(token);
+    }
+    
+    // 撤销刷新令牌
+    if (refresh_token) {
+      tokenService.revokeRefreshToken(refresh_token);
+    }
+    
+    res.json({
+      success: true,
+      message: '登出成功'
+    });
+  } catch (error) {
+    console.error('登出失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '登出失败'
+    });
+  }
+});
+
 // 获取用户信息
 router.get('/me', async (req, res) => {
   try {
@@ -82,14 +157,15 @@ router.get('/me', async (req, res) => {
       });
     }
     
-    if (!JWT_SECRET) {
-      return res.status(500).json({
+    // 使用TokenService验证令牌
+    const decoded = tokenService.verifyAccessToken(token);
+    
+    if (!decoded) {
+      return res.status(401).json({
         success: false,
-        message: '服务器配置错误: JWT_SECRET 未配置'
+        message: '无效或已撤销的令牌'
       });
     }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
     
     res.json({
       success: true,

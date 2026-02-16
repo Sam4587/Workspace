@@ -32,7 +32,7 @@ function printBanner() {
   console.log(`${colors.bright}${colors.cyan}║                    TrendRadar 开发服务器                    ║${colors.reset}`);
   console.log(`${colors.bright}${colors.cyan}╠═══════════════════════════════════════════════════════════╣${colors.reset}`);
   console.log(`${colors.bright}${colors.cyan}║  前端: http://localhost:5174                               ║${colors.reset}`);
-  console.log(`${colors.bright}${colors.cyan}║  后端: http://localhost:5000                               ║${colors.reset}`);
+  console.log(`${colors.bright}${colors.cyan}║  后端: http://localhost:5001                               ║${colors.reset}`);
   console.log(`${colors.bright}${colors.cyan}╚═══════════════════════════════════════════════════════════╝${colors.reset}`);
   console.log('\n');
 }
@@ -60,10 +60,10 @@ process.on('SIGTERM', cleanup);
 
 // 启动后端服务
 function startBackend() {
-  log('BACKEND', '启动后端服务 (端口 5000)...', colors.blue);
+  log('BACKEND', '启动后端服务 (端口 5001)...', colors.blue);
   
   const serverPath = path.join(rootDir, 'server');
-  const backend = spawn('node', ['simple-server.js'], {
+  const backend = spawn('node', ['server.js'], {
     cwd: serverPath,
     shell: isWindows,
     stdio: 'pipe',
@@ -153,11 +153,11 @@ async function main() {
   printBanner();
 
   // 检查端口
-  const backendPortFree = await checkPort(5000);
+  const backendPortFree = await checkPort(5001);
   const frontendPortFree = await checkPort(5174);
 
   if (!backendPortFree) {
-    log('WARN', '端口 5000 已被占用，后端服务可能启动失败', colors.yellow);
+    log('WARN', '端口 5001 已被占用，后端服务可能启动失败', colors.yellow);
   }
 
   if (!frontendPortFree) {
@@ -174,8 +174,8 @@ async function main() {
 
   log('INFO', '所有服务已启动！按 Ctrl+C 停止', colors.green);
   log('INFO', '前端地址: http://localhost:5174', colors.cyan);
-  log('INFO', '后端地址: http://localhost:5000', colors.cyan);
-  log('INFO', 'API 文档: http://localhost:5000/api/docs', colors.cyan);
+  log('INFO', '后端地址: http://localhost:5001', colors.cyan);
+  log('INFO', 'API 文档: http://localhost:5001/api/docs', colors.cyan);
 }
 
 main().catch((err) => {

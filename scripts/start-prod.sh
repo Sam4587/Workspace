@@ -17,8 +17,8 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 # 检查端口占用
-if lsof -Pi :5000 -sTCP:LISTEN -t >/dev/null ; then
-    echo "警告: 端口5000已被占用"
+if lsof -Pi :5001 -sTCP:LISTEN -t >/dev/null ; then
+    echo "警告: 端口5001已被占用"
     read -p "是否继续? (y/N) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -49,7 +49,7 @@ docker-compose -f docker-compose.prod.yml logs --tail=50
 
 echo "=== 系统启动完成 ==="
 echo "前端地址: http://localhost:3000"
-echo "后端API: http://localhost:5000"
+echo "后端API: http://localhost:5001"
 echo "MongoDB: mongodb://localhost:27017"
 echo "Redis: redis://localhost:6379"
 

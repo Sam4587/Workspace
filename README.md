@@ -31,7 +31,7 @@ npm run dev
 | 服务 | 地址 |
 |------|------|
 | 前端 | http://localhost:5174 |
-| 后端 API | http://localhost:5000/api |
+| 后端 API | http://localhost:5001/api |
 
 ## 功能模块
 

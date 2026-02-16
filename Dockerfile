@@ -18,11 +18,11 @@ COPY server ./server
 RUN mkdir -p /app/logs
 
 # 暴露端口
-EXPOSE 5000
+EXPOSE 5001
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/api/health || exit 1
+  CMD curl -f http://localhost:5001/api/health || exit 1
 
 # 启动应用
 CMD ["npm", "run", "start:prod"]

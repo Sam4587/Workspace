@@ -173,6 +173,8 @@ docker-compose -f docker-compose.prod.yml up -d
 - [项目分离说明](../PROJECT_SEPARATION.md)
 - [视频转录设计](./plans/2026-02-15-video-transcription-design.md)
 - [MCP 集成](./mcp/)
+- [开发计划](./DEVELOPMENT_PLAN.md)
+- [未落地任务清单](./UNIMPLEMENTED_TASKS.md) ← 详细功能任务分解
 
 ## 许可证
 

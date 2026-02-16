@@ -16,7 +16,7 @@ export default defineConfig({
     // API 代理配置
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         secure: false,
         // 保留请求头
