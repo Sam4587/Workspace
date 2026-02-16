@@ -24,7 +24,7 @@ if not exist "test-api-server.js" (
 )
 
 echo [1/3] 启动测试API服务器...
-start "Publisher API Server" cmd /c "node test-api-server.js & pause"
+start "Publisher API Server" cmd /k "node test-api-server.js"
 
 timeout /t 3 /nobreak >nul
 
@@ -34,7 +34,9 @@ if not exist "node_modules" (
     echo 首次运行，正在安装依赖...
     npm install
 )
-start "Publisher Frontend" cmd /c "npm run dev & pause"
+start "Publisher Frontend" cmd /k "npm run dev"
+
+cd ..
 
 timeout /t 5 /nobreak >nul
 

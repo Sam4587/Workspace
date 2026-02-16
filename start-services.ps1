@@ -53,7 +53,7 @@ function Start-Services {
     Write-Step "启动测试API服务器..." 1
     
     # 启动API服务器
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "title Publisher API Server & node test-api-server.js & pause" -WindowStyle Normal
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "title Publisher API Server & node test-api-server.js" -WindowStyle Normal
     
     Start-Sleep -Seconds 3
     
@@ -67,6 +67,11 @@ function Start-Services {
         Write-Host "首次运行，正在安装依赖..." -ForegroundColor Yellow
         npm install
     }
+    
+    # 启动前端服务
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "title Publisher Frontend & npm run dev" -WindowStyle Normal
+    
+    Set-Location ".."
     
     # 启动前端服务
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "title Publisher Frontend & npm run dev & pause" -WindowStyle Normal
