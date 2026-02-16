@@ -10,11 +10,13 @@
     "dev:server": "node server/server.js",
     "dev:all": "node scripts/dev-server.js",
     "dev:legacy": "node scripts/auto-dev-server.js",
+    "dev:auto": "node scripts/auto-dev-server/src/cli.js start",
     "setup": "npm install && cd server && npm install",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "test:api": "node scripts/api-test.js",
     "clean": "rm -rf node_modules/.vite node_modules/.cache server/node_modules/.cache",
     "stop": "pkill -f vite || true; pkill -f 'node.*simple-server' || true"
   },
