@@ -102,7 +102,7 @@ if (MONGODB_URI) {
     // 初始化 FetcherManager 默认数据源
     try {
       fetcherManager.initializeDefaultSources();
-      console.log('FetcherManager 初始化成功，已注册数据源:', Array.from(fetcherManager.listSources()));
+      console.log('FetcherManager 初始化成功，已注册数据源:', Array.from(fetcherManager.getRegisteredSources()));
     } catch (error) {
       console.warn('FetcherManager 初始化失败:', error.message);
     }

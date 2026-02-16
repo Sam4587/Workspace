@@ -1,8 +1,11 @@
 const multiAIService = require('./multiAIService');
+const contentService = require('./ContentService');
+const { logger } = require('../utils/logger');
 
 class AIService {
   constructor() {
     this.defaultModel = process.env.DEFAULT_AI_MODEL || 'openai';
+    this.contentService = contentService;
   }
 
   async generateContent(formData, type, options = {}) {
@@ -30,7 +33,7 @@ class AIService {
         usage: aiResponse.usage
       };
     } catch (error) {
-      console.error('AI生成失败:', error);
+      logger.error('AI生成失败:', { error: error.message, formData, type });
       throw new Error('内容生成失败，请稍后重试');
     }
   }
@@ -208,6 +211,281 @@ class AIService {
     }
     
     return suggestions;
+  }
+
+  /**
+   * 生成内容并保存到内容管理服务
+   * @param {Object} formData - 表单数据
+   * @param {string} type - 内容类型
+   * @param {Object} options - 选项
+   * @returns {Promise<Object>}
+   */
+  async generateAndSaveContent(formData, type, options = {}) {
+    try {
+      // 生成内容
+      const generatedContent = await this.generateContent(formData, type, options);
+
+      // 准备内容数据
+      const contentData = {
+        title: generatedContent.title,
+        content: generatedContent.content,
+        summary: generatedContent.title,
+        excerpt: generatedContent.content.substring(0, 200),
+        sourceType: options.sourceType || 'manual',
+        sourceId: options.sourceId || null,
+        sourceUrl: options.sourceUrl || '',
+        platforms: options.platforms || [],
+        generatedBy: 'ai',
+        aiModel: generatedContent.aiModel,
+        aiPrompt: this.buildPrompt(formData, type),
+        generationParams: {
+          temperature: 0.7,
+          maxTokens: this.getMaxTokens(type)
+        },
+        category: options.category || 'default',
+        tags: options.tags || [],
+        metadata: {
+          wordCount: generatedContent.wordCount,
+          readingTime: generatedContent.readingTime,
+          language: 'zh-CN',
+          qualityScore: {
+            score: generatedContent.quality,
+            maxScore: 100,
+            breakdown: {}
+          }
+        },
+        status: options.autoApprove ? 'approved' : 'review'
+      };
+
+      // 保存到内容管理服务
+      const result = await this.contentService.create(contentData, options.userId || 'system');
+
+      if (!result.success) {
+        throw new Error(`内容保存失败: ${result.error}`);
+      }
+
+      return {
+        ...generatedContent,
+        saved: true,
+        contentId: result.content._id,
+        content: result.content
+      };
+
+    } catch (error) {
+      logger.error('生成并保存内容失败:', { error: error.message, formData, type });
+      throw new Error(`生成并保存内容失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 批量生成内容
+   * @param {Array} formDataList - 表单数据列表
+   * @param {string} type - 内容类型
+   * @param {Object} options - 选项
+   * @returns {Promise<Object>}
+   */
+  async batchGenerateContent(formDataList, type, options = {}) {
+    try {
+      const results = [];
+      const promises = formDataList.map(formData => 
+        this.generateAndSaveContent(formData, type, options)
+      );
+
+      const settledResults = await Promise.allSettled(promises);
+
+      settledResults.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          results.push({
+            index,
+            success: true,
+            data: result.value
+          });
+        } else {
+          results.push({
+            index,
+            success: false,
+            error: result.reason.message
+          });
+        }
+      });
+
+      const successCount = results.filter(r => r.success).length;
+      const totalCount = results.length;
+
+      return {
+        success: true,
+        results,
+        summary: {
+          totalCount,
+          successCount,
+          failedCount: totalCount - successCount
+        }
+      };
+
+    } catch (error) {
+      logger.error('批量生成内容失败:', { error: error.message, count: formDataList.length });
+      throw new Error(`批量生成内容失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 分析视频转录内容
+   * @param {string} transcript - 视频转录文本
+   * @returns {Promise<Object>}
+   */
+  async analyzeVideoContent(transcript) {
+    try {
+      const prompt = `请分析以下视频转录内容，并提取关键信息：
+      
+转录内容：
+${transcript}
+
+请返回以下信息：
+- 总结：简洁概括视频主要内容
+- 关键点：列出3-5个核心观点
+- 适合平台：推荐适合发布到哪些平台（小红书、抖音、今日头条等）
+- 目标受众：描述适合的观众群体
+- 关键词：提取5-10个关键词
+- 情感倾向：正面、负面或中性
+- 内容类型：教育、娱乐、新闻、科普等
+
+请以JSON格式返回结果。`;
+
+      const aiResponse = await multiAIService.generateContent(prompt, {
+        model: this.defaultModel,
+        maxTokens: 1000,
+        temperature: 0.5
+      });
+
+      // 尝试解析JSON响应
+      let analysis;
+      try {
+        const jsonMatch = aiResponse.content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysis = JSON.parse(jsonMatch[0]);
+        } else {
+          // 如果AI没有返回有效JSON，手动解析
+          analysis = this.parseAnalysisResponse(aiResponse.content);
+        }
+      } catch {
+        analysis = this.parseAnalysisResponse(aiResponse.content);
+      }
+
+      return analysis;
+    } catch (error) {
+      logger.error('视频内容分析失败:', { error: error.message });
+      throw new Error('视频内容分析失败');
+    }
+  }
+
+  /**
+   * 生成视频内容
+   * @param {Object} analysis - 视频分析结果
+   * @returns {Promise<Object>}
+   */
+  async generateVideoContent(analysis) {
+    try {
+      const prompt = `基于以下视频分析结果，生成适合多平台发布的文本内容：
+
+视频分析：
+- 总结：${analysis.summary || ''}
+- 关键点：${Array.isArray(analysis.keyPoints) ? analysis.keyPoints.join(', ') : ''}
+- 适合平台：${Array.isArray(analysis.suitablePlatforms) ? analysis.suitablePlatforms.join(', ') : ''}
+- 目标受众：${analysis.targetAudience || ''}
+- 关键词：${Array.isArray(analysis.keywords) ? analysis.keywords.join(', ') : ''}
+- 情感倾向：${analysis.sentiment || ''}
+- 内容类型：${analysis.contentType || ''}
+
+请生成适合发布的内容，包括：
+1. 适合不同平台的标题变体
+2. 核心内容文本
+3. 推荐的标签/话题
+4. 发布建议
+
+请以JSON格式返回，包含：
+- title: 主标题
+- content: 核心内容
+- platformVariants: 不同平台的内容变体数组
+- tags: 推荐标签数组
+- publishingTips: 发布建议
+
+格式：
+{
+  "title": "主标题",
+  "content": "核心内容文本",
+  "platformVariants": [
+    {
+      "platform": "平台名称",
+      "title": "平台特定标题", 
+      "content": "平台特定内容",
+      "tags": ["标签1", "标签2"]
+    }
+  ],
+  "tags": ["通用标签"],
+  "publishingTips": "发布建议文本"
+}`;
+
+      const aiResponse = await multiAIService.generateContent(prompt, {
+        model: this.defaultModel,
+        maxTokens: 2000,
+        temperature: 0.7
+      });
+
+      // 解析JSON响应
+      let content;
+      try {
+        const jsonMatch = aiResponse.content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          content = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('AI未返回有效的JSON格式');
+        }
+      } catch {
+        throw new Error('AI返回格式不正确，无法解析');
+      }
+
+      return content;
+
+    } catch (error) {
+      logger.error('视频内容生成失败:', { error: error.message });
+      throw new Error('视频内容生成失败');
+    }
+  }
+
+  /**
+   * 解析分析响应
+   * @param {string} response - AI响应
+   * @returns {Object}
+   */
+  parseAnalysisResponse(response) {
+    const analysis = {};
+    
+    // 简单解析响应内容
+    const lines = response.split('\n');
+    let currentSection = '';
+    
+    for (const line of lines) {
+      if (line.includes('总结：') || line.includes('总结:')) {
+        analysis.summary = line.replace(/^[^：:]*[：:]/, '').trim();
+      } else if (line.includes('关键点：') || line.includes('关键点:')) {
+        const points = line.replace(/^[^：:]*[：:]/, '').trim();
+        analysis.keyPoints = points.split(/[，,、]/).map(p => p.trim()).filter(p => p);
+      } else if (line.includes('适合平台：') || line.includes('适合平台:')) {
+        const platforms = line.replace(/^[^：:]*[：:]/, '').trim();
+        analysis.suitablePlatforms = platforms.split(/[，,、]/).map(p => p.trim()).filter(p => p);
+      } else if (line.includes('目标受众：') || line.includes('目标受众:')) {
+        analysis.targetAudience = line.replace(/^[^：:]*[：:]/, '').trim();
+      } else if (line.includes('关键词：') || line.includes('关键词:')) {
+        const keywords = line.replace(/^[^：:]*[：:]/, '').trim();
+        analysis.keywords = keywords.split(/[，,、]/).map(k => k.trim()).filter(k => k);
+      } else if (line.includes('情感倾向：') || line.includes('情感倾向:')) {
+        analysis.sentiment = line.replace(/^[^：:]*[：:]/, '').trim();
+      } else if (line.includes('内容类型：') || line.includes('内容类型:')) {
+        analysis.contentType = line.replace(/^[^：:]*[：:]/, '').trim();
+      }
+    }
+
+    return analysis;
   }
 }
 

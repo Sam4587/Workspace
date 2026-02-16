@@ -795,6 +795,280 @@ class ApiClient {
       };
     }
   }
+
+  // 工作流相关API
+  async getWorkflows() {
+    try {
+      const response = await this.client.get('/contents/workflows');
+      return {
+        success: true,
+        data: response.data?.data || []
+      };
+    } catch (error) {
+      console.error('获取工作流列表失败:', error);
+      return {
+        success: false,
+        message: '获取工作流列表失败'
+      };
+    }
+  }
+
+  async executeWorkflow(workflowId, context) {
+    try {
+      const response = await this.client.post('/contents/workflows/execute', { 
+        workflowId, 
+        context 
+      });
+      return response;
+    } catch (error) {
+      console.error('执行工作流失败:', error);
+      return {
+        success: false,
+        message: '执行工作流失败'
+      };
+    }
+  }
+
+  async getWorkflowStats() {
+    try {
+      const response = await this.client.get('/contents/workflows/stats');
+      return {
+        success: true,
+        data: response.data?.data || {}
+      };
+    } catch (error) {
+      console.error('获取工作流统计失败:', error);
+      return {
+        success: false,
+        message: '获取工作流统计失败'
+      };
+    }
+  }
+
+  // 内容管理相关API
+  async createContent(contentData) {
+    try {
+      const response = await this.client.post('/contents', contentData);
+      return response;
+    } catch (error) {
+      console.error('创建内容失败:', error);
+      return {
+        success: false,
+        message: '创建内容失败'
+      };
+    }
+  }
+
+  async getContentList(params = {}) {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const response = await this.client.get(`/contents?${query}`);
+      return response;
+    } catch (error) {
+      console.error('获取内容列表失败:', error);
+      return {
+        success: false,
+        message: '获取内容列表失败'
+      };
+    }
+  }
+
+  async getContentById(id) {
+    try {
+      const response = await this.client.get(`/contents/${id}`);
+      return response;
+    } catch (error) {
+      console.error('获取内容详情失败:', error);
+      return {
+        success: false,
+        message: '获取内容详情失败'
+      };
+    }
+  }
+
+  async updateContentStatus(id, status, reason = '') {
+    try {
+      const response = await this.client.post(`/contents/${id}/status`, { status, reason });
+      return response;
+    } catch (error) {
+      console.error('更新内容状态失败:', error);
+      return {
+        success: false,
+        message: '更新内容状态失败'
+      };
+    }
+  }
+
+  async publishContent(id, platform, options = {}) {
+    try {
+      const response = await this.client.post(`/contents/${id}/publish`, { platform, options });
+      return response;
+    } catch (error) {
+      console.error('发布内容失败:', error);
+      return {
+        success: false,
+        message: '发布内容失败'
+      };
+    }
+  }
+
+  async batchPublishContent(id, platforms, options = {}) {
+    try {
+      const response = await this.client.post(`/contents/${id}/publish/batch`, { platforms, options });
+      return response;
+    } catch (error) {
+      console.error('批量发布内容失败:', error);
+      return {
+        success: false,
+        message: '批量发布内容失败'
+      };
+    }
+  }
+
+  async getPublishStatus(id, platform) {
+    try {
+      const response = await this.client.get(`/contents/${id}/publish/${platform}/status`);
+      return response;
+    } catch (error) {
+      console.error('获取发布状态失败:', error);
+      return {
+        success: false,
+        message: '获取发布状态失败'
+      };
+    }
+  }
+
+  async getPerformanceReport(id) {
+    try {
+      const response = await this.client.get(`/contents/${id}/performance`);
+      return response;
+    } catch (error) {
+      console.error('获取性能报告失败:', error);
+      return {
+        success: false,
+        message: '获取性能报告失败'
+      };
+    }
+  }
+
+  async trackPerformance(id) {
+    try {
+      const response = await this.client.post(`/contents/${id}/performance/track`);
+      return response;
+    } catch (error) {
+      console.error('追踪性能失败:', error);
+      return {
+        success: false,
+        message: '追踪性能失败'
+      };
+    }
+  }
+
+  async generateAIContent(formData, type, options = {}) {
+    try {
+      const response = await this.client.post('/contents/generate', { formData, type, options });
+      return response;
+    } catch (error) {
+      console.error('AI生成内容失败:', error);
+      return {
+        success: false,
+        message: 'AI生成内容失败'
+      };
+    }
+  }
+
+  async batchGenerateAIContent(formDataList, type, options = {}) {
+    try {
+      const response = await this.client.post('/contents/generate/batch', { formDataList, type, options });
+      return response;
+    } catch (error) {
+      console.error('批量AI生成内容失败:', error);
+      return {
+        success: false,
+        message: '批量AI生成内容失败'
+      };
+    }
+  }
+
+  async analyzeVideoTranscript(transcript) {
+    try {
+      const response = await this.client.post('/contents/analyze-video', { transcript });
+      return response;
+    } catch (error) {
+      console.error('分析视频转录失败:', error);
+      return {
+        success: false,
+        message: '分析视频转录失败'
+      };
+    }
+  }
+
+  async generateVideoContent(analysis) {
+    try {
+      const response = await this.client.post('/contents/generate-video', { analysis });
+      return response;
+    } catch (error) {
+      console.error('生成视频内容失败:', error);
+      return {
+        success: false,
+        message: '生成视频内容失败'
+      };
+    }
+  }
+
+  async reviewContent(id, isApproved, comments = '') {
+    try {
+      const response = await this.client.post(`/contents/${id}/review`, { isApproved, comments });
+      return response;
+    } catch (error) {
+      console.error('审核内容失败:', error);
+      return {
+        success: false,
+        message: '审核内容失败'
+      };
+    }
+  }
+
+  async getContentStats(filters = {}) {
+    try {
+      const query = new URLSearchParams(filters).toString();
+      const response = await this.client.get(`/contents/stats?${query}`);
+      return response;
+    } catch (error) {
+      console.error('获取内容统计失败:', error);
+      return {
+        success: false,
+        message: '获取内容统计失败'
+      };
+    }
+  }
+
+  async getPerformanceRanking(metric = 'views', limit = 10) {
+    try {
+      const response = await this.client.get(`/contents/performance/ranking?metric=${metric}&limit=${limit}`);
+      return response;
+    } catch (error) {
+      console.error('获取性能排行榜失败:', error);
+      return {
+        success: false,
+        message: '获取性能排行榜失败'
+      };
+    }
+  }
+
+  async getPerformanceTrends(options = {}) {
+    try {
+      const query = new URLSearchParams(options).toString();
+      const response = await this.client.get(`/contents/performance/trends?${query}`);
+      return response;
+    } catch (error) {
+      console.error('获取性能趋势失败:', error);
+      return {
+        success: false,
+        message: '获取性能趋势失败'
+      };
+    }
+  }
 }
 
 export default new ApiClient();

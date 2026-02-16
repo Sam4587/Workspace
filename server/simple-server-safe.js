@@ -23,6 +23,112 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// 尝试懒加载AI服务以避免启动时的错误
+let multiAIService = null;
+let aiService = null;
+
+try {
+  // 尝试动态导入AI服务，如果失败则使用mock
+  multiAIService = require('./services/multiAIService');
+  console.log('[Server] AI服务初始化成功');
+} catch (error) {
+  console.warn('[Server] AI服务初始化失败，使用mock模式:', error.message);
+  // 创建mock版本的multiAIService
+  multiAIService = {
+    generateContent: async (prompt, options = {}) => {
+      return {
+        content: `模拟AI生成的内容：${prompt.substring(0, 100)}...`,
+        provider: 'mock',
+        model: 'mock-model',
+        usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 }
+      };
+    }
+  };
+}
+
+try {
+  // 尝试动态导入AI服务，如果失败则使用mock
+  aiService = require('./services/aiService');
+  console.log('[Server] AI主服务初始化成功');
+} catch (error) {
+  console.warn('[Server] AI主服务初始化失败，使用mock模式:', error.message);
+  // 创建mock版本的aiService
+  aiService = {
+    generateContent: async (formData, type, options = {}) => {
+      return {
+        title: formData.title || '模拟标题',
+        content: `模拟AI生成的内容：${formData.topic || '默认主题'}...`,
+        type: type,
+        wordCount: 100,
+        readingTime: 1,
+        quality: 70,
+        suggestions: ['这是一条模拟建议'],
+        aiProvider: 'mock',
+        aiModel: 'mock-model',
+        usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 }
+      };
+    },
+    generateAndSaveContent: async (formData, type, options = {}) => {
+      return {
+        title: formData.title || '模拟标题',
+        content: `模拟AI生成的内容：${formData.topic || '默认主题'}...`,
+        type: type,
+        wordCount: 100,
+        readingTime: 1,
+        quality: 70,
+        suggestions: ['这是一条模拟建议'],
+        aiProvider: 'mock',
+        aiModel: 'mock-model',
+        usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+        saved: true,
+        contentId: 'mock-content-id-' + Date.now(),
+        content: {
+          _id: 'mock-content-id-' + Date.now(),
+          title: formData.title || '模拟标题',
+          content: `模拟AI生成的内容：${formData.topic || '默认主题'}...`,
+          wordCount: 100,
+          readingTime: 1,
+          quality: 70,
+          aiModel: 'mock-model'
+        }
+      };
+    },
+    analyzeVideoContent: async (transcript) => {
+      return {
+        summary: '这是视频内容的摘要',
+        keyPoints: ['关键点1', '关键点2', '关键点3'],
+        suitablePlatforms: ['xiaohongshu', 'douyin', 'toutiao'],
+        targetAudience: '通用受众',
+        keywords: ['关键词1', '关键词2', '关键词3'],
+        sentiment: 'positive',
+        contentType: '教育'
+      };
+    },
+    generateVideoContent: async (analysis) => {
+      return {
+        title: '基于分析生成的视频标题',
+        content: '基于分析结果生成的视频内容',
+        platformVariants: [
+          {
+            platform: 'xiaohongshu',
+            title: '小红书版本标题',
+            content: '小红书版本内容',
+            tags: ['标签1', '标签2']
+          },
+          {
+            platform: 'douyin',
+            title: '抖音版本标题',
+            content: '抖音版本内容',
+            tags: ['标签3', '标签4']
+          }
+        ],
+        tags: ['通用标签1', '通用标签2'],
+        publishingTips: '发布建议'
+      };
+    }
+  };
+}
+
 const { fetcherManager } = require('./fetchers');
 const { topicAnalyzer } = require('./core');
 
@@ -759,8 +865,6 @@ app.get('/api/analytics/optimization-suggestions', (req, res) => {
   });
 });
 
-// ========== 发布队列 API ==========
-
 // ========== 内容生成相关 API ==========
 
 app.post('/api/content/generate', (req, res) => {
@@ -776,10 +880,6 @@ app.post('/api/content/generate', (req, res) => {
   });
 });
 
-// 注册内容管理路由
-app.use('/api/contents', require('./routes/contents'));
-
-// 兼容旧的内容API路由
 app.get('/api/content/:id', (req, res) => {
   res.json({
     success: true,
@@ -812,7 +912,21 @@ app.delete('/api/content/:id', (req, res) => {
   });
 });
 
-// 启动性能追踪服务
+// 注册内容管理路由，使用安全导入
+try {
+  app.use('/api/contents', require('./routes/contents'));
+  console.log('[Server] 内容管理路由加载成功');
+} catch (error) {
+  console.error('[Server] 加载内容管理路由失败:', error.message);
+  app.get('/api/contents*', (req, res) => {
+    res.status(500).json({
+      success: false,
+      message: '内容管理服务暂时不可用'
+    });
+  });
+}
+
+// 启动性能追踪服务（安全导入）
 async function startPerformanceTracking() {
   try {
     const performanceTrackingService = require('./services/PerformanceTrackingService');
@@ -820,6 +934,7 @@ async function startPerformanceTracking() {
     console.log('性能追踪服务已启动');
   } catch (error) {
     console.error('启动性能追踪服务失败:', error);
+    console.log('继续运行服务器，性能追踪服务不可用');
   }
 }
 

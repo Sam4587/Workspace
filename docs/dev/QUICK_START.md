@@ -15,8 +15,10 @@
 |------|------|
 | 前端 | React 18 + Vite + Tailwind CSS + shadcn/ui |
 | 后端 | Node.js + Express |
-| 数据库 | MongoDB (生产) / 内存存储 (开发) |
+| 数据存储 | 内存存储 + JSON 文件（轻量级方案） |
 | AI | OpenAI / Groq / Cerebras / 阿里云 ASR |
+
+> **重要**：本项目已明确放弃 MongoDB，采用轻量级存储方案。无需安装任何数据库。
 
 ---
 
@@ -163,10 +165,9 @@ GROQ_API_KEY=gsk_xxx
 ALIYUN_ASR_APP_KEY=xxx
 ALIYUN_ASR_ACCESS_KEY=xxx
 ALIYUN_ASR_SECRET_KEY=xxx
-
-# MongoDB（生产环境）
-MONGODB_URI=mongodb://localhost:27017/trendradar
 ```
+
+> **注意**：本项目不使用 MongoDB，无需配置数据库连接。数据存储在 `server/storage/` 目录下的 JSON 文件中。
 
 ---
 
@@ -176,8 +177,8 @@ MONGODB_URI=mongodb://localhost:27017/trendradar
 |------|------|
 | `src/lib/api.js` | API 客户端，所有后端请求 |
 | `src/nav-items.jsx` | 导航配置 |
-| `server/simple-server.js` | 开发服务器入口 |
-| `server/index.js` | 生产服务器入口 |
+| `server/simple-server.js` | 服务器入口（开发/生产统一） |
+| `server/storage/` | 数据存储目录（JSON 文件） |
 | `vite.config.js` | Vite 配置 |
 
 ---

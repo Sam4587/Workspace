@@ -1,8 +1,16 @@
-# TrendRadar 项目总结
+# AI内容创作系统
 
 ## 项目概述
 
-TrendRadar 是一个热点内容监控与AI内容生成系统，帮助内容创作者追踪热点、生成高质量内容、分析数据趋势。
+**AI内容创作系统**（原名 TrendRadar）是一个全链路AI创作平台，实现从热点发现到内容生成、平台发布、数据分析的全流程闭环。
+
+### 核心定位
+
+```
+热点发现 → 内容生成 → 平台发布 → 数据分析
+    ↓           ↓           ↓           ↓
+ 多平台监控   AI批量生成   一键发布    效果追踪
+```
 
 > **更新说明**：多平台发布功能已于 2025-02-16 独立为单独项目 Publisher Tools。
 > 详见 [PROJECT_SEPARATION.md](../PROJECT_SEPARATION.md)
@@ -76,7 +84,7 @@ React 18 + Vite + Tailwind CSS + shadcn/ui
 
 ### 后端
 ```
-Node.js + Express + MongoDB
+Node.js + Express + 轻量级存储
 ├── 路由层
 │   ├── hotTopicsMemory.js  # 热点数据（内存模式）
 │   ├── contentRewrite.js   # 内容改写
@@ -89,9 +97,12 @@ Node.js + Express + MongoDB
 │   ├── ContentRewriteService.js  # 改写服务
 │   └── multiAIService.js   # 多模型集成
 └── 数据层
-    ├── models/             # MongoDB 模型
-    └── 内存存储（开发模式）
+    ├── 内存存储            # 热点数据缓存
+    └── JSON 文件存储       # 持久化数据
 ```
+
+> **重要说明**：本项目已明确放弃 MongoDB，采用轻量级存储方案（内存 + JSON 文件）。
+> 原因：资源限制、成本考虑、简化部署。详见 [ARCHITECTURE.md](./dev/ARCHITECTURE.md#数据存储方案)
 
 ## 项目分离说明
 

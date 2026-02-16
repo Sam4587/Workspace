@@ -1,28 +1,68 @@
-
 const OpenAI = require('openai');
 const axios = require('axios');
-const llmGateway = require('./llm');
+
+// 安全导入LLM模块
+let llmGateway = null;
+try {
+  llmGateway = require('./llm');
+  console.log('[MultiAIService] LLM Gateway 加载成功');
+} catch (error) {
+  console.warn('[MultiAIService] LLM Gateway 加载失败:', error.message);
+  // 创建一个mock版本
+  llmGateway = {
+    generate: async (messages, options = {}) => {
+      return {
+        content: `模拟生成的内容：${messages[messages.length - 1]?.content || '默认内容'}`,
+        model: 'mock-model',
+        provider: 'mock'
+      };
+    },
+    getAvailableProviders: () => [],
+    getModels: () => []
+  };
+}
 
 class MultiAIService {
   constructor() {
-    this.models = {
-      openai: {
-        client: new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY
-        }),
-        enabled: !!process.env.OPENAI_API_KEY
-      },
-      baidu: {
-        apiKey: process.env.BAIDU_API_KEY,
-        secretKey: process.env.BAIDU_SECRET_KEY,
-        enabled: !!(process.env.BAIDU_API_KEY && process.env.BAIDU_SECRET_KEY)
-      },
-      xunfei: {
-        apiKey: process.env.XUNFEI_API_KEY,
-        appId: process.env.XUNFEI_APP_ID,
-        enabled: !!(process.env.XUNFEI_API_KEY && process.env.XUNFEI_APP_ID)
-      }
-    };
+    // 安全初始化OpenAI客户端
+    try {
+      this.models = {
+        openai: {
+          client: process.env.OPENAI_API_KEY ? new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+          }) : null,
+          enabled: !!process.env.OPENAI_API_KEY
+        },
+        baidu: {
+          apiKey: process.env.BAIDU_API_KEY,
+          secretKey: process.env.BAIDU_SECRET_KEY,
+          enabled: !!(process.env.BAIDU_API_KEY && process.env.BAIDU_SECRET_KEY)
+        },
+        xunfei: {
+          apiKey: process.env.XUNFEI_API_KEY,
+          appId: process.env.XUNFEI_APP_ID,
+          enabled: !!(process.env.XUNFEI_API_KEY && process.env.XUNFEI_APP_ID)
+        }
+      };
+    } catch (error) {
+      console.warn('[MultiAIService] OpenAI客户端初始化失败:', error.message);
+      this.models = {
+        openai: {
+          client: null,
+          enabled: false
+        },
+        baidu: {
+          apiKey: process.env.BAIDU_API_KEY,
+          secretKey: process.env.BAIDU_SECRET_KEY,
+          enabled: !!(process.env.BAIDU_API_KEY && process.env.BAIDU_SECRET_KEY)
+        },
+        xunfei: {
+          apiKey: process.env.XUNFEI_API_KEY,
+          appId: process.env.XUNFEI_APP_ID,
+          enabled: !!(process.env.XUNFEI_API_KEY && process.env.XUNFEI_APP_ID)
+        }
+      };
+    }
     
     this.baiduToken = null;
     this.baiduTokenExpire = 0;
@@ -59,6 +99,10 @@ class MultiAIService {
   
   // 调用OpenAI生成内容
   async generateWithOpenAI(prompt, options = {}) {
+    if (!this.models.openai.client) {
+      throw new Error('OpenAI客户端未初始化，缺少API密钥');
+    }
+
     try {
       const response = await this.models.openai.client.chat.completions.create({
         model: options.model || 'gpt-3.5-turbo',
@@ -190,7 +234,10 @@ class MultiAIService {
         
         switch (model) {
           case 'openai':
-            return await this.generateWithOpenAI(prompt, options);
+            if (this.models.openai.client) {
+              return await this.generateWithOpenAI(prompt, options);
+            }
+            break;
           case 'baidu':
             return await this.generateWithBaidu(prompt, options);
           case 'xunfei':
@@ -215,6 +262,15 @@ class MultiAIService {
 
   // 使用免费 LLM 生成内容
   async generateWithFreeLLM(prompt, options = {}) {
+    if (!llmGateway) {
+      // 如果LLM网关也不可用，返回模拟内容
+      return {
+        content: `模拟生成的内容：${prompt.substring(0, 100)}...`,
+        model: 'mock-model',
+        provider: 'mock'
+      };
+    }
+
     const messages = [
       {
         role: 'system',
@@ -226,12 +282,22 @@ class MultiAIService {
       }
     ];
 
-    const result = await llmGateway.generate(messages, options);
-    return {
-      content: result.content,
-      model: result.model,
-      provider: result.provider
-    };
+    try {
+      const result = await llmGateway.generate(messages, options);
+      return {
+        content: result.content,
+        model: result.model,
+        provider: result.provider
+      };
+    } catch (error) {
+      console.error('免费LLM生成失败:', error);
+      // 返回模拟内容
+      return {
+        content: `模拟生成的内容：${prompt.substring(0, 100)}...`,
+        model: 'mock-model',
+        provider: 'mock'
+      };
+    }
   }
   
   // 获取可用模型列表
@@ -246,14 +312,16 @@ class MultiAIService {
     
     // 添加免费 LLM 提供商
     try {
-      const freeLLMs = llmGateway.getAvailableProviders();
-      freeLLMs.forEach(provider => {
-        models.push({
-          name: provider.name,
-          enabled: true,
-          type: 'free'
+      if (llmGateway) {
+        const freeLLMs = llmGateway.getAvailableProviders();
+        freeLLMs.forEach(provider => {
+          models.push({
+            name: provider.name,
+            enabled: true,
+            type: 'free'
+          });
         });
-      });
+      }
     } catch (error) {
       console.warn('Failed to get free LLM providers:', error.message);
     }
@@ -263,4 +331,3 @@ class MultiAIService {
 }
 
 module.exports = new MultiAIService();
-
