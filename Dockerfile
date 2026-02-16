@@ -35,10 +35,12 @@ RUN apk add --no-cache ca-certificates chromium tzdata
 ENV TZ=Asia/Shanghai
 
 # 创建非root用户
-RUN addgroup -g 1000 publisher &&     adduser -u 1000 -G publisher -s /bin/sh -D publisher
+RUN addgroup -g 1000 publisher && \
+    adduser -u 1000 -G publisher -s /bin/sh -D publisher
 
 # 创建必要目录
-RUN mkdir -p /app/uploads /app/cookies /app/data /app/logs /app/pids &&     chown -R publisher:publisher /app
+RUN mkdir -p /app/uploads /app/cookies /app/data /app/logs /app/pids && \
+    chown -R publisher:publisher /app
 
 WORKDIR /app
 
@@ -50,18 +52,7 @@ COPY --from=frontend-builder /build/dist /app/web
 USER publisher
 
 # 暴露端口
-<<<<<<< HEAD
-EXPOSE 5001
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5001/api/health || exit 1
-
-# 启动应用
-CMD ["npm", "run", "start:prod"]
-=======
 EXPOSE 8080
 
 # 启动服务
 CMD ["/app/publisher-server", "-port", "8080", "-headless=true"]
->>>>>>> publisher-tools

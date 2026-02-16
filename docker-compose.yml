@@ -1,71 +1,8 @@
 version: '3.8'
 
 services:
-<<<<<<< HEAD
-  mongodb:
-    image: mongo:6.0
-    container_name: ai-content-mongodb
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin123
-      MONGO_INITDB_DATABASE: ai-content-system
-    volumes:
-      - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
-    ports:
-      - "27017:27017"
-    networks:
-      - ai-content-network
-
-  redis:
-    image: redis:7-alpine
-    container_name: ai-content-redis
-    restart: always
-    command: redis-server --appendonly yes --requirepass redis123
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - ai-content-network
-
-  backend:
-    build: .
-    container_name: ai-content-backend
-    restart: always
-    environment:
-      NODE_ENV: production
-      PORT: 5000
-      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/ai-content-system?authSource=admin
-      REDIS_URL: redis://:redis123@redis:6379
-      JWT_SECRET: ${JWT_SECRET}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      BAIDU_API_KEY: ${BAIDU_API_KEY}
-      XUNFEI_API_KEY: ${XUNFEI_API_KEY}
-    depends_on:
-      - mongodb
-      - redis
-    ports:
-      - "5001:5001"
-    volumes:
-      - ./logs:/app/logs
-    networks:
-      - ai-content-network
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-  frontend:
-=======
   # 后端API服务
   publisher-server:
->>>>>>> publisher-tools
     build:
       context: .
       dockerfile: Dockerfile
