@@ -5,6 +5,9 @@ bin/
 *.dll
 *.so
 *.dylib
+xhs-publisher
+xiaohongshu-publisher/xiaohongshu-publisher
+douyin-toutiao/publisher
 
 # Go
 *.test
