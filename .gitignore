@@ -1,35 +1,42 @@
-node_modules
-build
-.env
-
-# Go 编译产物
+# Binaries
 bin/
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+
+# Go
 *.test
 *.out
-go.work
+vendor/
 
-# Cookie 存储目录
-cookies/
-*.json
+# Node
+node_modules/
+.env
+.env.local
+.env.*.local
 
-# 本地启动脚本
-start-all.bat
-start-backend.bat
-start-frontend.bat
-start-all.ps1
-快速启动说明.md
+# Build
+dist/
+build/
+*.log
 
-# 日志目录
-logs/
-
-# IDE 配置
-.vscode/
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
-*~
+
+# Cookies (sensitive data)
+cookies/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+tmp/
+temp/
+*.tmp
+*.temp

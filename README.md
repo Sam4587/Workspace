@@ -1,257 +1,229 @@
-# TrendRadar - 热点内容监控与多平台发布系统
+# Publisher Tools - 多平台内容发布工具集
 
-一个集成热点监控、AI 内容生成、多平台发布的内容运营平台。
+一个支持多平台内容发布的工具系统，包含 Go 后端服务、React 前端管理界面和独立 CLI 工具。
+
+> **项目来源**：从 TrendRadar 项目分离而来，详见 [PROJECT_SEPARATION.md](./PROJECT_SEPARATION.md)
 
 ## 项目概述
 
-TrendRadar 是一个全栈内容运营系统，支持：
-- 热点话题自动监控与抓取
-- AI 驱动的内容生成
-- 多平台（抖音、今日头条、小红书）内容发布
-- 数据分析与报告生成
+Publisher Tools 是一个多平台内容发布自动化系统，支持：
+- 抖音图文/视频发布
+- 今日头条发布
+- 小红书发布
+- REST API 服务
+- Web 管理界面
 
-## 技术栈
+## 工具列表
 
-### 前端
-- **React 18** + **Vite**
-- **Tailwind CSS** + **shadcn/ui**
-- **TanStack Query** 数据请求
-- **Recharts** 数据可视化
+| 工具 | 平台 | 状态 | 说明 |
+|------|------|------|------|
+| `publisher-core` | 统一接口 | **推荐** | 统一架构，支持异步发布和 REST API |
+| `publisher-web` | Web 管理界面 | **新增** | React + shadcn/ui 现代化管理界面 |
+| `xiaohongshu-publisher` | 小红书 | 可用 | 独立 CLI 工具 |
+| `douyin-toutiao` | 抖音/今日头条 | 可用 | 独立 CLI 工具 |
 
-### 后端
-- **Node.js** + **Express**
-- **MongoDB** + **Mongoose** (仅生产环境)
-- **Winston** 日志管理
-- **PM2** 进程管理
-
-**开发环境**: 使用 `simple-server.js`，无需数据库依赖
-
-### CLI 工具
-- **Go 1.21+** + **Rod** 浏览器自动化
-
-## 目录结构
+## 项目结构
 
 ```
-project-root/
-├── src/                    # 前端源码
-│   ├── components/         # UI 组件
-│   ├── pages/              # 页面
-│   ├── lib/                # 工具库
-│   ├── contexts/           # React Context
-│   └── providers/          # Provider
-│
-├── server/                 # 后端服务
-│   ├── routes/             # API 路由
-│   ├── services/           # 业务逻辑
-│   ├── fetchers/           # 数据抓取
-│   ├── models/             # 数据模型
-│   ├── core/               # 核心模块
-│   ├── ai/                 # AI 模块
-│   ├── video/              # 视频下载模块
-│   ├── transcription/      # 转录引擎模块
-│   ├── notification/       # 通知服务
-│   ├── simple-server.js    # 开发用简单服务器（无需 MongoDB）
-│   └── utils/              # 工具函数
-│
-├── tools/                  # CLI 工具
-│   ├── douyin-toutiao/     # 抖音/头条发布工具
-│   ├── xiaohongshu-publisher/  # 小红书发布工具
-│   └── publisher-web/      # 前端 Web 界面
-│
-├── docs/                   # 项目文档
-│   ├── PROJECT_SUMMARY.md  # 项目总结
-│   ├── plans/              # 设计文档
-│   ├── mcp/                # MCP 相关文档
-│   └── tools/              # 工具文档
-│
-├── scripts/                # 脚本
-├── nginx/                  # Nginx 配置
-├── .monkeycode/            # 项目规格文档
-└── .trae/                  # AI 辅助配置
+.
+├── publisher-core/        # 核心库（统一架构）
+│   ├── interfaces/       # 接口定义
+│   ├── adapters/         # 平台适配器
+│   ├── browser/          # 浏览器自动化
+│   ├── cookies/          # Cookie 管理
+│   ├── task/             # 异步任务管理
+│   ├── storage/          # 文件存储抽象
+│   ├── api/              # REST API
+│   └── cmd/
+│       ├── server/       # API 服务入口
+│       └── cli/          # 命令行入口
+├── publisher-web/        # Web 管理界面
+│   └── src/
+│       ├── pages/        # 页面组件
+│       ├── components/   # UI 组件
+│       └── lib/          # API 工具函数
+├── douyin-toutiao/       # 抖音/头条 CLI 工具
+└── xiaohongshu-publisher/ # 小红书 CLI 工具
 ```
 
 ## 快速开始
 
 ### 环境要求
+
+- Go 1.21+
 - Node.js 18+
-- Go 1.21+ (用于 CLI 工具)
+- Chrome/Chromium 浏览器（用于浏览器自动化）
 
-### 安装依赖
-
-```bash
-# 安装前端依赖
-npm install
-
-# 安装后端依赖
-cd server && npm install
-```
-
-### 开发模式（推荐）
-
-**重要说明：当前开发环境使用 simple-server.js，无需 MongoDB 依赖。**
+### 方式一：Web 管理界面（推荐）
 
 ```bash
-# 启动后端（简单服务器，无需 MongoDB）
-cd server && node simple-server.js
-
-# 启动前端（另一个终端）
-npm run dev
-```
-
-- **后端地址**: http://localhost:5000
-- **前端地址**: http://localhost:5173
-
-#### 简单服务器说明
-
-`server/simple-server.js` 是一个轻量级开发服务器，提供以下功能：
-- **无需数据库**：使用内存存储，适合快速开发测试
-- **Mock API**：模拟热点监控、视频转录、内容改写等 API 响应
-- **CORS 支持**：已配置跨域支持
-
-如需完整的 MongoDB 功能，请参考下方"生产环境配置"。
-
-### 生产构建
-
-```bash
-npm run build
-```
-
-### 生产环境配置（需要 MongoDB）
-
-生产环境需要 MongoDB 支持：
-
-```bash
-# 确保 MongoDB 运行
-mongod --dbpath /path/to/data
-
-# 启动完整后端服务
-cd server && npm start
-```
-
-## 功能模块
-
-### 1. 热点监控
-- 微博热搜
-- 知乎热榜
-- 今日头条
-- RSS 订阅源
-
-### 2. 视频转录与智能创作
-- **视频下载**: 支持抖音、快手等平台视频下载
-- **AI 转录**: Whisper 本地模型 + 阿里云 ASR 备选
-- **智能改写**: 多平台风格内容改写（小红书、抖音、今日头条）
-- **一键发布**: 改写内容直接发布到各平台
-
-### 3. AI 内容生成
-- 多模型支持（OpenAI、Groq、Cerebras）
-- LiteLLM 集成
-- 内容质量评估
-
-### 4. 多平台发布
-- 抖音图文/视频发布
-- 今日头条发布
-- 小红书发布
-
-### 5. 数据分析
-- 发布数据统计
-- 内容表现分析
-- 趋势报告生成
-
-## CLI 工具使用
-
-### 抖音/头条发布工具
-
-```bash
-cd tools/douyin-toutiao
-
 # 编译
-go build -o publisher .
+make build
 
-# 登录
-./publisher -platform douyin -login
+# 启动后端服务
+./bin/publisher-server -port 8080 &
+
+# 启动前端开发服务器
+make serve-web
+
+# 或启动所有开发服务
+make dev
+```
+
+访问 http://localhost:5173 使用 Web 管理界面。
+
+### 方式二：REST API 服务
+
+```bash
+# 编译
+make build
+
+# 启动 REST API 服务
+./bin/publisher-server -port 8080
+```
+
+### 方式三：命令行工具
+
+```bash
+# 登录平台
+./bin/publisher -platform douyin -login
 
 # 发布内容
-./publisher -platform douyin -title "标题" -content "内容" -images "img1.jpg"
+./bin/publisher -platform douyin -title "标题" -content "正文" -images "img.jpg" -async
 ```
 
-详细文档请参考 [docs/tools/](./docs/tools/)
+## Web 管理界面功能
 
-## API 接口
+- **仪表盘**：查看平台状态、发布统计、快速操作
+- **账号管理**：管理各平台登录状态、扫码登录
+- **内容发布**：图文/视频发布、标签管理、平台选择
+- **发布历史**：任务列表、状态查询、进度追踪
 
-### 视频转录 API
+## REST API 文档
+
+### 平台管理
+
+```
+GET  /api/v1/platforms           # 获取支持的平台列表
+GET  /api/v1/accounts            # 获取账号列表
+GET  /api/v1/accounts/:platform  # 获取指定平台的登录状态
+POST /api/v1/login/:platform     # 登录指定平台
+```
+
+### 内容发布
+
+```
+POST /api/v1/publish             # 同步发布
+POST /api/v1/publish/async       # 异步发布
+GET  /api/v1/tasks               # 获取任务列表
+GET  /api/v1/tasks/:taskId       # 查询任务状态
+```
+
+### 使用示例
 
 ```bash
-# 下载视频
-POST /api/video/download
-{
-  "url": "https://v.douyin.com/xxx"
-}
+# 获取平台列表
+curl http://localhost:8080/api/v1/platforms
 
-# 查询下载状态
-GET /api/video/download/:taskId/status
+# 异步发布
+curl -X POST http://localhost:8080/api/v1/publish/async \
+  -H "Content-Type: application/json" \
+  -d '{"platform":"douyin","type":"images","title":"标题","images":["img.jpg"]}'
 
-# 提交转录任务
-POST /api/transcription/submit
-{
-  "videoPath": "/path/to/video.mp4"
-}
-
-# 查询转录结果
-GET /api/transcription/:taskId
-
-# 内容改写
-POST /api/content/video-rewrite
-{
-  "text": "转录文本",
-  "platforms": ["xiaohongshu", "douyin", "toutiao"]
-}
+# 查询任务状态
+curl http://localhost:8080/api/v1/tasks/{taskId}
 ```
 
-### 热点监控 API
+## 平台限制
 
-```bash
-# 获取热点数据
-GET /api/hot-topics?source=weibo&limit=20
-```
+| 平台 | 标题 | 正文 | 视频 |
+|------|------|------|------|
+| 抖音 | 最多 30 字 | 最多 2000 字 | <=2GB, MP4 |
+| 今日头条 | 最多 30 字 | 最多 2000 字 | MP4 |
+| 小红书 | 最多 20 字 | 最多 1000 字 | <=500MB, MP4 |
 
-## 部署
+## Cookie 管理
 
-项目支持 Docker 部署：
+### 存储位置
+- 小红书：`./cookies/xiaohongshu_cookies.json`
+- 抖音：`./cookies/douyin_cookies.json`
+- 今日头条：`./cookies/toutiao_cookies.json`
 
-```bash
-# 开发环境
-docker-compose up -d
+### Cookie 字段
 
-# 生产环境
-docker-compose -f docker-compose.prod.yml up -d
-```
+| 平台 | 关键字段 |
+|------|----------|
+| 小红书 | `web_session`, `webId` |
+| 抖音 | `tt_webid`, `passport_auth`, `csrf_token`, `ttcid` |
+| 今日头条 | `sessionid`, `passport_auth`, `tt_token`, `tt_webid` |
 
-## 文档
+## 后续开发方向
 
-- [项目总结](./docs/PROJECT_SUMMARY.md)
-- [视频转录功能设计](./docs/plans/2026-02-15-video-transcription-design.md)
-- [抖音/头条工具架构](./docs/tools/douyin-toutiao-architecture.md)
-- [小红书工具文档](./docs/tools/xiaohongshu-project.md)
-- [MCP 集成文档](./docs/mcp/)
+### 短期目标
 
-## 开发注意事项
+1. **完善核心库**
+   - [ ] 完善平台适配器（抖音、头条、小红书、B站）
+   - [ ] 实现异步任务队列
+   - [ ] 添加重试机制和错误处理
 
-### 使用简单服务器进行开发
+2. **完善 Web 界面**
+   - [ ] 仪表盘页面
+   - [ ] 账号管理页面
+   - [ ] 内容发布页面
+   - [ ] 任务管理页面
 
-当前开发阶段使用 `server/simple-server.js` 作为后端服务，该服务器：
-- 不需要 MongoDB 数据库连接
-- 提供 Mock API 用于前端开发测试
-- 运行在端口 5000
+3. **测试覆盖**
+   - [ ] 单元测试
+   - [ ] 集成测试
+   - [ ] E2E 测试
 
-### 后端架构说明
+### 中期目标
 
-| 文件/目录 | 用途 |
-|----------|------|
-| `simple-server.js` | 开发用简单服务器，无需数据库 |
-| `index.js` | 完整后端服务，需要 MongoDB |
-| `video/` | 视频下载模块（抖音、快手等） |
-| `transcription/` | 转录引擎模块（Whisper、阿里云 ASR） |
-| `services/` | 业务逻辑（内容分析、改写等） |
+1. **扩展平台支持**
+   - [ ] B站视频发布
+   - [ ] 微博图文发布
+   - [ ] 微信公众号发布
+
+2. **高级功能**
+   - [ ] 定时发布
+   - [ ] 批量发布
+   - [ ] 内容审核
+   - [ ] 数据统计
+
+### 长期目标
+
+1. **微服务架构**
+   - [ ] 拆分为独立服务
+   - [ ] 消息队列集成
+   - [ ] 分布式任务调度
+
+2. **AI 增强**
+   - [ ] 智能内容适配
+   - [ ] 自动标签生成
+   - [ ] 发布时间优化
+
+## 注意事项
+
+1. **首次使用**：必须先执行登录操作
+2. **Cookie 过期**：需要定期重新登录
+3. **发布间隔**：建议间隔 >=5 分钟
+4. **内容规范**：遵守各平台社区规范
+5. **风控风险**：高频操作可能触发限流
+
+## 开源依赖
+
+### 后端
+- [go-rod/rod](https://github.com/go-rod/rod) - 浏览器自动化
+- [gorilla/mux](https://github.com/gorilla/mux) - HTTP 路由
+- [google/uuid](https://github.com/google/uuid) - UUID 生成
+- [sirupsen/logrus](https://github.com/sirupsen/logrus) - 日志
+
+### 前端
+- [React](https://react.dev/) - UI 框架
+- [shadcn/ui](https://ui.shadcn.com/) - UI 组件库
+- [Tailwind CSS](https://tailwindcss.com/) - CSS 框架
+- [Vite](https://vitejs.dev/) - 构建工具
+- [React Router](https://reactrouter.com/) - 路由
 
 ## 许可证
 
