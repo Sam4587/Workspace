@@ -7,6 +7,43 @@ const router = express.Router();
 const { taskManager } = require('../services/TaskManager');
 const logger = require('../utils/logger');
 
+// 创建任务
+router.post('/', async (req, res) => {
+  try {
+    const { type, resourceId, parameters } = req.body;
+    const userId = req.user?.id || 'anonymous';
+    
+    // 验证必需参数
+    if (!type || !resourceId) {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必需参数: type 和 resourceId'
+      });
+    }
+    
+    // 创建任务
+    const task = await taskManager.createTask(type, resourceId, parameters, userId);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        taskId: task.taskId,
+        status: task.status,
+        type: task.type,
+        createdAt: task.createdAt
+      },
+      message: '任务创建成功'
+    });
+  } catch (error) {
+    logger.error('[Tasks] 创建任务失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: '创建任务失败',
+      message: error.message
+    });
+  }
+});
+
 // 获取用户任务列表
 router.get('/', async (req, res) => {
   try {
