@@ -61,10 +61,15 @@ npx serve -s dist -p 5173
 
 ```bash
 # 检查后端
+# 如果使用测试服务器:
+curl http://localhost:3001/api/health
+
+# 如果使用Go后端:
 curl http://localhost:8080/health
 
 # 检查前端（浏览器）
-# http://localhost:5173
+# http://localhost:5173 或自动分配的可用端口（如5174）
+# Vite会自动寻找可用端口，实际端口请查看终端输出
 ```
 
 ## 常见问题
