@@ -542,57 +542,6 @@ class ApiClient {
     }
   }
 
-  // 发布相关
-  async publishToToutiao(contentId, scheduledTime) {
-    try {
-      return await this.client.post('/publish/toutiao', { contentId, scheduledTime });
-    } catch (error) {
-      console.error('发布到今日头条失败:', error);
-      return {
-        success: false,
-        message: '发布到今日头条失败'
-      };
-    }
-  }
-
-  async getPublishQueue(params = {}) {
-    try {
-      const query = new URLSearchParams(params).toString();
-      return await this.client.get(`/publish/queue?${query}`);
-    } catch (error) {
-      console.error('获取发布队列失败:', error);
-      return {
-        success: true,
-        data: [],
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 0,
-          pages: 1
-        }
-      };
-    }
-  }
-
-  async getPublishHistory(params = {}) {
-    try {
-      const query = new URLSearchParams(params).toString();
-      return await this.client.get(`/publish/history?${query}`);
-    } catch (error) {
-      console.error('获取发布历史失败:', error);
-      return {
-        success: true,
-        data: [],
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 0,
-          pages: 1
-        }
-      };
-    }
-  }
-
   // 数据分析相关 - 增加错误处理和默认值
   async getAnalyticsOverview() {
     try {

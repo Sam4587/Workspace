@@ -401,18 +401,6 @@ app.get('/api/analytics/overview', (req, res) => {
   });
 });
 
-  res.json({
-    success: true,
-    data: [],
-    pagination: {
-      page: 1,
-      limit: 20,
-      total: 0,
-      pages: 1
-    }
-  });
-});
-
 app.get('/api/video/templates', (req, res) => {
   res.json({
     success: true,
@@ -772,27 +760,6 @@ app.get('/api/analytics/optimization-suggestions', (req, res) => {
 });
 
 // ========== 发布队列 API ==========
-
-  res.json({
-    success: true,
-    data: [],
-    pagination: {
-      page: 1,
-      limit: 20,
-      total: 0,
-      pages: 1
-    }
-  });
-});
-
-  res.json({
-    success: true,
-    message: '发布任务已提交',
-    data: {
-      publishId: 'pub_' + Date.now()
-    }
-  });
-});
 
 // ========== 内容生成相关 API ==========
 
