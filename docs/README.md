@@ -72,6 +72,7 @@ docs/
 | [API 文档](dev/API.md) | 接口规范 |
 | [数据存储](dev/DATA_STORAGE.md) | MongoDB/Memory 存储方案 |
 | [项目分离记录](PROJECT_SEPARATION.md) | 发布功能独立历史 |
+| [开发计划](DEVELOPMENT_PLAN.md) | 待落地任务汇总 |
 
 ### 问题修复记录
 
