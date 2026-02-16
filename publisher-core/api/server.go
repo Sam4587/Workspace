@@ -13,12 +13,13 @@ import (
 
 // Server API服务器
 type Server struct {
-	router         *mux.Router
-	taskManager    TaskManagerAPI
-	publisher      PublisherAPI
-	storage        StorageAPI
-	middleware     []Middleware
-	server         *http.Server
+	router      *mux.Router
+	taskManager TaskManagerAPI
+	publisher   PublisherAPI
+	storage     StorageAPI
+	ai          AIServiceAPI
+	middleware  []Middleware
+	server      *http.Server
 }
 
 // TaskManagerAPI 任务管理器接口
@@ -115,6 +116,9 @@ func (s *Server) setupRoutes() {
 	s.router.HandleFunc("/api/v1/storage/download", s.downloadFile).Methods("GET")
 	s.router.HandleFunc("/api/v1/storage/list", s.listFiles).Methods("GET")
 	s.router.HandleFunc("/api/v1/storage/delete", s.deleteFile).Methods("DELETE")
+
+	// AI 相关
+	s.setupAIRoutes()
 }
 
 // Router 返回路由器
@@ -388,14 +392,14 @@ func (s *Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 
 // PublishRequest 发布请求
 type PublishRequest struct {
-	Platform   string   `json:"platform"`     // 平台
-	Type       string   `json:"type"`         // 类型: images/video
-	Title      string   `json:"title"`        // 标题
-	Content    string   `json:"content"`      // 正文
-	Images     []string `json:"images"`       // 图片路径
-	Video      string   `json:"video"`        // 视频路径
-	Tags       []string `json:"tags"`         // 标签
-	ScheduleAt *string  `json:"schedule_at"`  // 定时发布时间
+	Platform   string   `json:"platform"`    // 平台
+	Type       string   `json:"type"`        // 类型: images/video
+	Title      string   `json:"title"`       // 标题
+	Content    string   `json:"content"`     // 正文
+	Images     []string `json:"images"`      // 图片路径
+	Video      string   `json:"video"`       // 视频路径
+	Tags       []string `json:"tags"`        // 标签
+	ScheduleAt *string  `json:"schedule_at"` // 定时发布时间
 }
 
 // LoggingMiddleware 日志中间件

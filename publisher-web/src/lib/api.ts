@@ -317,3 +317,136 @@ export async function getTranscriptionEngines(): Promise<{ success: boolean; dat
   return response.json()
 }
 
+// =====================================================
+// AI 服务 API
+// =====================================================
+
+// AI 消息类型
+export interface AIMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+// AI 生成选项
+export interface AIGenerateOptions {
+  messages: AIMessage[]
+  model?: string
+  max_tokens?: number
+  temperature?: number
+}
+
+// AI 生成结果
+export interface AIGenerateResult {
+  content: string
+  model: string
+  provider: string
+  input_tokens: number
+  output_tokens: number
+}
+
+// 获取 AI 提供商列表
+export async function getAIProviders(): Promise<APIResponse<{ providers: string[]; count: number }>> {
+  return request(`${API_BASE}/ai/providers`)
+}
+
+// 获取 AI 模型列表
+export async function getAIModels(): Promise<APIResponse<Record<string, string[]>>> {
+  return request(`${API_BASE}/ai/models`)
+}
+
+// AI 生成（使用默认提供商）
+export async function aiGenerate(options: AIGenerateOptions): Promise<APIResponse<AIGenerateResult>> {
+  return request<AIGenerateResult>(`${API_BASE}/ai/generate`, {
+    method: 'POST',
+    body: JSON.stringify(options),
+  })
+}
+
+// AI 生成（指定提供商）
+export async function aiGenerateWithProvider(provider: string, options: AIGenerateOptions): Promise<APIResponse<AIGenerateResult>> {
+  return request<AIGenerateResult>(`${API_BASE}/ai/generate/${provider}`, {
+    method: 'POST',
+    body: JSON.stringify(options),
+  })
+}
+
+// 热点分析请求
+export interface HotspotAnalyzeRequest {
+  title: string
+  content: string
+}
+
+// 热点分析结果
+export interface HotspotAnalyzeResult {
+  analysis: string
+  provider: string
+  model: string
+}
+
+// AI 分析热点
+export async function aiAnalyzeHotspot(req: HotspotAnalyzeRequest): Promise<APIResponse<HotspotAnalyzeResult>> {
+  return request<HotspotAnalyzeResult>(`${API_BASE}/ai/analyze/hotspot`, {
+    method: 'POST',
+    body: JSON.stringify(req),
+  })
+}
+
+// 内容生成请求
+export interface ContentGenerateRequest {
+  topic: string
+  platform?: string
+  style?: string
+  length?: number
+}
+
+// 内容生成结果
+export interface ContentGenerateResult {
+  content: string
+  provider: string
+  model: string
+}
+
+// AI 生成内容
+export async function aiContentGenerate(req: ContentGenerateRequest): Promise<APIResponse<ContentGenerateResult>> {
+  return request<ContentGenerateResult>(`${API_BASE}/ai/content/generate`, {
+    method: 'POST',
+    body: JSON.stringify(req),
+  })
+}
+
+// 内容改写请求
+export interface ContentRewriteRequest {
+  content: string
+  style?: string
+  platform?: string
+}
+
+// AI 改写内容
+export async function aiContentRewrite(req: ContentRewriteRequest): Promise<APIResponse<ContentGenerateResult>> {
+  return request<ContentGenerateResult>(`${API_BASE}/ai/content/rewrite`, {
+    method: 'POST',
+    body: JSON.stringify(req),
+  })
+}
+
+// 内容审核请求
+export interface ContentAuditRequest {
+  content: string
+}
+
+// 内容审核结果
+export interface ContentAuditResult {
+  audit_result: string
+  provider: string
+  model: string
+}
+
+// AI 审核内容
+export async function aiContentAudit(req: ContentAuditRequest): Promise<APIResponse<ContentAuditResult>> {
+  return request<ContentAuditResult>(`${API_BASE}/ai/content/audit`, {
+    method: 'POST',
+    body: JSON.stringify(req),
+  })
+}
+
+

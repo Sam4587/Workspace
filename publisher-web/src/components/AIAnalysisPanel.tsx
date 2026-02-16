@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { X, Sparkles, Loader2, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
+// import { Textarea } from '@/components/ui/textarea'
 import { analyzeHotTopics, generateHotTopicsBrief } from '@/lib/api'
 import type { HotTopic, AIAnalysisResult } from '@/types/api'
 

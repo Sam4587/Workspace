@@ -14,7 +14,7 @@ interface VideoActionPanelProps {
 
 export default function VideoActionPanel({ videoUrl, onVideoDownloaded, onTranscriptionComplete }: VideoActionPanelProps) {
   const [url, setUrl] = useState(videoUrl || '')
-  const [loading, setLoading] = useState(false)
+  const [_loading, _setLoading] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [transcribing, setTranscribing] = useState(false)
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null)

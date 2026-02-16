@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, Search, Filter, TrendingUp, ExternalLink, Sparkles, BarChart3, CheckSquare, Square } from 'lucide-react'
+import { RefreshCw, Search, TrendingUp, ExternalLink, Sparkles, BarChart3, CheckSquare, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getHotTopics, getHotSources, fetchHotTopics, refreshHotTopics, getNewHotTopics } from '@/lib/api'
 import TrendTimeline from '@/components/TrendTimeline'
 import AIAnalysisPanel from '@/components/AIAnalysisPanel'
-import type { HotTopic, HotSource, HotTopicCategory, HotTopicTrend } from '@/types/api'
+import type { HotTopic, HotSource, HotTopicTrend } from '@/types/api'
 
 // 分类选项
 const categories: { value: string; label: string }[] = [

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkles, Loader2, Copy, Send, CheckCircle } from 'lucide-react'
+import { Sparkles, Loader2, Copy, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
