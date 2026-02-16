@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const NodeCache = require('node-cache');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class MultiPlatformService {
   constructor() {

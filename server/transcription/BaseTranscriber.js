@@ -2,7 +2,7 @@
  * 转录器抽象基类
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class BaseTranscriber {
   constructor(config = {}) {

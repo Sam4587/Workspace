@@ -6,7 +6,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const BaseFetcher = require('./BaseFetcher');
 const { Source, SourceType } = require('../core/types');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class RSSFetcher extends BaseFetcher {
   /**

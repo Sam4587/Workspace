@@ -238,3 +238,38 @@ A: 当前方案不支持多实例。如需多实例，建议使用云数据库�
 
 **文档维护者**：TrendRadar 开发团队
 **最后更新**：2026-02-16
+
+---
+
+## 已清理的 MongoDB 代码
+
+### 归档的文件
+
+以下文件已移至 `server/_deprecated/` 目录：
+
+```
+server/_deprecated/
+└── models/
+    ├── Content.js           # MongoDB 模型
+    ├── HotTopic.js          # MongoDB 模型
+    └── PublishRecord.js     # MongoDB 模型
+```
+
+### 禁用的服务
+
+| 服务 | 状态 | 说明 |
+|------|------|------|
+| PerformanceTrackingService | ⚠️ 已禁用 | 依赖 MongoDB，待重新实现 |
+
+### 已移除的代码
+
+- `server/index.js` 中的 MongoDB 连接代码
+- `mongoose` 依赖引用
+- 所有 `Content.find()` 等 MongoDB 查询
+
+---
+
+**更新记录**：
+- 2026-02-16: 明确放弃 MongoDB，采用轻量级存储方案
+- 2026-02-16: 清理所有 MongoDB 相关代码
+- 2026-02-16: 归档 models 目录到 _deprecated

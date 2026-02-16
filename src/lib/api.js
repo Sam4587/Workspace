@@ -1,8 +1,5 @@
 import axios from 'axios';
-import { mockHotTopics, mockVideoTemplates, mockTrendData, mockCrossPlatformData } from './mockData';
 
-const USE_MOCK = false;
-// 优先使用环境变量，否则使用相对路径 /api（通过 Vite proxy 代理到后端）
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 class ApiClient {
@@ -48,18 +45,6 @@ class ApiClient {
 
   // 热点话题相关
   async getHotTopics(params = {}) {
-    if (USE_MOCK) {
-      return {
-        success: true,
-        data: mockHotTopics,
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: mockHotTopics.length,
-          pages: 1
-        }
-      };
-    }
     try {
       const query = new URLSearchParams(params).toString();
       const response = await this.client.get(`/hot-topics?${query}`);
@@ -76,12 +61,13 @@ class ApiClient {
     } catch (error) {
       console.error('获取热点话题失败:', error);
       return {
-        success: true,
-        data: mockHotTopics,
+        success: false,
+        message: error.message || '获取热点话题失败，请检查后端服务是否正常运行',
+        data: [],
         pagination: {
           page: 1,
           limit: 20,
-          total: mockHotTopics.length,
+          total: 0,
           pages: 1
         }
       };
@@ -126,12 +112,6 @@ class ApiClient {
 
   // 趋势分析相关
   async getNewTopics(hours = 24) {
-    if (USE_MOCK) {
-      return {
-        success: true,
-        data: mockHotTopics.slice(0, 3)
-      };
-    }
     try {
       const response = await this.client.get(`/hot-topics/trends/new?hours=${hours}`);
       return {
@@ -142,51 +122,39 @@ class ApiClient {
       console.error('获取新增热点失败:', error);
       return {
         success: true,
-        data: mockHotTopics.slice(0, 3)
+        data: []
       };
     }
   }
 
   async getTopicTrend(id, days = 7) {
-    if (USE_MOCK) {
-      return {
-        success: true,
-        data: mockTrendData
-      };
-    }
     try {
       const response = await this.client.get(`/hot-topics/trends/timeline/${id}?days=${days}`);
       return {
         success: true,
-        data: response.data || mockTrendData
+        data: response.data || { timeline: [], currentHeat: 0 }
       };
     } catch (error) {
       console.error('获取热点趋势失败:', error);
       return {
         success: true,
-        data: mockTrendData
+        data: { timeline: [], currentHeat: 0 }
       };
     }
   }
 
   async getCrossPlatformAnalysis(title) {
-    if (USE_MOCK) {
-      return {
-        success: true,
-        data: mockCrossPlatformData
-      };
-    }
     try {
       const response = await this.client.get(`/hot-topics/trends/cross-platform/${encodeURIComponent(title)}`);
       return {
         success: true,
-        data: response.data || mockCrossPlatformData
+        data: response.data || {}
       };
     } catch (error) {
       console.error('获取跨平台分析失败:', error);
       return {
         success: true,
-        data: mockCrossPlatformData
+        data: {}
       };
     }
   }
@@ -542,11 +510,10 @@ class ApiClient {
     }
   }
 
-  // 数据分析相关 - 增加错误处理和默认值
+  // 数据分析相关
   async getAnalyticsOverview() {
     try {
       const response = await this.client.get('/analytics/overview');
-      // 确保返回数据格式正确
       return {
         success: true,
         data: response.data || {
@@ -564,7 +531,6 @@ class ApiClient {
       };
     } catch (error) {
       console.error('获取分析概览失败:', error);
-      // 返回默认数据而不是抛出错误
       return {
         success: true,
         data: {
@@ -586,7 +552,6 @@ class ApiClient {
   async getViewsTrend(days = 7) {
     try {
       const response = await this.client.get(`/analytics/views-trend?days=${days}`);
-      // 确保返回数组格式
       return {
         success: true,
         data: response.data || []
@@ -603,7 +568,6 @@ class ApiClient {
   async getContentTypeDistribution() {
     try {
       const response = await this.client.get('/analytics/content-types');
-      // 确保返回数组格式
       return {
         success: true,
         data: response.data || []
@@ -620,7 +584,6 @@ class ApiClient {
   async getTopContent(limit = 10) {
     try {
       const response = await this.client.get(`/analytics/top-content?limit=${limit}`);
-      // 确保返回数组格式
       return {
         success: true,
         data: response.data || []
@@ -724,42 +687,27 @@ class ApiClient {
 
   // 视频生成相关
   async getVideoTemplates() {
-    if (USE_MOCK) {
-      return {
-        success: true,
-        data: mockVideoTemplates
-      };
-    }
     try {
       const response = await this.client.get('/video/templates');
       return {
         success: true,
-        data: response.data?.data || []
+        data: response.data || []
       };
     } catch (error) {
       console.error('获取视频模板失败:', error);
       return {
         success: true,
-        data: mockVideoTemplates
+        data: []
       };
     }
   }
 
   async renderVideo(config) {
-    if (USE_MOCK) {
-      return {
-        success: true,
-        data: {
-          taskId: 'mock-task-' + Date.now(),
-          status: 'pending'
-        }
-      };
-    }
     try {
       const response = await this.client.post('/video/render', config);
       return {
         success: true,
-        data: response.data?.data
+        data: response.data
       };
     } catch (error) {
       console.error('提交渲染任务失败:', error);
@@ -771,21 +719,11 @@ class ApiClient {
   }
 
   async getRenderStatus(taskId) {
-    if (USE_MOCK) {
-      return {
-        success: true,
-        data: {
-          status: 'completed',
-          progress: 100,
-          videoUrl: 'https://example.com/mock-video.mp4'
-        }
-      };
-    }
     try {
       const response = await this.client.get(`/video/render/${taskId}`);
       return {
         success: true,
-        data: response.data?.data
+        data: response.data
       };
     } catch (error) {
       console.error('获取渲染状态失败:', error);

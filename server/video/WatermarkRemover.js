@@ -3,7 +3,7 @@
  * 对接第三方去水印服务
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const axios = require('axios');
 const fs = require('fs').promises;
 const path = require('path');

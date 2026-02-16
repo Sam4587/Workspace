@@ -8,7 +8,7 @@ const router = express.Router();
 
 // 导入 NewsNow Fetcher
 const { newsNowFetcher, NEWSNOW_SOURCE_MAP } = require('../fetchers/NewsNowFetcher');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 // 内存存储
 const memoryStorage = {

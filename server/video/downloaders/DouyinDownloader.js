@@ -4,7 +4,7 @@
  */
 
 const Downloader = require('../Downloader');
-const { logger } = require('../../utils/logger');
+const logger = require('../../utils/logger');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs').promises;

@@ -3,7 +3,7 @@
  * 负责热点趋势预测、生命周期分析、相关话题挖掘
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class TrendAnalyzer {
   constructor() {

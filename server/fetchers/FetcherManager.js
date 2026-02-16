@@ -3,7 +3,7 @@
  * 统一管理所有数据源 Fetcher，借鉴 TrendRadar 模块化设计
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const { Source } = require('../core/types');
 
 class FetcherManager {

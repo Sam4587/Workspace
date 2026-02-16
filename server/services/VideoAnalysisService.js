@@ -3,7 +3,7 @@
  * 基于 LiteLLM 对视频转录内容进行分析和总结
  */
 
-const { logger } = require('../../utils/logger');
+const logger = require('../../utils/logger');
 const { liteLLMAdapter } = require('../../ai');
 const prompts = require('../prompts/videoAnalysis');
 

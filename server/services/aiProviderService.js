@@ -3,7 +3,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { ZhipuAI } = require('zhipuai');
 const QianfanSDK = require('@baiducloud/qianfan');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class AIProviderService {
   constructor() {

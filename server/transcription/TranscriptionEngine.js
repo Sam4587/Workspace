@@ -3,7 +3,7 @@
  * 管理多个转录引擎，支持引擎切换和降级
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const BaseTranscriber = require('./BaseTranscriber');
 const WhisperLocalTranscriber = require('./WhisperLocalTranscriber');
 const AliyunASRTranscriber = require('./AliyunASRTranscriber');

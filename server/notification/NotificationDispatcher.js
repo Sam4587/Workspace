@@ -3,7 +3,7 @@
  * 统一管理多渠道消息分发，借鉴 TrendRadar Notification Dispatcher 设计
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const { NotificationChannel } = require('../core/types');
 
 // 动态导入发送器

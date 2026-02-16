@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { transcriptionEngine } = require('../transcription');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const videoStorage = require('../video/VideoStorage');
 
 /**

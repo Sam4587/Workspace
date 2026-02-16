@@ -5,7 +5,7 @@
  */
 
 const cron = require('node-cron');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 // 调度预设配置
 const SchedulePresets = {

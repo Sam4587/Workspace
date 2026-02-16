@@ -2,7 +2,7 @@
  * 视频下载器抽象基类
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 

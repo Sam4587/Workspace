@@ -3,7 +3,7 @@
  * 借鉴 TrendRadar Notification Dispatcher 模块化设计
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class BaseSender {
   /**

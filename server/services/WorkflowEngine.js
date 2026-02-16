@@ -3,7 +3,7 @@
  * 用于管理热点监控、内容生成、发布等自动化流程
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const hotTopicService = require('./hotTopicService');
 
 // 安全导入AI服务

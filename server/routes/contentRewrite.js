@@ -7,7 +7,7 @@ const router = express.Router();
 const videoAnalysisService = require('../services/VideoAnalysisService');
 const contentRewriteService = require('../services/ContentRewriteService');
 const publishIntegration = require('../services/PublishIntegration');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 /**
  * POST /api/content/video-rewrite

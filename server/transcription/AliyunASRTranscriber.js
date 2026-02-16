@@ -4,7 +4,7 @@
  */
 
 const BaseTranscriber = require('./BaseTranscriber');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs').promises;

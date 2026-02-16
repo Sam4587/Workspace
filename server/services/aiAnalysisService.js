@@ -1,5 +1,5 @@
 const openai = require('openai');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class AIAnalysisService {
   constructor() {

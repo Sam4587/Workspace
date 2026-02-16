@@ -1,23 +1,73 @@
 /**
  * 内容管理服务
  * 提供内容的CRUD操作、状态管理、发布管理等功能
+ * 
+ * 注意：本服务依赖 MongoDB 模型，当前项目已弃用 MongoDB
+ * 该服务暂时禁用，待数据存储方案确定后重新实现
  */
 
-const { Content, CONTENT_STATUS, PLATFORM_STATUS } = require('../models/Content');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const publishIntegration = require('./PublishIntegration');
+
+// 模拟数据存储（内存）
+const memoryStorage = {
+  contents: []
+};
 
 class ContentService {
   constructor() {
     this.publishIntegration = publishIntegration;
   }
 
-  /**
-   * 创建新内容
-   * @param {Object} contentData - 内容数据
-   * @param {string} userId - 用户ID
-   * @returns {Promise<Object>}
-   */
+  async createContent(contentData, userId) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+
+  async getContentById(contentId) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+
+  async updateContent(contentId, updates) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+
+  async deleteContent(contentId) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+
+  async listContents(filters = {}) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+
+  async publishContent(contentId, platforms) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+
+  async getPublishStatus(contentId) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+
+  async batchPublish(contentIds, platforms) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+
+  async getStatistics(filters = {}) {
+    logger.warn('[ContentService] 服务已禁用，依赖 MongoDB');
+    return { success: false, error: '服务已禁用' };
+  }
+}
+
+const contentService = new ContentService();
+
+module.exports = contentService;
   async create(contentData, userId) {
     try {
       // 验证必要字段

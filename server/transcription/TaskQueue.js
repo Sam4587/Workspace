@@ -3,7 +3,7 @@
  * 管理异步转录任务
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 const NodeCache = require('node-cache');
 

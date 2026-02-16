@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite --port 5174",
     "dev:frontend": "vite --port 5174",
-    "dev:server": "node server/simple-server.js",
+    "dev:server": "node server/server.js",
     "dev:all": "node scripts/dev-server.js",
     "dev:legacy": "node scripts/auto-dev-server.js",
     "setup": "npm install && cd server && npm install",

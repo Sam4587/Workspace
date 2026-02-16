@@ -8,7 +8,7 @@ const BaseTranscriber = require('./BaseTranscriber');
 const WhisperLocalTranscriber = require('./WhisperLocalTranscriber');
 const AliyunASRTranscriber = require('./AliyunASRTranscriber');
 const TaskQueue = require('./TaskQueue');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 // 创建转录引擎实例
 const transcriptionEngine = new TranscriptionEngine();

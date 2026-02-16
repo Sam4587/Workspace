@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 // Prompt 模板 Schema
 const PromptTemplateSchema = new mongoose.Schema({

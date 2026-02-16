@@ -3,7 +3,7 @@ const router = express.Router();
 const videoQueue = require('../services/videoQueue');
 const ttsService = require('../services/ttsService');
 const { videoManager } = require('../video');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const multer = require('multer');
 const path = require('path');
 

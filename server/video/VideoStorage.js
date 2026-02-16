@@ -3,7 +3,7 @@
  * 管理视频文件的本地存储和元数据
  */
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const fs = require('fs').promises;
 const path = require('path');
 const NodeCache = require('node-cache');

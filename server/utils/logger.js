@@ -1,113 +1,82 @@
+/**
+ * 统一日志工具
+ * 替代 console.log/warn/error，提供结构化日志
+ */
+
 const winston = require('winston');
 const path = require('path');
 
-const { createLogger, format, transports } = winston;
-const { combine, timestamp, printf, colorize, errors } = format;
+// 日志级别
+const levels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  http: 3,
+  debug: 4,
+};
 
-const logFormat = printf(({ level, message, timestamp, stack, ...metadata }) => {
-  let log = `${timestamp} [${level}] ${message}`;
-  
-  if (stack) {
-    log += `\n${stack}`;
-  }
-  
-  if (Object.keys(metadata).length > 0) {
-    log += `\nMetadata: ${JSON.stringify(metadata, null, 2)}`;
-  }
-  
-  return log;
-});
+// 日志颜色
+const colors = {
+  error: 'red',
+  warn: 'yellow',
+  info: 'green',
+  http: 'magenta',
+  debug: 'white',
+};
 
-const logger = createLogger({
+winston.addColors(colors);
+
+// 日志格式
+const format = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+  winston.format.errors({ stack: true }),
+  winston.format.splat(),
+  winston.format.json()
+);
+
+// 日志目录
+const logDir = path.join(__dirname, '../logs');
+
+// 创建日志器
+const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
-  format: combine(
-    errors({ stack: true }),
-    timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss'
-    }),
-    logFormat
-  ),
+  levels,
+  format,
   transports: [
-    // 控制台输出
-    new transports.Console({
-      format: combine(
-        colorize(),
-        logFormat
+    // 控制台日志
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize({ all: true }),
+        winston.format.printf(
+          ({ timestamp, level, message, ...metadata }) => {
+            let msg = `${timestamp} [${level}]: ${message}`;
+            if (Object.keys(metadata).length > 0) {
+              msg += ` ${JSON.stringify(metadata)}`;
+            }
+            return msg;
+          }
+        )
       ),
-      level: 'debug'
     }),
     // 错误日志文件
-    new transports.File({
-      filename: path.join(__dirname, '../../logs/error.log'),
+    new winston.transports.File({
+      filename: path.join(logDir, 'error.log'),
       level: 'error',
-      maxsize: 5 * 1024 * 1024, // 5MB
-      maxFiles: 5
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
     }),
     // 所有日志文件
-    new transports.File({
-      filename: path.join(__dirname, '../../logs/combined.log'),
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 10
+    new winston.transports.File({
+      filename: path.join(logDir, 'combined.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
     }),
-    // 访问日志
-    new transports.File({
-      filename: path.join(__dirname, '../../logs/access.log'),
-      level: 'info',
-      maxsize: 10 * 1024 * 1024,
-      maxFiles: 7
-    })
   ],
-  exceptionHandlers: [
-    new transports.File({
-      filename: path.join(__dirname, '../../logs/exceptions.log'),
-      maxsize: 10 * 1024 * 1024,
-      maxFiles: 5
-    })
-  ],
-  rejectionHandlers: [
-    new transports.File({
-      filename: path.join(__dirname, '../../logs/rejections.log'),
-      maxsize: 10 * 1024 * 1024,
-      maxFiles: 5
-    })
-  ]
 });
 
-// 请求日志中间件
-const requestLogger = (req, res, next) => {
-  const start = Date.now();
-  
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logger.info(`${req.method} ${req.url}`, {
-      method: req.method,
-      url: req.url,
-      status: res.statusCode,
-      duration: `${duration}ms`,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
-  });
-  
-  next();
-};
+// 开发环境添加 debug 日志
+if (process.env.NODE_ENV === 'development') {
+  logger.level = 'debug';
+}
 
-// 错误日志中间件
-const errorLogger = (error, req, res, next) => {
-  logger.error(`${req.method} ${req.url} - ${error.message}`, {
-    error: error.message,
-    stack: error.stack,
-    url: req.url,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get('User-Agent')
-  });
-  
-  next(error);
-};
-
-module.exports = {
-  logger,
-  requestLogger,
-  errorLogger
-};
+module.exports = logger;

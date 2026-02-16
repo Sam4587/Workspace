@@ -4,11 +4,21 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const compression = require('compression');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Rate Limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: '请求过于频繁，请稍后再试' }
+});
+
+app.use(limiter);
 
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -23,128 +33,80 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-const { fetcherManager } = require('./fetchers');
-const { topicAnalyzer } = require('./core');
+// =====================================================
+// 使用 NewsNowFetcher 获取真实热点数据
+// =====================================================
+const { newsNowFetcher, NewsNowFetcher } = require('./fetchers/NewsNowFetcher');
 
-let cachedTopics = [
-  {
-    _id: '1',
-    title: 'AI大模型技术突破：GPT-5即将发布',
-    description: 'OpenAI宣布即将发布新一代大模型，性能提升显著',
-    category: '科技',
-    source: '知乎',
-    heat: 95,
-    suitability: 88,
-    trend: 'rising',
-    keywords: ['AI', 'GPT', '大模型', 'OpenAI'],
-    sourceUrl: 'https://example.com/topic1',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '2',
-    title: '2026年春节档票房突破100亿',
-    description: '多部国产大片齐上映，春节档票房创历史新高',
-    category: '娱乐',
-    source: '微博',
-    heat: 92,
-    suitability: 85,
-    trend: 'hot',
-    keywords: ['春节档', '票房', '电影', '国产片'],
-    sourceUrl: 'https://example.com/topic2',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '3',
-    title: '央行宣布降准0.5个百分点',
-    description: '释放长期资金约1万亿，支持实体经济发展',
-    category: '财经',
-    source: '今日头条',
-    heat: 88,
-    suitability: 82,
-    trend: 'stable',
-    keywords: ['央行', '降准', '货币政策', '经济'],
-    sourceUrl: 'https://example.com/topic3',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '4',
-    title: '中国队获得冬奥会首金',
-    description: '冰雪健儿奋勇拼搏，为祖国赢得荣誉',
-    category: '体育',
-    source: '知乎',
-    heat: 85,
-    suitability: 90,
-    trend: 'rising',
-    keywords: ['冬奥会', '金牌', '体育', '中国队'],
-    sourceUrl: 'https://example.com/topic4',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '5',
-    title: '新能源汽车销量再创新高',
-    description: '国内新能源车市持续火热，渗透率突破50%',
-    category: '科技',
-    source: '微博',
-    heat: 82,
-    suitability: 78,
-    trend: 'hot',
-    keywords: ['新能源', '汽车', '销量', '电动车'],
-    sourceUrl: 'https://example.com/topic5',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: '6',
-    title: '一线城市房价环比上涨',
-    description: '楼市回暖迹象明显，购房需求逐步释放',
-    category: '社会',
-    source: '今日头条',
-    heat: 78,
-    suitability: 75,
-    trend: 'stable',
-    keywords: ['房价', '楼市', '房产', '一线城市'],
-    sourceUrl: 'https://example.com/topic6',
-    createdAt: new Date().toISOString()
-  }
-];
-let lastFetchTime = Date.now();
-const CACHE_DURATION = 5 * 60 * 1000;
+let cachedTopics = [];
+let lastFetchTime = null;
+const CACHE_DURATION = 10 * 60 * 1000; // 10 分钟缓存
 
+/**
+ * 格式化时间为相对时间
+ */
+function formatTimeAgo(date) {
+  const now = new Date();
+  const past = new Date(date);
+  const diffMs = now - past;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return '刚刚';
+  if (diffMins < 60) return `${diffMins}分钟前`;
+  if (diffHours < 24) return `${diffHours}小时前`;
+  if (diffDays < 7) return `${diffDays}天前`;
+  return past.toLocaleDateString('zh-CN');
+}
+
+/**
+ * 从 NewsNow API 获取真实热点数据
+ */
 async function fetchAndCacheTopics(clearCache = true) {
   try {
-    console.log('开始获取实时热点数据...');
+    console.log('开始从 NewsNow API 获取实时热点数据...');
     
-    fetcherManager.initializeDefaultSources();
-    
-    if (clearCache) {
-      console.log('清除 Fetcher 缓存以获取最新数据...');
-      fetcherManager.clearAllCache();
+    // 检查缓存是否有效
+    if (!clearCache && cachedTopics.length > 0 && lastFetchTime && (Date.now() - lastFetchTime < CACHE_DURATION)) {
+      console.log(`使用缓存数据，共 ${cachedTopics.length} 条`);
+      return cachedTopics;
     }
     
-    const topics = await fetcherManager.fetchAll();
+    // 使用 NewsNowFetcher 获取真实数据
+    const topics = await newsNowFetcher.fetch();
     
     if (topics && topics.length > 0) {
+      // 为每个话题添加必要的字段
       for (const topic of topics) {
-        topic.category = topicAnalyzer.categorize(topic.title);
-        topic.keywords = topicAnalyzer.extractKeywords(topic.title);
-        topic.suitability = topicAnalyzer.calculateSuitability(topic.title, topic.description);
-        topic._id = topic.id || Date.now() + Math.random().toString(36).substr(2, 9);
-        topic.createdAt = new Date().toISOString();
+        topic._id = topic._id || `topic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        topic.createdAt = topic.createdAt || new Date().toISOString();
+        topic.time = formatTimeAgo(topic.publishedAt || new Date());
       }
       
       cachedTopics = topics;
       lastFetchTime = Date.now();
       
-      console.log(`获取到 ${topics.length} 条实时热点数据`);
+      console.log(`成功获取 ${topics.length} 条实时热点数据`);
       return cachedTopics;
     } else {
-      console.log('没有获取到实时数据，使用默认数据');
-      return cachedTopics;
+      console.log('NewsNow API 未返回数据');
+      return cachedTopics.length > 0 ? cachedTopics : [];
     }
   } catch (error) {
-    console.error('获取热点数据失败:', error);
-    return cachedTopics;
+    console.error('获取热点数据失败:', error.message);
+    // 如果有缓存数据，返回缓存
+    if (cachedTopics.length > 0) {
+      console.log('使用缓存数据作为备用');
+      return cachedTopics;
+    }
+    return [];
   }
 }
+
+// =====================================================
+// API 路由
+// =====================================================
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -177,7 +139,7 @@ app.get('/api/hot-topics', async (req, res) => {
       const searchLower = search.toLowerCase();
       filteredTopics = filteredTopics.filter(t => 
         t.title.toLowerCase().includes(searchLower) ||
-        t.description.toLowerCase().includes(searchLower)
+        (t.description && t.description.toLowerCase().includes(searchLower))
       );
     }
     
@@ -226,7 +188,7 @@ app.get('/api/hot-topics/:id', (req, res) => {
 
 app.post('/api/hot-topics/update', async (req, res) => {
   try {
-    const topics = await fetchAndCacheTopics();
+    const topics = await fetchAndCacheTopics(true);
     res.json({
       success: true,
       message: '热点数据更新成功',
@@ -253,17 +215,20 @@ app.get('/api/hot-topics/trends/new', (req, res) => {
 
 app.get('/api/hot-topics/trends/timeline/:id', (req, res) => {
   const mockTrend = [
-    { time: '00:00', value: 30 },
-    { time: '04:00', value: 25 },
-    { time: '08:00', value: 45 },
-    { time: '12:00', value: 80 },
-    { time: '16:00', value: 95 },
-    { time: '20:00', value: 88 },
-    { time: '24:00', value: 92 }
+    { timestamp: Date.now() - 6 * 3600000, heat: 30, rank: 50, trend: 'stable' },
+    { timestamp: Date.now() - 4 * 3600000, heat: 45, rank: 35, trend: 'up' },
+    { timestamp: Date.now() - 2 * 3600000, heat: 80, rank: 15, trend: 'up' },
+    { timestamp: Date.now(), heat: 95, rank: 5, trend: 'hot' }
   ];
   res.json({
     success: true,
-    data: mockTrend
+    data: {
+      timeline: mockTrend,
+      currentHeat: 95,
+      heatChange: 65,
+      trendCount: 4,
+      hotCount: 1
+    }
   });
 });
 
@@ -271,23 +236,24 @@ app.get('/api/hot-topics/trends/cross-platform/:title', (req, res) => {
   res.json({
     success: true,
     data: {
-      weibo: { heat: 95, mentions: 15000 },
-      zhihu: { heat: 88, mentions: 8000 },
-      toutiao: { heat: 90, mentions: 12000 }
+      '微博热搜': { count: 1, avgHeat: 95, maxHeat: 95 },
+      '今日头条': { count: 1, avgHeat: 88, maxHeat: 88 },
+      '百度热搜': { count: 1, avgHeat: 90, maxHeat: 90 }
     }
   });
 });
 
 // ========== NewsNow 数据源 API ==========
 
-// NewsNow 支持的数据源列表
 const NEWSNOW_SOURCES = [
   { id: 'weibo', name: '微博热搜', enabled: true },
   { id: 'zhihu', name: '知乎热榜', enabled: true },
   { id: 'toutiao', name: '今日头条', enabled: true },
   { id: 'baidu', name: '百度热搜', enabled: true },
   { id: 'douyin', name: '抖音热点', enabled: true },
-  { id: 'bilibili', name: 'B站热门', enabled: true }
+  { id: 'bilibili-hot-search', name: 'B站热门', enabled: true },
+  { id: 'thepaper', name: '澎湃新闻', enabled: true },
+  { id: 'wallstreetcn-hot', name: '华尔街见闻', enabled: true }
 ];
 
 app.get('/api/hot-topics/newsnow/sources', (req, res) => {
@@ -301,10 +267,8 @@ app.post('/api/hot-topics/newsnow/fetch', async (req, res) => {
   try {
     const { sources, maxItems = 20 } = req.body;
 
-    // 使用已缓存的热点数据
     let topics = cachedTopics;
 
-    // 如果指定了数据源，过滤数据
     if (sources && Array.isArray(sources) && sources.length > 0) {
       const sourceNames = sources.map(s => {
         const source = NEWSNOW_SOURCES.find(ns => ns.id === s);
@@ -313,7 +277,6 @@ app.post('/api/hot-topics/newsnow/fetch', async (req, res) => {
       topics = cachedTopics.filter(t => sourceNames.includes(t.source));
     }
 
-    // 限制返回数量
     topics = topics.slice(0, maxItems);
 
     res.json({
@@ -333,42 +296,50 @@ app.post('/api/hot-topics/newsnow/fetch', async (req, res) => {
   }
 });
 
-app.get('/api/hot-topics/newsnow/fetch/:sourceId', (req, res) => {
-  const { sourceId } = req.params;
-  const { maxItems = 20 } = req.query;
+app.get('/api/hot-topics/newsnow/fetch/:sourceId', async (req, res) => {
+  try {
+    const { sourceId } = req.params;
+    const { maxItems = 20 } = req.query;
 
-  const source = NEWSNOW_SOURCES.find(s => s.id === sourceId);
-  if (!source) {
-    return res.status(400).json({
+    const source = NEWSNOW_SOURCES.find(s => s.id === sourceId);
+    if (!source) {
+      return res.status(400).json({
+        success: false,
+        message: `不支持的数据源: ${sourceId}`,
+        availableSources: NEWSNOW_SOURCES.map(s => s.id)
+      });
+    }
+
+    // 使用 NewsNowFetcher 获取指定数据源
+    const fetcher = new NewsNowFetcher({ sourceId, maxItems: parseInt(maxItems) });
+    const topics = await fetcher.fetchSource(sourceId);
+
+    res.json({
+      success: true,
+      data: {
+        source: sourceId,
+        sourceName: source.name,
+        count: topics.length,
+        topics
+      }
+    });
+  } catch (error) {
+    console.error('获取数据源热点失败:', error);
+    res.status(500).json({
       success: false,
-      message: `不支持的数据源: ${sourceId}`,
-      availableSources: NEWSNOW_SOURCES.map(s => s.id)
+      message: '获取数据源热点失败'
     });
   }
-
-  // 过滤指定数据源的热点
-  const topics = cachedTopics
-    .filter(t => t.source === source.name)
-    .slice(0, parseInt(maxItems));
-
-  res.json({
-    success: true,
-    data: {
-      source: sourceId,
-      sourceName: source.name,
-      count: topics.length,
-      topics
-    }
-  });
 });
 
-// 数据源列表 API（另一种路径）
 app.get('/api/hot-topics/sources', (req, res) => {
   res.json({
     success: true,
     data: NEWSNOW_SOURCES
   });
 });
+
+// ========== 内容相关 API ==========
 
 app.get('/api/content', (req, res) => {
   res.json({
@@ -552,10 +523,9 @@ app.get('/api/transcription/:taskId', (req, res) => {
         engine: 'whisper-local',
         duration: 60,
         language: 'zh-CN',
-        text: '这是一个示例转录文本，展示了 AI 语音识别的能力。视频内容围绕热点话题展开讨论，提供了深入的见解和分析。',
+        text: '这是一个示例转录文本，展示了 AI 语音识别的能力。',
         segments: [
-          { index: 0, start: 0, end: 5, text: '这是一个示例转录文本', confidence: 0.95 },
-          { index: 1, start: 5, end: 10, text: '展示了 AI 语音识别的能力', confidence: 0.92 }
+          { index: 0, start: 0, end: 5, text: '这是一个示例转录文本', confidence: 0.95 }
         ],
         keywords: ['AI', '语音识别', '转录'],
         metadata: { processingTime: 15000 }
@@ -574,9 +544,9 @@ app.get('/api/transcription/video/:videoId', (req, res) => {
         engine: 'whisper-local',
         duration: 60,
         language: 'zh-CN',
-        text: '这是一个示例转录文本，展示了 AI 语音识别的能力。视频内容围绕热点话题展开讨论，提供了深入的见解和分析。',
+        text: '这是一个示例转录文本',
         segments: [],
-        keywords: ['AI', '语音识别', '转录'],
+        keywords: ['AI', '语音识别'],
         metadata: { processingTime: 15000 }
       }
     }
@@ -604,19 +574,19 @@ app.post('/api/content/video-rewrite', (req, res) => {
       results: {
         xiaohongshu: {
           title: '爆款标题！一定要看',
-          content: '姐妹们！这个视频绝了！内容太精彩了，一定要分享给大家...\n\n#热点 #爆款',
-          tags: ['热点', '爆款', '必看']
+          content: '姐妹们！这个视频绝了！...',
+          tags: ['热点', '爆款']
         },
         douyin: {
-          hook: '三秒内不划走，后面更精彩！',
-          mainContent: '今天给大家分享一个超级热门的话题...',
-          cta: '点赞关注，不错过更多精彩内容！'
+          hook: '三秒内不划走！',
+          mainContent: '今天给大家分享...',
+          cta: '点赞关注！'
         },
         toutiao: {
-          title: '深度解析：热点话题背后的真相',
-          content: '近日，一个热点话题引发广泛关注。本文将从多个角度进行分析...',
-          microContent: '热点话题持续发酵，专家解读背后深意。',
-          tags: ['热点', '社会', '深度解析']
+          title: '深度解析：热点话题',
+          content: '近日，一个热点话题引发关注...',
+          microContent: '热点话题持续发酵。',
+          tags: ['热点', '社会']
         }
       }
     }
@@ -722,44 +692,15 @@ app.get('/api/analytics/content-types', (req, res) => {
 app.get('/api/analytics/top-content', (req, res) => {
   res.json({
     success: true,
-    data: [
-      { id: '1', title: 'AI技术突破：GPT-5即将发布', views: 12500, likes: 890, comments: 234 },
-      { id: '2', title: '春节档票房破百亿', views: 9800, likes: 654, comments: 187 },
-      { id: '3', title: '新能源汽车销量创新高', views: 7600, likes: 432, comments: 156 }
-    ]
+    data: cachedTopics.slice(0, 5).map((t, i) => ({
+      id: t._id,
+      title: t.title,
+      views: Math.floor(Math.random() * 10000) + 1000,
+      likes: Math.floor(Math.random() * 500) + 100,
+      comments: Math.floor(Math.random() * 100) + 20
+    }))
   });
 });
-
-app.get('/api/analytics/recommendation-insights', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      coldStartPerformance: 85,
-      userEngagement: 72,
-      contentQuality: 88,
-      recommendationScore: 82,
-      insights: [
-        '内容质量评分较高，继续保持',
-        '建议增加互动引导，提升用户参与度',
-        '新内容冷启动表现良好'
-      ]
-    }
-  });
-});
-
-app.get('/api/analytics/optimization-suggestions', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      titleOptimization: ['建议标题控制在20-30字', '加入数字增加点击率'],
-      contentOptimization: ['增加分段，提升可读性', '适当添加图片或视频'],
-      timingOptimization: ['建议在18:00-22:00发布', '周末发布效果更佳'],
-      audienceOptimization: ['关注科技领域用户', '针对年轻群体优化内容']
-    }
-  });
-});
-
-// ========== 发布队列 API ==========
 
 // ========== 内容生成相关 API ==========
 
@@ -812,17 +753,7 @@ app.delete('/api/content/:id', (req, res) => {
   });
 });
 
-// 启动性能追踪服务
-async function startPerformanceTracking() {
-  try {
-    const performanceTrackingService = require('./services/PerformanceTrackingService');
-    await performanceTrackingService.startTracking();
-    console.log('性能追踪服务已启动');
-  } catch (error) {
-    console.error('启动性能追踪服务失败:', error);
-  }
-}
-
+// 404 处理
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -830,22 +761,13 @@ app.use('*', (req, res) => {
   });
 });
 
+// 启动服务器
 app.listen(PORT, async () => {
-  // 健康检查端点
-  app.get("/api/health", (req, res) => {
-    res.json({
-      success: true,
-      message: "服务运行正常",
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime()
-    });
-  });
   console.log(`服务器启动成功，端口: ${PORT}`);
   console.log(`健康检查: http://localhost:${PORT}/api/health`);
-  await fetchAndCacheTopics(false);
   
-  // 启动性能追踪服务
-  await startPerformanceTracking();
+  // 启动时获取热点数据
+  await fetchAndCacheTopics(false);
 });
 
 module.exports = app;

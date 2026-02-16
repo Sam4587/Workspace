@@ -1,6 +1,6 @@
 const multiAIService = require('./multiAIService');
 const contentService = require('./ContentService');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class AIService {
   constructor() {

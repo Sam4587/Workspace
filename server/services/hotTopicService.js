@@ -1,8 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const NodeCache = require('node-cache');
-const HotTopic = require('../models/HotTopic');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 class HotTopicService {
   constructor() {

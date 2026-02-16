@@ -3,7 +3,7 @@
  * 根据不同平台风格改写视频内容
  */
 
-const { logger } = require('../../utils/logger');
+const logger = require('../../utils/logger');
 const { liteLLMAdapter } = require('../../ai');
 const prompts = require('../prompts/videoAnalysis');
 

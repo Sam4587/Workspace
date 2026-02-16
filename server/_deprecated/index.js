@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const cron = require('node-cron');
@@ -28,14 +27,11 @@ const { notificationDispatcher } = require('./notification');
 const { reportGenerator } = require('./reports');
 const { storageManager, topicAnalyzer, trendAnalyzer } = require('./core');
 
-// 内存存储 - 用于无 MongoDB 模式
+// 内存存储 - 用于轻量级存储方案
 const memoryStorage = {
   hotTopics: [],
   lastUpdate: null
 };
-
-// MongoDB 连接状态
-let isMongoConnected = false;
 
 // 安全中间件
 app.use(helmet({
@@ -79,42 +75,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 数据库连接（可选）
-const MONGODB_URI = process.env.MONGODB_URI;
-if (MONGODB_URI) {
-  mongoose.connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }).then(async () => {
-    console.log('MongoDB 连接成功');
-    isMongoConnected = true;
-    // 初始化 Prompt 管理服务
-    require('./services/promptManagementService').initialize();
 
-    // 初始化存储管理器
-    try {
-      await storageManager.initialize();
-      console.log('StorageManager 初始化成功');
-    } catch (error) {
-      console.warn('StorageManager 初始化失败:', error.message);
-    }
-
-    // 初始化 FetcherManager 默认数据源
-    try {
-      fetcherManager.initializeDefaultSources();
-      console.log('FetcherManager 初始化成功，已注册数据源:', Array.from(fetcherManager.getRegisteredSources()));
-    } catch (error) {
-      console.warn('FetcherManager 初始化失败:', error.message);
-    }
-  }).catch((error) => {
-    console.error('MongoDB 连接失败:', error);
-    console.log('将使用内存存储模式');
-  });
-} else {
-  console.log('未配置 MONGODB_URI，使用内存存储模式');
-  // 初始化内存数据
-  initializeMemoryStorage();
-}
+// 初始化内存存储（统一使用轻量级存储方案）
+console.log("使用轻量级存储方案（内存 + JSON 文件）");
+initializeMemoryStorage();
 
 // 初始化内存存储
 async function initializeMemoryStorage() {

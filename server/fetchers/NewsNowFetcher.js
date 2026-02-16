@@ -8,7 +8,7 @@
 
 const axios = require('axios');
 const BaseFetcher = require('./BaseFetcher');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const { SourceType, Source, Category, Trend } = require('../core/types');
 
 // 引入现有 fetchers 作为备用

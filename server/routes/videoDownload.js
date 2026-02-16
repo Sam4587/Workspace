@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { videoManager } = require('../video');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;

@@ -9,7 +9,7 @@ const KuaishouDownloader = require('./downloaders/KuaishouDownloader');
 const GenericDownloader = require('./downloaders/GenericDownloader');
 const WatermarkRemover = require('./WatermarkRemover');
 const VideoStorage = require('./VideoStorage');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 /**
  * 视频模块管理器

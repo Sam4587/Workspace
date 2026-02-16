@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const HotTopic = require('../models/HotTopic');
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 const TrendTimelineSchema = new mongoose.Schema({
   topicId: {

@@ -44,7 +44,7 @@ try {
   performanceTrackingService = null;
 }
 
-const { logger } = require('../utils/logger');
+const logger = require('../utils/logger');
 
 // 创建安全包装器函数
 const safeServiceCall = async (serviceCall, serviceName) => {
