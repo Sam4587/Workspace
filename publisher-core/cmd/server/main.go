@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/monkeycode/publisher-core/adapters"
+	"github.com/monkeycode/publisher-core/analytics"
 	"github.com/monkeycode/publisher-core/api"
 	"github.com/monkeycode/publisher-core/hotspot"
 	"github.com/monkeycode/publisher-core/hotspot/sources"
@@ -102,6 +103,17 @@ func main() {
 	// 注册热点 API 路由
 	hotspotAPI := hotspot.NewAPIHandler(hotspotService)
 	hotspotAPI.RegisterRoutes(server.Router())
+
+	// 创建分析服务
+	analyticsStorage, err := analytics.NewJSONStorage(dataDir + "/analytics")
+	if err != nil {
+		logrus.Warnf("创建分析存储失败: %v", err)
+	}
+	analyticsService := analytics.NewService(analyticsStorage)
+
+	// 注册分析 API 路由
+	analyticsAPI := analytics.NewAPIHandler(analyticsService)
+	analyticsAPI.RegisterRoutes(server.Router())
 
 	// 启动服务器
 	go func() {

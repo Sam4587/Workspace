@@ -16,6 +16,7 @@ const navItems = [
   { path: "/", label: "仪表盘", icon: "home" },
   { path: "/hot-topics", label: "热点监控", icon: "trending-up" },
   { path: "/content-generation", label: "AI 创作", icon: "sparkles" },
+  { path: "/analytics", label: "数据分析", icon: "chart" },
   { path: "/video-transcription", label: "视频转录", icon: "video" },
   { path: "/accounts", label: "账号管理", icon: "users" },
   { path: "/publish", label: "内容发布", icon: "edit" },
