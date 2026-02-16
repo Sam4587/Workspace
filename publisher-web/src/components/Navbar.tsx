@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 const navItems = [
   { path: "/", label: "仪表盘", icon: "home" },
   { path: "/hot-topics", label: "热点监控", icon: "trending-up" },
+  { path: "/content-generation", label: "AI 创作", icon: "sparkles" },
   { path: "/video-transcription", label: "视频转录", icon: "video" },
   { path: "/accounts", label: "账号管理", icon: "users" },
   { path: "/publish", label: "内容发布", icon: "edit" },

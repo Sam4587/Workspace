@@ -7,6 +7,7 @@ import Publish from "./pages/Publish"
 import History from "./pages/History"
 import HotTopics from "./pages/HotTopics"
 import VideoTranscription from "./pages/VideoTranscription"
+import ContentGeneration from "./pages/ContentGeneration"
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/history" element={<History />} />
             <Route path="/hot-topics" element={<HotTopics />} />
             <Route path="/video-transcription" element={<VideoTranscription />} />
+            <Route path="/content-generation" element={<ContentGeneration />} />
           </Routes>
         </div>
       </Router>

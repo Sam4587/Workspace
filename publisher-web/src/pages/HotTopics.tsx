@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { RefreshCw, Search, TrendingUp, ExternalLink, Sparkles, BarChart3, CheckSquare, Square } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -59,7 +60,13 @@ function HeatBar({ heat }: { heat: number }) {
 }
 
 // 热点卡片
-function TopicCard({ topic, onAnalyze, selected, onSelect }: { topic: HotTopic; onAnalyze: (topic: HotTopic) => void; selected: boolean; onSelect: () => void }) {
+function TopicCard({ topic, onAnalyze, onGenerate, selected, onSelect }: { 
+  topic: HotTopic; 
+  onAnalyze: (topic: HotTopic) => void; 
+  onGenerate: (topic: HotTopic) => void;
+  selected: boolean; 
+  onSelect: () => void 
+}) {
   return (
     <Card className={`hover:shadow-lg transition-shadow cursor-pointer group ${selected ? 'ring-2 ring-blue-500' : ''}`}>
       <CardHeader className="pb-2">
@@ -118,6 +125,7 @@ function TopicCard({ topic, onAnalyze, selected, onSelect }: { topic: HotTopic; 
                 e.stopPropagation()
                 onAnalyze(topic)
               }}
+              title="AI 分析"
             >
               <BarChart3 className="h-4 w-4" />
             </Button>
@@ -126,8 +134,9 @@ function TopicCard({ topic, onAnalyze, selected, onSelect }: { topic: HotTopic; 
               size="sm"
               onClick={(e) => {
                 e.stopPropagation()
-                onAnalyze(topic)
+                onGenerate(topic)
               }}
+              title="生成内容"
             >
               <Sparkles className="h-4 w-4" />
             </Button>
@@ -148,6 +157,7 @@ function TopicCard({ topic, onAnalyze, selected, onSelect }: { topic: HotTopic; 
 }
 
 export default function HotTopics() {
+  const navigate = useNavigate()
   const [topics, setTopics] = useState<HotTopic[]>([])
   const [sources, setSources] = useState<HotSource[]>([])
   const [newTopics, setNewTopics] = useState<HotTopic[]>([])
@@ -255,6 +265,16 @@ export default function HotTopics() {
   function handleAnalyze(topic: HotTopic) {
     setSelectedTopic(topic)
     setActiveModal('timeline')
+  }
+
+  // 生成内容
+  function handleGenerate(topic: HotTopic) {
+    navigate('/content-generation', { 
+      state: { 
+        topic: topic.title,
+        source: topic.source 
+      } 
+    })
   }
 
   // 选择话题
@@ -465,6 +485,7 @@ export default function HotTopics() {
               key={topic._id}
               topic={topic}
               onAnalyze={handleAnalyze}
+              onGenerate={handleGenerate}
               selected={selectedIds.includes(topic._id)}
               onSelect={() => handleSelectTopic(topic)}
             />
