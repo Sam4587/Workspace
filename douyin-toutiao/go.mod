@@ -6,11 +6,9 @@ require (
 	github.com/go-rod/rod v0.116.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/xpzouying/headless_browser v0.2.0
 )
 
 require (
-	github.com/go-rod/stealth v0.4.9 // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect
 	github.com/ysmood/got v0.40.0 // indirect

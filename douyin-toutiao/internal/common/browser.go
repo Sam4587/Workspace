@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	DefaultDelayMin = 300  * time.Millisecond
-	DefaultDelayMax = 2000 * time.Millisecond
-	DOMStableWait = 1 * time.Second
+	DefaultDelayMin   = 300 * time.Millisecond
+	DefaultDelayMax   = 2000 * time.Millisecond
+	DOMStableWait     = 1 * time.Second
 	DOMStableInterval = 100 * time.Millisecond
 )
 
 func WaitRandomDelay() {
-	delay := DefaultDelayMin + time.Duration(rand.Int63n(int(DefaultDelayMax-DefaultDelayMin)))
+	delay := DefaultDelayMin + time.Duration(rand.Int63n(int64(DefaultDelayMax-DefaultDelayMin)))
 	logrus.Debugf("随机延迟: %v", delay)
 	time.Sleep(delay)
 }
@@ -36,7 +36,7 @@ func WaitDOMStable(page *rod.Page) error {
 		})()`)
 
 		if err == nil {
-			if isStable {
+			if isStable.Value.Bool() {
 				logrus.Debug("DOM 已稳定")
 				return nil
 			}
@@ -80,7 +80,7 @@ func WaitForElement(page *rod.Page, selector string, timeout time.Duration) erro
 		case <-ctx.Done():
 			return errors.New("等待元素超时")
 		default:
-			if elem, err := page.Element(selector); err == nil {
+			if _, err := page.Element(selector); err == nil {
 				return nil
 			}
 			time.Sleep(100 * time.Millisecond)
@@ -89,7 +89,7 @@ func WaitForElement(page *rod.Page, selector string, timeout time.Duration) erro
 }
 
 func SafeNavigate(page *rod.Page, url string, timeout time.Duration) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	_, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	if err := page.Navigate(url); err != nil {

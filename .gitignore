@@ -28,8 +28,17 @@ build/
 *.swp
 *.swo
 
-# Cookies (sensitive data)
-cookies/
+# Cookies data files (sensitive data)
+cookies/*.json
+publisher-core/cookies/*.json
+douyin-toutiao/cookies/*.json
+
+# PID and log files
+pids/
+logs/
+
+# Uploads
+uploads/
 
 # OS
 .DS_Store
