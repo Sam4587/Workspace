@@ -37,7 +37,6 @@ let cachedTopics = [
     suitability: 88,
     trend: 'rising',
     keywords: ['AI', 'GPT', '大模型', 'OpenAI'],
-    publishedAt: new Date(Date.now() - 3600000).toISOString(),
     sourceUrl: 'https://example.com/topic1',
     createdAt: new Date().toISOString()
   },
@@ -51,7 +50,6 @@ let cachedTopics = [
     suitability: 85,
     trend: 'hot',
     keywords: ['春节档', '票房', '电影', '国产片'],
-    publishedAt: new Date(Date.now() - 7200000).toISOString(),
     sourceUrl: 'https://example.com/topic2',
     createdAt: new Date().toISOString()
   },
@@ -65,7 +63,6 @@ let cachedTopics = [
     suitability: 82,
     trend: 'stable',
     keywords: ['央行', '降准', '货币政策', '经济'],
-    publishedAt: new Date(Date.now() - 10800000).toISOString(),
     sourceUrl: 'https://example.com/topic3',
     createdAt: new Date().toISOString()
   },
@@ -79,7 +76,6 @@ let cachedTopics = [
     suitability: 90,
     trend: 'rising',
     keywords: ['冬奥会', '金牌', '体育', '中国队'],
-    publishedAt: new Date(Date.now() - 14400000).toISOString(),
     sourceUrl: 'https://example.com/topic4',
     createdAt: new Date().toISOString()
   },
@@ -93,7 +89,6 @@ let cachedTopics = [
     suitability: 78,
     trend: 'hot',
     keywords: ['新能源', '汽车', '销量', '电动车'],
-    publishedAt: new Date(Date.now() - 18000000).toISOString(),
     sourceUrl: 'https://example.com/topic5',
     createdAt: new Date().toISOString()
   },
@@ -107,7 +102,6 @@ let cachedTopics = [
     suitability: 75,
     trend: 'stable',
     keywords: ['房价', '楼市', '房产', '一线城市'],
-    publishedAt: new Date(Date.now() - 21600000).toISOString(),
     sourceUrl: 'https://example.com/topic6',
     createdAt: new Date().toISOString()
   }
@@ -407,7 +401,6 @@ app.get('/api/analytics/overview', (req, res) => {
   });
 });
 
-app.get('/api/publish/history', (req, res) => {
   res.json({
     success: true,
     data: [],
@@ -780,7 +773,6 @@ app.get('/api/analytics/optimization-suggestions', (req, res) => {
 
 // ========== 发布队列 API ==========
 
-app.get('/api/publish/queue', (req, res) => {
   res.json({
     success: true,
     data: [],
@@ -793,7 +785,6 @@ app.get('/api/publish/queue', (req, res) => {
   });
 });
 
-app.post('/api/publish/toutiao', (req, res) => {
   res.json({
     success: true,
     message: '发布任务已提交',

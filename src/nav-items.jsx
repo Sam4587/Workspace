@@ -1,13 +1,15 @@
-import { HomeIcon, TrendingUp, FileText, Send, BarChart3, Video } from "lucide-react";
+import { HomeIcon, TrendingUp, FileText, BarChart3, Video } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import HotTopics from "./pages/HotTopics.jsx";
 import ContentGeneration from "./pages/ContentGeneration.jsx";
-import Publishing from "./pages/Publishing.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import VideoGeneration from "./pages/VideoGeneration.jsx";
 
 /**
  * Central place for defining the navigation items. Used for navigation components and routing.
+ * 
+ * 注：发布管理功能已迁移至独立项目 publisher-tools
+ * 详见 PROJECT_SEPARATION.md
  */
 export const navItems = [
   {
@@ -27,12 +29,6 @@ export const navItems = [
     to: "/content-generation",
     icon: <FileText className="h-4 w-4" />,
     page: <ContentGeneration />,
-  },
-  {
-    title: "发布管理",
-    to: "/publishing",
-    icon: <Send className="h-4 w-4" />,
-    page: <Publishing />,
   },
   {
     title: "数据分析",

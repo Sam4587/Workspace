@@ -152,7 +152,6 @@ async function updateMemoryHotTopics() {
 // 内存版本会在有 MongoDB 时也保存数据到数据库
 app.use('/api/hot-topics', require('./routes/hotTopicsMemory'));
 app.use('/api/content', require('./routes/contentRewrite'));
-app.use('/api/publish', require('./routes/publish'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/video', require('./routes/video'));

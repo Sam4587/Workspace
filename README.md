@@ -1,13 +1,15 @@
-# TrendRadar - 热点内容监控与多平台发布系统
+# TrendRadar - 热点内容监控与AI内容生成系统
 
-一个集成热点监控、AI 内容生成、多平台发布的内容运营平台。
+一个集成热点监控、AI 内容生成、数据分析的内容运营平台。
+
+> **注意**：多平台发布功能已独立为单独项目，详见 [PROJECT_SEPARATION.md](./PROJECT_SEPARATION.md)
 
 ## 项目概述
 
 TrendRadar 是一个全栈内容运营系统，支持：
 - 热点话题自动监控与抓取
 - AI 驱动的内容生成
-- 多平台（抖音、今日头条、小红书）内容发布
+- 视频下载与智能转录
 - 数据分析与报告生成
 
 ## 技术栈
@@ -20,14 +22,11 @@ TrendRadar 是一个全栈内容运营系统，支持：
 
 ### 后端
 - **Node.js** + **Express**
-- **MongoDB** + **Mongoose** (仅生产环境)
+- **MongoDB** + **Mongoose** (生产环境)
 - **Winston** 日志管理
 - **PM2** 进程管理
 
 **开发环境**: 使用 `simple-server.js`，无需数据库依赖
-
-### CLI 工具
-- **Go 1.21+** + **Rod** 浏览器自动化
 
 ## 目录结构
 
@@ -36,6 +35,11 @@ project-root/
 ├── src/                    # 前端源码
 │   ├── components/         # UI 组件
 │   ├── pages/              # 页面
+│   │   ├── Index.jsx       # 总览
+│   │   ├── HotTopics.jsx   # 热点监控
+│   │   ├── ContentGeneration.jsx  # 内容生成
+│   │   ├── Analytics.jsx   # 数据分析
+│   │   └── VideoGeneration.jsx  # 视频生成
 │   ├── lib/                # 工具库
 │   ├── contexts/           # React Context
 │   └── providers/          # Provider
@@ -53,17 +57,7 @@ project-root/
 │   ├── simple-server.js    # 开发用简单服务器（无需 MongoDB）
 │   └── utils/              # 工具函数
 │
-├── tools/                  # CLI 工具
-│   ├── douyin-toutiao/     # 抖音/头条发布工具
-│   ├── xiaohongshu-publisher/  # 小红书发布工具
-│   └── publisher-web/      # 前端 Web 界面
-│
 ├── docs/                   # 项目文档
-│   ├── PROJECT_SUMMARY.md  # 项目总结
-│   ├── plans/              # 设计文档
-│   ├── mcp/                # MCP 相关文档
-│   └── tools/              # 工具文档
-│
 ├── scripts/                # 脚本
 ├── nginx/                  # Nginx 配置
 ├── .monkeycode/            # 项目规格文档
@@ -74,7 +68,6 @@ project-root/
 
 ### 环境要求
 - Node.js 18+
-- Go 1.21+ (用于 CLI 工具)
 
 ### 安装依赖
 
@@ -100,15 +93,6 @@ npm run dev
 
 - **后端地址**: http://localhost:5000
 - **前端地址**: http://localhost:5173
-
-#### 简单服务器说明
-
-`server/simple-server.js` 是一个轻量级开发服务器，提供以下功能：
-- **无需数据库**：使用内存存储，适合快速开发测试
-- **Mock API**：模拟热点监控、视频转录、内容改写等 API 响应
-- **CORS 支持**：已配置跨域支持
-
-如需完整的 MongoDB 功能，请参考下方"生产环境配置"。
 
 ### 生产构建
 
@@ -140,41 +124,21 @@ cd server && npm start
 - **视频下载**: 支持抖音、快手等平台视频下载
 - **AI 转录**: Whisper 本地模型 + 阿里云 ASR 备选
 - **智能改写**: 多平台风格内容改写（小红书、抖音、今日头条）
-- **一键发布**: 改写内容直接发布到各平台
 
 ### 3. AI 内容生成
 - 多模型支持（OpenAI、Groq、Cerebras）
 - LiteLLM 集成
 - 内容质量评估
 
-### 4. 多平台发布
-- 抖音图文/视频发布
-- 今日头条发布
-- 小红书发布
-
-### 5. 数据分析
+### 4. 数据分析
 - 发布数据统计
 - 内容表现分析
 - 趋势报告生成
 
-## CLI 工具使用
-
-### 抖音/头条发布工具
-
-```bash
-cd tools/douyin-toutiao
-
-# 编译
-go build -o publisher .
-
-# 登录
-./publisher -platform douyin -login
-
-# 发布内容
-./publisher -platform douyin -title "标题" -content "内容" -images "img1.jpg"
-```
-
-详细文档请参考 [docs/tools/](./docs/tools/)
+### 5. 视频生成
+- Remotion 视频生成
+- 模板系统
+- 批量渲染
 
 ## API 接口
 
@@ -226,12 +190,26 @@ docker-compose up -d
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
+## 项目分离说明
+
+**多平台发布功能已独立为单独项目 `Publisher Tools`**
+
+| 功能 | 状态 |
+|------|------|
+| 热点监控 | ✅ 保留 |
+| AI 内容生成 | ✅ 保留 |
+| 视频转录 | ✅ 保留 |
+| 数据分析 | ✅ 保留 |
+| 视频生成 | ✅ 保留 |
+| 多平台发布 | ❌ 已独立 |
+
+详见 [PROJECT_SEPARATION.md](./PROJECT_SEPARATION.md)
+
 ## 文档
 
+- [项目分离说明](./PROJECT_SEPARATION.md)
 - [项目总结](./docs/PROJECT_SUMMARY.md)
 - [视频转录功能设计](./docs/plans/2026-02-15-video-transcription-design.md)
-- [抖音/头条工具架构](./docs/tools/douyin-toutiao-architecture.md)
-- [小红书工具文档](./docs/tools/xiaohongshu-project.md)
 - [MCP 集成文档](./docs/mcp/)
 
 ## 开发注意事项
