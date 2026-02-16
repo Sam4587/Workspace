@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/monkeycode/publisher-core/adapters"
+	"github.com/monkeycode/publisher-core/ai"
+	"github.com/monkeycode/publisher-core/ai/provider"
 	"github.com/monkeycode/publisher-core/analytics"
 	"github.com/monkeycode/publisher-core/api"
 	"github.com/monkeycode/publisher-core/hotspot"
@@ -84,6 +86,16 @@ func main() {
 	server.WithPublisher(publisherService)
 	server.WithStorage(storageService)
 	server.WithTaskManager(taskService)
+
+	// 创建 AI 服务
+	aiService := ai.NewServiceWithDefaults()
+	// 注册 AI 提供商 (需要配置 API Key)
+	// aiService.RegisterProvider(provider.NewOpenRouterProvider("your-api-key"))
+	// aiService.RegisterProvider(provider.NewDeepSeekProvider("your-api-key"))
+
+	// 创建 AI 服务适配器
+	aiAdapter := &AIServiceAdapter{service: aiService}
+	server.WithAI(aiAdapter)
 
 	// 创建热点服务
 	hotspotStorage, err := hotspot.NewJSONStorage(dataDir)
@@ -274,4 +286,33 @@ func (s *TaskService) ListTasks(status string, platform string, limit int) (inte
 
 func (s *TaskService) CancelTask(taskID string) error {
 	return s.taskMgr.Cancel(taskID)
+}
+
+// AIServiceAdapter AI 服务适配器
+type AIServiceAdapter struct {
+	service *ai.Service
+}
+
+func (a *AIServiceAdapter) Generate(providerName string, opts *provider.GenerateOptions) (*provider.GenerateResult, error) {
+	return a.service.Generate(context.Background(), opts)
+}
+
+func (a *AIServiceAdapter) GenerateStream(providerName string, opts *provider.GenerateOptions) (<-chan string, error) {
+	return a.service.GenerateStream(context.Background(), opts)
+}
+
+func (a *AIServiceAdapter) ListProviders() []string {
+	providers := a.service.ListProviders()
+	if len(providers) == 0 {
+		return []string{"none"}
+	}
+	result := make([]string, len(providers))
+	for i, p := range providers {
+		result[i] = string(p)
+	}
+	return result
+}
+
+func (a *AIServiceAdapter) ListModels() map[string][]string {
+	return a.service.ListModels()
 }
