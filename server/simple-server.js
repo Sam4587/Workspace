@@ -816,6 +816,16 @@ app.use('*', (req, res) => {
 });
 
 app.listen(PORT, async () => {
+
+// 健康检查端点
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "服务运行正常",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
   console.log(`服务器启动成功，端口: ${PORT}`);
   console.log(`健康检查: http://localhost:${PORT}/api/health`);
   await fetchAndCacheTopics(false);

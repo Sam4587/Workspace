@@ -1,79 +1,69 @@
-import { fileURLToPath, URL } from 'url';
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
-import { tmpdir } from 'os';
-import { devLogger } from '@meituan-nocode/vite-plugin-dev-logger';
-import {
-  devHtmlTransformer,
-  prodHtmlTransformer,
-} from '@meituan-nocode/vite-plugin-nocode-html-transformer';
-import react from '@vitejs/plugin-react';
-
-const CHAT_VARIABLE = process.env.CHAT_VARIABLE || '';
-const PUBLIC_PATH = process.env.PUBLIC_PATH || '';
-
-const isProdEnv = process.env.NODE_ENV === 'production';
-const publicPath = (isProdEnv && CHAT_VARIABLE)
-  ? PUBLIC_PATH + '/' + CHAT_VARIABLE
-  : PUBLIC_PATH + '/';
-const outDir = (isProdEnv && CHAT_VARIABLE) ? 'build/' + CHAT_VARIABLE : 'build';
-
-async function loadPlugins() {
-  const plugins = isProdEnv
-  ? CHAT_VARIABLE
-    ? [react(), prodHtmlTransformer(CHAT_VARIABLE)]
-    : [react()]
-  : [
-      devLogger({
-        dirname: resolve(tmpdir(), '.nocode-dev-logs'),
-        maxFiles: '3d',
-      }),
-      react(),
-      devHtmlTransformer(CHAT_VARIABLE),
-    ];
-
-  if (process.env.NOCODE_COMPILER_PATH) {
-    const { componentCompiler } = await import(process.env.NOCODE_COMPILER_PATH);
-    plugins.push(componentCompiler());
-  }
-  return plugins;
-}
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig(async () => {
-  const plugins = await loadPlugins();
-
-  return {
-    server: {
-      host: '::',
-      port: '8080',
-      hmr: {
-        overlay: false,
-      },
-      allowedHosts: ['.monkeycode-ai.online'],
-      proxy: {
-        '/api': {
-          target: 'http://localhost:5000',
-          changeOrigin: true,
-        },
-      },
+export default defineConfig({
+  plugins: [react()],
+  
+  // 开发服务器配置
+  server: {
+    port: 5174,
+    host: '0.0.0.0', // 允许外部访问
+    open: false, // 不自动打开浏览器
+    cors: true, // 启用 CORS
+    
+    // API 代理配置
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+        // 保留请求头
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Sending Request to the Target:', req.url);
+          });
+        }
+      }
+    }
+  },
+  
+  // 预览服务器配置
+  preview: {
+    port: 4173,
+    host: '0.0.0.0'
+  },
+  
+  // 路径别名
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
-    plugins,
-    base: publicPath,
-    build: {
-      outDir,
-    },
-    resolve: {
-      alias: [
-        {
-          find: '@',
-          replacement: fileURLToPath(new URL('./src', import.meta.url)),
-        },
-        {
-          find: 'lib',
-          replacement: resolve(__dirname, 'lib'),
-        },
-      ],
-    },
-  };
-});
+  },
+  
+  // 构建配置
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
+          query: ['@tanstack/react-query'],
+        }
+      }
+    }
+  },
+  
+  // 优化依赖预构建
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'axios'],
+    exclude: []
+  }
+})
