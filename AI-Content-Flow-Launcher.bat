@@ -34,18 +34,32 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: 检查项目目录
+:: 切换到项目目录
 cd /d "%~dp0"
+
+:: 检查 scripts 目录是否存在
+if not exist "scripts\project-launcher.cjs" (
+    echo [错误] 找不到启动脚本: scripts\project-launcher.cjs
+    echo [信息] 请确保在项目根目录运行此脚本
+    pause
+    exit /b 1
+)
 
 :: 启动项目
 echo [信息] 正在启动服务...
 echo.
 
-node scripts/project-launcher.js %*
+node scripts/project-launcher.cjs %*
+
+:: 获取退出码
+set EXIT_CODE=%ERRORLEVEL%
 
 :: 如果启动失败，暂停显示错误
-if errorlevel 1 (
+if %EXIT_CODE% neq 0 (
     echo.
-    echo [错误] 启动失败，请检查错误信息
+    echo [错误] 启动失败，退出码: %EXIT_CODE%
+    echo.
     pause
 )
+
+exit /b %EXIT_CODE%
