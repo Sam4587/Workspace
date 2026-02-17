@@ -7,12 +7,12 @@ const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
+    <div className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col shadow-sm">
       {/* Logo区域 */}
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <Bot className="h-8 w-8 text-primary flex-shrink-0" />
-          <h1 className="text-xl font-bold text-card-foreground">AI创作系统</h1>
+          <Bot className="h-8 w-8 text-blue-600 flex-shrink-0" />
+          <h1 className="text-xl font-bold text-gray-900">AI创作系统</h1>
         </div>
       </div>
       
@@ -29,8 +29,8 @@ const Sidebar = () => {
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
                     ${isActive
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
                     }
                   `}
                 >
@@ -46,8 +46,8 @@ const Sidebar = () => {
       </nav>
       
       {/* 底部信息 */}
-      <div className="p-4 border-t border-border">
-        <div className="text-xs text-muted-foreground text-center">
+      <div className="p-4 border-t border-gray-200">
+        <div className="text-xs text-gray-500 text-center">
           AI Content Flow v1.0
         </div>
       </div>
