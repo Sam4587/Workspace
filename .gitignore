@@ -33,3 +33,16 @@ logs/
 *.swp
 *.swo
 *~
+
+# 备份文件
+.backups/
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# 测试残留
+coverage/
+.nyc_output/
