@@ -7,34 +7,50 @@ const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="w-64 bg-card shadow-lg border-r border-border">
-      <div className="p-6">
-        <div className="flex items-center space-x-2">
-          <Bot className="h-8 w-8 text-primary" />
+    <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
+      {/* Logo区域 */}
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center gap-3">
+          <Bot className="h-8 w-8 text-primary flex-shrink-0" />
           <h1 className="text-xl font-bold text-card-foreground">AI创作系统</h1>
         </div>
       </div>
       
-      <nav className="mt-6 space-y-1">
-        {navItems.filter(item => !item.hidden).map((item) => {
-          const isActive = location.pathname === item.to;
-          
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-accent text-accent-foreground border-r-2 border-primary'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              <span className="flex-shrink-0">{item.icon}</span>
-              <span>{item.title}</span>
-            </Link>
-          );
-        })}
+      {/* 导航菜单 */}
+      <nav className="flex-1 py-4">
+        <ul className="space-y-1 px-3">
+          {navItems.filter(item => !item.hidden).map((item) => {
+            const isActive = location.pathname === item.to;
+            
+            return (
+              <li key={item.to}>
+                <Link
+                  to={item.to}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
+                    ${isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    }
+                  `}
+                >
+                  <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                    {item.icon}
+                  </span>
+                  <span className="truncate">{item.title}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
+      
+      {/* 底部信息 */}
+      <div className="p-4 border-t border-border">
+        <div className="text-xs text-muted-foreground text-center">
+          AI Content Flow v1.0
+        </div>
+      </div>
     </div>
   );
 };
