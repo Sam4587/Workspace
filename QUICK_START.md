@@ -1,83 +1,102 @@
 # 🚀 快速启动指南
 
-## ⚠️ 当前环境说明
+## 📋 项目标准端口
 
-由于当前环境限制，前端开发服务器可能无法直接运行（Bus error）。
-请使用以下替代方案：
+| 服务 | 端口 | 访问地址 |
+|------|------|----------|
+| 前端开发 | 5174 | http://localhost:5174 |
+| 后端API | 5001 | http://localhost:5001 |
+| 前端生产 | 3000 | http://localhost:3000 |
 
-## 方案1：使用Docker部署（推荐）
+---
 
-```bash
-# 安装Docker和Docker Compose
-# 然后运行：
-docker-compose up -d
+## 方案1：本地开发启动（推荐）
 
-# 访问服务
-# http://localhost:8080
-```
-
-## 方案2：本地完整环境启动
-
-### 后端启动
+### 1. 安装依赖
 
 ```bash
-cd publisher-core
-
-# 首次需要编译（需要Go环境）
-go build -o bin/publisher-server cmd/server/main.go
-
-# 启动服务
-./bin/publisher-server -port 8080
-```
-
-### 前端启动
-
-```bash
-cd publisher-web
-
-# 安装依赖
+# 安装前端依赖
 npm install
 
-# 启动开发服务器
-npm run dev
-
-# 如果遇到Bus error，尝试：
-npm run build
-npm run preview
+# 安装后端依赖
+cd server && npm install && cd ..
 ```
 
-## 方案3：使用生产构建
+### 2. 配置环境变量
 
 ```bash
-# 构建前端
-cd publisher-web
-npm run build
+# 复制环境变量模板
+cp server/.env.example server/.env
 
-# 使用静态文件服务器
-npx serve -s dist -p 5173
+# 编辑 server/.env，填入必要的配置
+# 主要是 MONGODB_URI 和 AI API Keys
 ```
 
-## 验证服务
+### 3. 启动开发服务器
+
+```bash
+# 方式A：使用自动开发服务器（同时启动前后端）
+npm run dev:all
+
+# 方式B：分别启动
+# 终端1：启动后端
+cd server && npm run dev
+
+# 终端2：启动前端
+npm run dev
+```
+
+### 4. 验证服务
 
 ```bash
 # 检查后端
-curl http://localhost:8080/health
+curl http://localhost:5001/api/health
 
-# 检查前端（浏览器）
-# http://localhost:5173
+# 检查前端（浏览器访问）
+# http://localhost:5174
 ```
 
-## 常见问题
+---
+
+## 方案2：使用Docker部署
+
+```bash
+# 构建并启动
+docker-compose up -d
+
+# 访问服务
+# 前端: http://localhost:3000
+# 后端: http://localhost:5001
+```
+
+---
+
+## 方案3：生产构建
+
+```bash
+# 构建前端
+npm run build
+
+# 预览生产构建
+npm run preview
+```
+
+---
+
+## 🔧 常见问题
 
 ### 1. 端口被占用
 
 ```bash
-# 查找并杀死占用进程
-lsof -i :8080
-kill -9 <PID>
+# Windows - 查找占用端口的进程
+netstat -ano | findstr :5001
+netstat -ano | findstr :5174
+
+# 终止进程
+taskkill /PID <进程ID> /F
 ```
 
-### 2. 前端启动失败
+### 2. 依赖安装失败
 
 ```bash
 # 清除缓存重试
@@ -85,20 +104,14 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
-### 3. Go环境缺失
+### 3. 环境变量配置
 
-```bash
-# Ubuntu/Debian
-sudo apt-get install golang-go
+参考 `server/.env.example` 文件，创建自己的 `.env` 文件。
 
-# macOS
-brew install go
+---
 
-# 或使用Docker
-```
+## 📚 相关文档
 
-## 📞 需要帮助？
-
-- 查看 README.md
-- 查看日志: `./start.sh --logs`
-- 提交Issue到GitHub
+- [标准端口配置](docs/STANDARD_PORT_CONFIGURATION.md)
+- [环境变量标准](docs/ENVIRONMENT_VARIABLES_STANDARD.md)
+- [开发工作流](docs/02-development/workflow.md)

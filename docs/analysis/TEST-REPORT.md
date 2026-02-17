@@ -1,8 +1,8 @@
 # 功能测试报告
 
 ## 测试环境
-- 后端: http://localhost:8080
-- 前端: http://localhost:5173
+- 后端: http://localhost:5001
+- 前端: http://localhost:5174
 - 测试时间: 2026-02-16
 
 ## 测试结果

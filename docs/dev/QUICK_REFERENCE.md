@@ -85,7 +85,7 @@ git commit -m "feat: xxx" # 提交
 git push origin master    # 推送
 
 # 健康检查
-curl http://localhost:5000/api/health
+curl http://localhost:5001/api/health
 ```
 
 ---
@@ -95,7 +95,7 @@ curl http://localhost:5000/api/health
 | 服务 | 地址 |
 |------|------|
 | 前端 | http://localhost:5174 |
-| 后端 | http://localhost:5000 |
+| 后端 | http://localhost:5001 |
 
 ---
 

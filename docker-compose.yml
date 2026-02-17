@@ -2,57 +2,51 @@ version: '3.8'
 
 services:
   # 后端API服务
-  publisher-server:
+  app-server:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: publisher-server
+    container_name: ai-content-server
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "5001:5001"
     environment:
       - TZ=Asia/Shanghai
-      - HEADLESS=true
-      - DEBUG=false
+      - NODE_ENV=production
+      - PORT=5001
     volumes:
       - ./uploads:/app/uploads
-      - ./cookies:/app/cookies
-      - ./data:/app/data
       - ./logs:/app/logs
     networks:
-      - publisher-network
+      - app-network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # 前端开发服务（开发模式）
-  publisher-web:
-    image: node:18-alpine
-    container_name: publisher-web
+  # 前端生产服务
+  app-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    container_name: ai-content-web
     restart: unless-stopped
-    working_dir: /app
     ports:
-      - "5173:5173"
+      - "3000:3000"
     environment:
       - TZ=Asia/Shanghai
-    volumes:
-      - ./publisher-web:/app
-      - /app/node_modules
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     networks:
-      - publisher-network
+      - app-network
     depends_on:
-      - publisher-server
+      - app-server
 
 networks:
-  publisher-network:
+  app-network:
     driver: bridge
 
 volumes:
   uploads:
-  cookies:
-  data:
   logs:
