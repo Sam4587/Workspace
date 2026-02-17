@@ -15,7 +15,7 @@ const Sidebar = () => {
         </div>
       </div>
       
-      <nav className="mt-6">
+      <nav className="mt-6 space-y-1">
         {navItems.filter(item => !item.hidden).map((item) => {
           const isActive = location.pathname === item.to;
           
@@ -23,14 +23,14 @@ const Sidebar = () => {
             <Link
               key={item.to}
               to={item.to}
-              className={`flex items-center px-6 py-3 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-accent text-accent-foreground border-r-2 border-primary'
                   : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`}
             >
-              {item.icon}
-              <span className="ml-3">{item.title}</span>
+              <span className="flex-shrink-0">{item.icon}</span>
+              <span>{item.title}</span>
             </Link>
           );
         })}
