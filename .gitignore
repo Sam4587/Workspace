@@ -50,3 +50,6 @@ coverage/
 # 临时查询文件
 query
 *.query
+
+# 待开发目录
+publisher-web/
