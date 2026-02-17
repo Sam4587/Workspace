@@ -1,75 +1,80 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: 设置代码页为 UTF-8 (如果失败也不影响)
-chcp 65001 >nul 2>&1
+:: Set UTF-8 encoding
+call :setUTF8
 
-title AI Content Flow - 项目启动器
+title AI Content Flow Launcher
 
-:: 设置窗口颜色
-color 0B
-
-:: 清屏
 cls
 
 echo.
 echo ============================================
-echo    AI Content Flow - 项目启动器
+echo    AI Content Flow Launcher
 echo ============================================
 echo.
-echo  正在启动项目服务...
+echo  Starting project services...
 echo.
-echo  服务端口配置:
-echo    前端: http://localhost:5174
-echo    后端: http://localhost:5001
-echo    MongoDB: 27017
-echo    Redis: 6379
+echo  Service Port Configuration:
+echo    Frontend: http://localhost:5174
+echo    Backend:  http://localhost:5001
+echo    MongoDB:  27017
+echo    Redis:    6379
 echo.
 
-:: 检查 Node.js
-echo [检查] 正在检查 Node.js 环境...
+:: Check Node.js
+echo [Check] Checking Node.js environment...
 node --version >nul 2>&1
 if errorlevel 1 (
-    echo [错误] 未检测到 Node.js，请先安装 Node.js 18+
-    echo [信息] 下载地址: https://nodejs.org/
+    echo [Error] Node.js not detected. Please install Node.js 18+
+    echo [Info] Download: https://nodejs.org/
     pause
     exit /b 1
 )
 
 for /f "tokens=*" %%a in ('node --version') do (
-    echo [成功] Node.js 版本: %%a
+    echo [OK] Node.js version: %%a
 )
 
-:: 切换到项目目录
+:: Switch to project directory
 cd /d "%~dp0"
-echo [信息] 项目目录: %CD%
+echo [Info] Project directory: %CD%
 
-:: 检查 scripts 目录
-echo [检查] 正在检查启动脚本...
+:: Check scripts directory
+echo [Check] Checking launcher script...
 if not exist "scripts\project-launcher.cjs" (
-    echo [错误] 找不到启动脚本: scripts\project-launcher.cjs
-    echo [信息] 请确保在项目根目录运行此脚本
+    echo [Error] Launcher script not found: scripts\project-launcher.cjs
+    echo [Info] Please ensure running from project root
     pause
     exit /b 1
 )
-echo [成功] 找到启动脚本
+echo [OK] Launcher script found
 
-:: 启动项目
+:: Start project
 echo.
-echo [启动] 正在启动服务...
+echo [Start] Starting services...
 echo.
 
 node scripts/project-launcher.cjs %*
 
-:: 获取退出码
+:: Get exit code
 set EXIT_CODE=%ERRORLEVEL%
 
-:: 如果启动失败，暂停显示错误
+:: Pause if failed
 if %EXIT_CODE% neq 0 (
     echo.
-    echo [错误] 启动失败，退出码: %EXIT_CODE%
+    echo [Error] Startup failed, exit code: %EXIT_CODE%
     echo.
     pause
 )
 
 exit /b %EXIT_CODE%
+
+:setUTF8
+:: Try to set UTF-8 encoding
+chcp 65001 >nul 2>&1
+if errorlevel 1 (
+    :: Fallback to default encoding
+    chcp 936 >nul 2>&1
+)
+goto :eof
