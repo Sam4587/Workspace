@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: mcp-publish-platform
+    ports:
+      - "18060:18060"
+    environment:
+      - ROD_BROWSER_BIN=/usr/bin/chromium-browser
+      - PORT=18060
+      - HEADLESS=true
+    volumes:
+      - ./cookies:/app/cookies
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:18060/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
