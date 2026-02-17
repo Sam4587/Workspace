@@ -128,17 +128,49 @@ async function checkService(url, timeout = 5000) {
 // 检查并安装依赖
 async function checkAndInstallDependencies(name, cwd) {
   const nodeModulesPath = path.join(cwd, 'node_modules');
+  const packageJsonPath = path.join(cwd, 'package.json');
   
-  if (fs.existsSync(nodeModulesPath)) {
-    log('success', `${name} dependencies already installed`);
-    return true;
+  // 检查 package.json 是否存在
+  if (!fs.existsSync(packageJsonPath)) {
+    log('error', `${name} package.json not found at ${cwd}`);
+    return false;
   }
   
-  log('warning', `${name} dependencies not found`);
+  // 检查 node_modules 是否存在且不为空
+  if (fs.existsSync(nodeModulesPath)) {
+    const files = fs.readdirSync(nodeModulesPath);
+    if (files.length > 0) {
+      log('success', `${name} dependencies already installed (${files.length} packages)`);
+      return true;
+    }
+  }
+  
+  log('warning', `${name} dependencies not found or empty`);
   log('info', `Installing ${name} dependencies...`);
+  log('info', `Running: npm install in ${cwd}`);
   
   try {
-    await execCommand('npm install', cwd, { silent: true });
+    // 使用 spawn 而不是 execCommand，以便看到实时输出
+    await new Promise((resolve, reject) => {
+      const proc = spawn('npm', ['install'], {
+        cwd,
+        shell: true,
+        stdio: 'inherit'
+      });
+      
+      proc.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`npm install exited with code ${code}`));
+        }
+      });
+      
+      proc.on('error', (err) => {
+        reject(err);
+      });
+    });
+    
     log('success', `${name} dependencies installed successfully`);
     return true;
   } catch (err) {

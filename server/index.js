@@ -1,2 +1,3 @@
-// 入口文件，指向 deprecated 的 index.js
-module.exports = require('./_deprecated/index');
+// Server entry point
+const server = require('./server');
+module.exports = server;
