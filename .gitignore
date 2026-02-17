@@ -46,3 +46,7 @@ Thumbs.db
 # 测试残留
 coverage/
 .nyc_output/
+
+# 临时查询文件
+query
+*.query
