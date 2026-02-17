@@ -7,37 +7,94 @@ const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col shadow-sm">
+    <div style={{
+      width: '250px',
+      height: '100vh',
+      backgroundColor: '#ffffff',
+      borderRight: '1px solid #e5e7eb',
+      display: 'flex',
+      flexDirection: 'column',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    }}>
       {/* Logo区域 */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <Bot className="h-8 w-8 text-blue-600 flex-shrink-0" />
-          <h1 className="text-xl font-bold text-gray-900">AI创作系统</h1>
-        </div>
+      <div style={{
+        padding: '24px',
+        borderBottom: '1px solid #e5e7eb',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px'
+      }}>
+        <Bot size={32} style={{ color: '#2563eb', flexShrink: 0 }} />
+        <h1 style={{
+          fontSize: '20px',
+          fontWeight: 'bold',
+          color: '#111827',
+          margin: 0
+        }}>AI创作系统</h1>
       </div>
       
       {/* 导航菜单 */}
-      <nav className="flex-1 py-4">
-        <ul className="space-y-1 px-3">
+      <nav style={{
+        flex: 1,
+        padding: '16px'
+      }}>
+        <ul style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+          gap: '4px',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
           {navItems.filter(item => !item.hidden).map((item) => {
             const isActive = location.pathname === item.to;
             
             return (
-              <li key={item.to}>
+              <li key={item.to} style={{ marginBottom: '4px' }}>
                 <Link
                   to={item.to}
-                  className={`
-                    flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
-                    ${isActive
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-700 hover:bg-gray-100'
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                    ...(isActive
+                      ? {
+                          backgroundColor: '#2563eb',
+                          color: '#ffffff',
+                          boxShadow: '0 2px 4px rgba(37, 99, 235, 0.3)'
+                        }
+                      : {
+                          color: '#4b5563',
+                          backgroundColor: 'transparent',
+                          ':hover': {
+                            backgroundColor: '#f3f4f6'
+                          }
+                        }
+                    )
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = '#f3f4f6';
                     }
-                  `}
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
                 >
-                  <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                  <span style={{ flexShrink: 0, width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {item.icon}
                   </span>
-                  <span className="truncate">{item.title}</span>
+                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.title}
+                  </span>
                 </Link>
               </li>
             );
@@ -46,8 +103,15 @@ const Sidebar = () => {
       </nav>
       
       {/* 底部信息 */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500 text-center">
+      <div style={{
+        padding: '16px',
+        borderTop: '1px solid #e5e7eb'
+      }}>
+        <div style={{
+          fontSize: '12px',
+          color: '#6b7280',
+          textAlign: 'center'
+        }}>
           AI Content Flow v1.0
         </div>
       </div>

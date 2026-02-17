@@ -3,10 +3,21 @@ import Sidebar from './Sidebar';
 
 export const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f9fafb',
+      display: 'flex'
+    }}>
       <Sidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6 max-w-7xl mx-auto">
+      <main style={{
+        flex: 1,
+        overflow: 'auto'
+      }}>
+        <div style={{
+          padding: '24px',
+          maxWidth: '1280px',
+          margin: '0 auto'
+        }}>
           {children}
         </div>
       </main>
