@@ -1,4 +1,4 @@
-import { HomeIcon, TrendingUp, FileText, BarChart3, Video, FileTextIcon } from "lucide-react";
+import { HomeIcon, TrendingUp, FileText, BarChart3, Video, Send } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import HotTopics from "./pages/HotTopics.jsx";
 import ContentGeneration from "./pages/ContentGeneration.jsx";
@@ -6,12 +6,10 @@ import Analytics from "./pages/Analytics.jsx";
 import VideoGeneration from "./pages/VideoGeneration.jsx";
 import TranscriptionResult from "./pages/TranscriptionResult.jsx";
 import ContentRewrite from "./pages/ContentRewrite.jsx";
+import PublishManagement from "./pages/PublishManagement.jsx";
 
 /**
  * Central place for defining the navigation items. Used for navigation components and routing.
- * 
- * 注：发布管理功能已迁移至独立项目 publisher-tools
- * 详见 PROJECT_SEPARATION.md
  */
 export const navItems = [
   {
@@ -31,6 +29,12 @@ export const navItems = [
     to: "/content-generation",
     icon: <FileText className="h-4 w-4" />,
     page: <ContentGeneration />,
+  },
+  {
+    title: "发布管理",
+    to: "/publish-management",
+    icon: <Send className="h-4 w-4" />,
+    page: <PublishManagement />,
   },
   {
     title: "数据分析",
