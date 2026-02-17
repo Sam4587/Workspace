@@ -820,8 +820,21 @@ app.use('/api/task-queue', require('./routes/taskQueue'));
 // 注册数据分析路由
 app.use('/api/analytics', require('./routes/analytics'));
 
-// 注册视频生成路由
-app.use('/api/video-generation', require('./routes/video'));
+// 注册视频生成路由（可选，如果依赖缺失则跳过）
+try {
+  app.use('/api/video-generation', require('./routes/video'));
+  console.log('[VideoRoute] Video generation routes loaded');
+} catch (error) {
+  console.log('[VideoRoute] Video generation routes skipped (optional dependency missing)');
+  // 提供备用路由返回提示信息
+  app.use('/api/video-generation', (req, res) => {
+    res.status(503).json({
+      success: false,
+      message: 'Video generation service is not available. Please install required dependencies.',
+      error: 'Service temporarily unavailable'
+    });
+  });
+}
 
 // 兼容旧的内容API路由
 app.get('/api/content/:id', (req, res) => {
