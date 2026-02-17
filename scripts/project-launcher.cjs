@@ -44,23 +44,57 @@ function log(type, message) {
   switch(type) {
     case 'success':
       color = colors.green;
-      prefix = '[✓]';
+      prefix = '[OK]';
       break;
     case 'warning':
       color = colors.yellow;
-      prefix = '[!]';
+      prefix = '[WARN]';
       break;
     case 'error':
       color = colors.red;
-      prefix = '[✗]';
+      prefix = '[ERROR]';
       break;
     case 'info':
       color = colors.cyan;
-      prefix = '[→]';
+      prefix = '[INFO]';
       break;
   }
   
   console.log(`${color}${prefix} ${message}${colors.reset}`);
+}
+
+// 执行命令并返回 Promise
+function execCommand(command, cwd, options = {}) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(command, [], {
+      cwd,
+      shell: true,
+      stdio: options.silent ? 'pipe' : 'inherit',
+      ...options
+    });
+    
+    let output = '';
+    if (options.silent) {
+      proc.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+      proc.stderr.on('data', (data) => {
+        output += data.toString();
+      });
+    }
+    
+    proc.on('close', (code) => {
+      if (code === 0) {
+        resolve(output);
+      } else {
+        reject(new Error(`Command failed with code ${code}: ${output}`));
+      }
+    });
+    
+    proc.on('error', (err) => {
+      reject(err);
+    });
+  });
 }
 
 // 检查端口是否被占用
@@ -91,14 +125,35 @@ async function checkService(url, timeout = 5000) {
   });
 }
 
-// 启动服务（改进版）
+// 检查并安装依赖
+async function checkAndInstallDependencies(name, cwd) {
+  const nodeModulesPath = path.join(cwd, 'node_modules');
+  
+  if (fs.existsSync(nodeModulesPath)) {
+    log('success', `${name} dependencies already installed`);
+    return true;
+  }
+  
+  log('warning', `${name} dependencies not found`);
+  log('info', `Installing ${name} dependencies...`);
+  
+  try {
+    await execCommand('npm install', cwd, { silent: true });
+    log('success', `${name} dependencies installed successfully`);
+    return true;
+  } catch (err) {
+    log('error', `Failed to install ${name} dependencies: ${err.message}`);
+    return false;
+  }
+}
+
+// 启动服务
 function startService(name, command, args, cwd, env = {}) {
   return new Promise((resolve, reject) => {
-    log('info', `启动 ${name}...`);
+    log('info', `Starting ${name}...`);
     
-    // 检查工作目录是否存在
     if (!fs.existsSync(cwd)) {
-      reject(new Error(`工作目录不存在: ${cwd}`));
+      reject(new Error(`Working directory does not exist: ${cwd}`));
       return;
     }
     
@@ -107,18 +162,27 @@ function startService(name, command, args, cwd, env = {}) {
       env: { ...process.env, ...env },
       stdio: 'pipe',
       shell: true,
-      windowsHide: false  // 显示窗口以便调试
+      windowsHide: false
     });
     
     let output = '';
     let errorOutput = '';
+    let hasError = false;
     
     proc.stdout.on('data', (data) => {
       const str = data.toString();
       output += str;
-      // 显示关键日志
+      
+      // Check for errors
+      if (str.includes('MODULE_NOT_FOUND') || str.includes('Error:') || str.includes('error:')) {
+        hasError = true;
+        errorOutput += str;
+      }
+      
+      // Show important messages
       if (str.includes('ready') || str.includes('started') || str.includes('running') || 
-          str.includes('error') || str.includes('Error') || str.includes('失败')) {
+          str.includes('listening') || str.includes('MODULE_NOT_FOUND') || 
+          str.includes('Error:') || str.includes('error:')) {
         console.log(`[${name}] ${str.trim()}`);
       }
     });
@@ -129,32 +193,37 @@ function startService(name, command, args, cwd, env = {}) {
       console.log(`[${name}] ${str.trim()}`);
     });
     
-    // 等待服务启动
-    setTimeout(() => {
-      if (proc.pid) {
-        log('success', `${name} 已启动 (PID: ${proc.pid})`);
-        resolve(proc);
-      } else {
-        reject(new Error(`${name} 启动失败\n输出: ${output}\n错误: ${errorOutput}`));
-      }
-    }, 3000);
-    
     proc.on('error', (err) => {
-      reject(new Error(`${name} 启动错误: ${err.message}`));
+      reject(new Error(`${name} start error: ${err.message}`));
     });
     
     proc.on('exit', (code) => {
       if (code !== 0 && code !== null) {
-        console.error(`[${name}] 进程退出，代码: ${code}`);
+        console.error(`[${name}] Process exited with code: ${code}`);
+        if (hasError || errorOutput) {
+          reject(new Error(`${name} failed to start. Error: ${errorOutput || output}`));
+        }
       }
     });
+    
+    // Wait for service to start
+    setTimeout(() => {
+      if (proc.pid && !hasError) {
+        log('success', `${name} started (PID: ${proc.pid})`);
+        resolve(proc);
+      } else if (hasError) {
+        reject(new Error(`${name} failed to start. Check output above.`));
+      } else {
+        reject(new Error(`${name} failed to start. No process ID.`));
+      }
+    }, 5000);
   });
 }
 
 // 打开浏览器
 function openBrowser(url) {
   return new Promise((resolve) => {
-    log('info', `正在打开浏览器访问 ${url}...`);
+    log('info', `Opening browser at ${url}...`);
     
     let command;
     const platform = os.platform();
@@ -169,9 +238,9 @@ function openBrowser(url) {
     
     exec(command, (error) => {
       if (error) {
-        log('warning', '无法自动打开浏览器，请手动访问: ' + url);
+        log('warning', 'Cannot open browser automatically, please visit: ' + url);
       } else {
-        log('success', '浏览器已打开');
+        log('success', 'Browser opened');
       }
       resolve();
     });
@@ -181,112 +250,131 @@ function openBrowser(url) {
 // 主函数
 async function main() {
   console.log('\n');
-  console.log(`${colors.bright}${colors.magenta}╔════════════════════════════════════════╗${colors.reset}`);
-  console.log(`${colors.bright}${colors.magenta}║     AI Content Flow - 项目启动器       ║${colors.reset}`);
-  console.log(`${colors.bright}${colors.magenta}╚════════════════════════════════════════╝${colors.reset}`);
+  console.log(`${colors.bright}${colors.magenta}============================================${colors.reset}`);
+  console.log(`${colors.bright}${colors.magenta}     AI Content Flow - Project Launcher     ${colors.reset}`);
+  console.log(`${colors.bright}${colors.magenta}============================================${colors.reset}`);
   console.log('\n');
   
   const args = process.argv.slice(2);
   
-  // 显示帮助
+  // Show help
   if (args.includes('--help') || args.includes('-h')) {
-    console.log('用法: node project-launcher.js [选项]\n');
-    console.log('选项:');
-    console.log('  --help, -h         显示帮助信息');
-    console.log('  --no-browser       不自动打开浏览器');
-    console.log('  --backend-only     只启动后端服务');
-    console.log('  --frontend-only    只启动前端服务');
-    console.log('\n功能:');
-    console.log('  1. 检查端口占用情况');
-    console.log('  2. 启动后端服务 (端口 5001)');
-    console.log('  3. 启动前端服务 (端口 5174)');
-    console.log('  4. 自动在浏览器中打开前端页面');
+    console.log('Usage: node project-launcher.cjs [options]\n');
+    console.log('Options:');
+    console.log('  --help, -h         Show help information');
+    console.log('  --no-browser       Do not open browser automatically');
+    console.log('  --backend-only     Start backend service only');
+    console.log('  --frontend-only    Start frontend service only');
+    console.log('  --install          Force reinstall dependencies');
+    console.log('\nFeatures:');
+    console.log('  1. Check port availability');
+    console.log('  2. Install dependencies if needed');
+    console.log('  3. Start backend service (port 5001)');
+    console.log('  4. Start frontend service (port 5174)');
+    console.log('  5. Open frontend in browser');
     return;
   }
   
   const noBrowser = args.includes('--no-browser');
   const backendOnly = args.includes('--backend-only');
   const frontendOnly = args.includes('--frontend-only');
+  const forceInstall = args.includes('--install');
   const services = [];
   
   try {
-    // 检查项目结构
-    log('info', '检查项目结构...');
+    // Check project structure
+    log('info', 'Checking project structure...');
     const serverDir = path.join(CONFIG.projectRoot, 'server');
     const frontendDir = CONFIG.projectRoot;
     
     if (!fs.existsSync(serverDir)) {
-      throw new Error(`找不到 server 目录: ${serverDir}`);
+      throw new Error(`Server directory not found: ${serverDir}`);
     }
     
-    // 检查 package.json
     const serverPkg = path.join(serverDir, 'package.json');
     const frontendPkg = path.join(frontendDir, 'package.json');
     
     if (!fs.existsSync(serverPkg)) {
-      throw new Error(`找不到后端 package.json: ${serverPkg}`);
+      throw new Error(`Backend package.json not found: ${serverPkg}`);
     }
     if (!fs.existsSync(frontendPkg)) {
-      throw new Error(`找不到前端 package.json: ${frontendPkg}`);
+      throw new Error(`Frontend package.json not found: ${frontendPkg}`);
     }
     
-    log('success', '项目结构检查通过');
+    log('success', 'Project structure check passed');
     
-    // 检查端口
+    // Check and install dependencies
+    if (!frontendOnly) {
+      log('info', 'Checking backend dependencies...');
+      const backendDepsInstalled = await checkAndInstallDependencies('Backend', serverDir);
+      if (!backendDepsInstalled) {
+        throw new Error('Failed to install backend dependencies');
+      }
+    }
+    
     if (!backendOnly) {
-      log('info', '检查前端端口...');
+      log('info', 'Checking frontend dependencies...');
+      const frontendDepsInstalled = await checkAndInstallDependencies('Frontend', frontendDir);
+      if (!frontendDepsInstalled) {
+        throw new Error('Failed to install frontend dependencies');
+      }
+    }
+    
+    // Check ports
+    if (!backendOnly) {
+      log('info', 'Checking frontend port...');
       const frontendPortOccupied = await checkPort(CONFIG.ports.frontend);
       if (frontendPortOccupied) {
-        log('warning', `前端端口 ${CONFIG.ports.frontend} 已被占用`);
+        log('warning', `Frontend port ${CONFIG.ports.frontend} is occupied`);
         const isRunning = await checkService(CONFIG.frontendUrl);
         if (isRunning) {
-          log('success', '检测到前端服务已在运行');
+          log('success', 'Frontend service already running');
         }
       } else {
-        log('success', `前端端口 ${CONFIG.ports.frontend} 可用`);
+        log('success', `Frontend port ${CONFIG.ports.frontend} is available`);
       }
     }
     
     if (!frontendOnly) {
-      log('info', '检查后端端口...');
+      log('info', 'Checking backend port...');
       const backendPortOccupied = await checkPort(CONFIG.ports.backend);
       if (backendPortOccupied) {
-        log('warning', `后端端口 ${CONFIG.ports.backend} 已被占用`);
+        log('warning', `Backend port ${CONFIG.ports.backend} is occupied`);
         const isRunning = await checkService(`http://localhost:${CONFIG.ports.backend}/api/health`);
         if (isRunning) {
-          log('success', '检测到后端服务已在运行');
+          log('success', 'Backend service already running');
         }
       } else {
-        log('success', `后端端口 ${CONFIG.ports.backend} 可用`);
+        log('success', `Backend port ${CONFIG.ports.backend} is available`);
       }
     }
     
-    // 检查环境变量文件
+    // Check environment variables
     const envPath = path.join(serverDir, '.env');
     if (!fs.existsSync(envPath)) {
-      log('warning', '未找到 server/.env 文件');
+      log('warning', 'server/.env file not found');
       const envExample = path.join(serverDir, '.env.example');
       if (fs.existsSync(envExample)) {
-        log('info', '建议: 复制 server/.env.example 到 server/.env 并配置');
+        log('info', 'Tip: Copy server/.env.example to server/.env and configure');
       }
     } else {
-      log('success', '环境变量文件已配置');
+      log('success', 'Environment variables configured');
     }
     
-    // 启动后端
+    // Start backend
     if (!frontendOnly) {
-      log('info', '正在启动后端服务...');
+      log('info', 'Starting backend service...');
       try {
         const backend = await startService(
-          '后端服务',
+          'Backend',
           'npm',
           ['run', 'dev'],
           serverDir
         );
         services.push(backend);
         
-        // 等待后端启动
-        log('info', '等待后端服务就绪...');
+        // Wait for backend to be ready
+        log('info', 'Waiting for backend to be ready...');
         let backendReady = false;
         for (let i = 0; i < 30; i++) {
           backendReady = await checkService(`http://localhost:${CONFIG.ports.backend}/api/health`);
@@ -295,30 +383,30 @@ async function main() {
         }
         
         if (backendReady) {
-          log('success', '后端服务已就绪');
+          log('success', 'Backend service is ready');
         } else {
-          log('warning', '后端服务启动中，可能需要更长时间');
+          log('warning', 'Backend service starting, may need more time');
         }
       } catch (err) {
-        log('error', `后端启动失败: ${err.message}`);
+        log('error', `Backend start failed: ${err.message}`);
         throw err;
       }
     }
     
-    // 启动前端
+    // Start frontend
     if (!backendOnly) {
-      log('info', '正在启动前端服务...');
+      log('info', 'Starting frontend service...');
       try {
         const frontend = await startService(
-          '前端服务',
+          'Frontend',
           'npm',
           ['run', 'dev'],
           frontendDir
         );
         services.push(frontend);
         
-        // 等待前端启动
-        log('info', '等待前端服务就绪...');
+        // Wait for frontend to be ready
+        log('info', 'Waiting for frontend to be ready...');
         let frontendReady = false;
         for (let i = 0; i < 30; i++) {
           frontendReady = await checkService(CONFIG.frontendUrl);
@@ -327,69 +415,68 @@ async function main() {
         }
         
         if (frontendReady) {
-          log('success', '前端服务已就绪');
+          log('success', 'Frontend service is ready');
         } else {
-          log('warning', '前端服务启动中，可能需要更长时间');
+          log('warning', 'Frontend service starting, may need more time');
         }
       } catch (err) {
-        log('error', `前端启动失败: ${err.message}`);
+        log('error', `Frontend start failed: ${err.message}`);
         throw err;
       }
     }
     
-    // 打开浏览器
+    // Open browser
     if (!noBrowser && !backendOnly) {
-      // 再等待几秒确保服务完全启动
       await new Promise(r => setTimeout(r, 3000));
       await openBrowser(CONFIG.frontendUrl);
     }
     
-    // 显示服务状态
+    // Show service status
     console.log('\n');
-    console.log(`${colors.bright}${colors.cyan}═══════════════════════════════════════════${colors.reset}`);
-    console.log(`${colors.bright}服务状态:${colors.reset}`);
+    console.log(`${colors.bright}${colors.cyan}============================================${colors.reset}`);
+    console.log(`${colors.bright}Service Status:${colors.reset}`);
     if (!backendOnly) {
-      console.log(`  前端: ${colors.green}${CONFIG.frontendUrl}${colors.reset}`);
+      console.log(`  Frontend: ${colors.green}${CONFIG.frontendUrl}${colors.reset}`);
     }
     if (!frontendOnly) {
-      console.log(`  后端: ${colors.green}http://localhost:${CONFIG.ports.backend}${colors.reset}`);
+      console.log(`  Backend:  ${colors.green}http://localhost:${CONFIG.ports.backend}${colors.reset}`);
     }
-    console.log(`${colors.bright}${colors.cyan}═══════════════════════════════════════════${colors.reset}`);
+    console.log(`${colors.bright}${colors.cyan}============================================${colors.reset}`);
     console.log('\n');
     
-    log('info', '按 Ctrl+C 停止所有服务');
+    log('info', 'Press Ctrl+C to stop all services');
     
-    // 处理退出
+    // Handle exit
     process.on('SIGINT', () => {
       console.log('\n');
-      log('info', '正在停止所有服务...');
+      log('info', 'Stopping all services...');
       services.forEach(proc => {
         if (proc && !proc.killed) {
           try {
             proc.kill('SIGTERM');
           } catch (e) {
-            // 忽略错误
+            // Ignore error
           }
         }
       });
       setTimeout(() => {
-        log('success', '所有服务已停止');
+        log('success', 'All services stopped');
         process.exit(0);
       }, 2000);
     });
     
-    // 保持进程运行
+    // Keep process running
     process.stdin.resume();
     
   } catch (error) {
-    log('error', '启动失败: ' + error.message);
+    log('error', 'Startup failed: ' + error.message);
     console.error(error);
     services.forEach(proc => {
       if (proc && !proc.killed) {
         try {
           proc.kill();
         } catch (e) {
-          // 忽略错误
+          // Ignore error
         }
       }
     });
@@ -397,8 +484,8 @@ async function main() {
   }
 }
 
-// 运行主函数
+// Run main function
 main().catch(error => {
-  console.error('发生错误:', error);
+  console.error('Error:', error);
   process.exit(1);
 });
