@@ -1,7 +1,7 @@
 import React from 'react';
 import HotTopicVisualization from '../components/HotTopicVisualization';
-import { RecentActivity } from '../components/RecentActivity';
-import { WorkflowPanel } from '../components/WorkflowPanel';
+import RecentActivity from '../components/RecentActivity';
+import WorkflowPanel from '../components/WorkflowPanel';
 
 const Index = () => {
   return (
