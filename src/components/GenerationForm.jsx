@@ -7,17 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Wand2, Sparkles } from 'lucide-react';
 
 const contentTypes = [
-  { id: 'article', label: 'Article' },
-  { id: 'social', label: 'Social Media Post' },
-  { id: 'email', label: 'Email' },
-  { id: 'script', label: 'Video Script' },
+  { id: 'article', label: '文章' },
+  { id: 'social', label: '社交媒体' },
+  { id: 'email', label: '邮件' },
+  { id: 'script', label: '视频脚本' },
 ];
 
 const tones = [
-  { id: 'professional', label: 'Professional' },
-  { id: 'casual', label: 'Casual' },
-  { id: 'humorous', label: 'Humorous' },
-  { id: 'formal', label: 'Formal' },
+  { id: 'professional', label: '专业' },
+  { id: 'casual', label: '轻松' },
+  { id: 'humorous', label: '幽默' },
+  { id: 'formal', label: '正式' },
 ];
 
 export const GenerationForm = ({ onGenerate }) => {
@@ -46,24 +46,24 @@ export const GenerationForm = ({ onGenerate }) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="h-5 w-5" />
-          Content Generation
+          内容生成
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Topic / Title</label>
+            <label className="text-sm font-medium">主题 / 标题</label>
             <Input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="Enter your topic or title..."
+              placeholder="请输入主题或标题..."
               required
             />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium">Content Type</label>
+              <label className="text-sm font-medium">内容类型</label>
               <Select value={contentType} onValueChange={setContentType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -79,7 +79,7 @@ export const GenerationForm = ({ onGenerate }) => {
             </div>
             
             <div>
-              <label className="text-sm font-medium">Tone</label>
+              <label className="text-sm font-medium">语气</label>
               <Select value={tone} onValueChange={setTone}>
                 <SelectTrigger>
                   <SelectValue />
@@ -96,11 +96,11 @@ export const GenerationForm = ({ onGenerate }) => {
           </div>
           
           <div>
-            <label className="text-sm font-medium">Keywords (comma separated)</label>
+            <label className="text-sm font-medium">关键词（用逗号分隔）</label>
             <Input
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
-              placeholder="e.g. AI, technology, future"
+              placeholder="例如：AI, 科技, 未来"
             />
           </div>
           
@@ -110,7 +110,7 @@ export const GenerationForm = ({ onGenerate }) => {
             className="w-full"
           >
             <Wand2 className="h-4 w-4 mr-2" />
-            {isGenerating ? 'Generating...' : 'Generate Content'}
+            {isGenerating ? '生成中...' : '生成内容'}
           </Button>
         </form>
       </CardContent>

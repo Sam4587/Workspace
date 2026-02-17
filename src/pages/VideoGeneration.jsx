@@ -20,31 +20,31 @@ const VideoGeneration = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Video Generation</h1>
+      <h1 className="text-3xl font-bold">视频生成</h1>
       
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5" />
-            Create Video
+            创建视频
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Video Title</label>
+            <label className="text-sm font-medium">视频标题</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter video title..."
+              placeholder="请输入视频标题..."
             />
           </div>
           
           <div>
-            <label className="text-sm font-medium">Script</label>
+            <label className="text-sm font-medium">脚本</label>
             <Textarea
               value={script}
               onChange={(e) => setScript(e.target.value)}
-              placeholder="Enter your video script..."
+              placeholder="请输入视频脚本..."
               rows={6}
             />
           </div>
@@ -55,7 +55,7 @@ const VideoGeneration = () => {
             className="w-full"
           >
             <Wand2 className="h-4 w-4 mr-2" />
-            {isGenerating ? 'Generating...' : 'Generate Video'}
+            {isGenerating ? '生成中...' : '生成视频'}
           </Button>
         </CardContent>
       </Card>
