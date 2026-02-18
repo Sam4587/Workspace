@@ -551,7 +551,7 @@ func saveCookies(page *rod.Page) error {
 	}
 
 	cookieLoader := cookies.NewLoadCookie(cookies.GetCookiesFilePath())
-	return cookieLoader.SaveCookies(data)
+	return cookieLoader.SaveCookiesFromJSON(data)
 }
 
 // withBrowserPage 执行需要浏览器页面的操作的通用函数

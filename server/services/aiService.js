@@ -488,6 +488,87 @@ ${transcript}
 
     return analysis;
   }
+
+  async optimizeTitle({ title, keywords = [], targetPlatform = 'toutiao', count = 5 }) {
+    try {
+      const platformRules = require('../config/platformRules');
+      const rules = platformRules[targetPlatform] || platformRules.toutiao;
+
+      const prompt = `请基于以下主题生成 ${count} 个适合发布到 ${rules.name} 的爆款标题。
+
+主题: ${title}
+关键词: ${keywords.join(', ')}
+
+要求：
+1. 标题长度控制在 ${rules.maxTitleLength} 字符以内
+2. 避免使用以下违禁词：${rules.forbiddenWords.join(', ')}
+3. 标题要有吸引力，能引发用户点击
+4. 标题应准确反映内容，避免标题党
+5. 每个标题需评估爆款潜力 (0-100分)
+
+请以JSON格式返回：
+[
+  {
+    "title": "标题内容",
+    "compliance": true/false,
+    "reason": "合规性说明",
+    "score": 爆款潜力评分
+  }
+]`;
+
+      const aiResponse = await multiAIService.generateContent(prompt, {
+        model: this.defaultModel,
+        maxTokens: 1500,
+        temperature: 0.8
+      });
+
+      let optimizedTitles = [];
+      try {
+        const jsonMatch = aiResponse.content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          optimizedTitles = JSON.parse(jsonMatch[0]);
+        }
+      } catch (parseError) {
+        console.error('解析标题优化结果失败:', parseError);
+        optimizedTitles = this.parseTitleResponse(aiResponse.content, rules);
+      }
+
+      return {
+        success: true,
+        optimizedTitles
+      };
+    } catch (error) {
+      logger.error('标题优化失败:', { error: error.message });
+      throw new Error('标题优化失败: ' + error.message);
+    }
+  }
+
+  parseTitleResponse(response, rules) {
+    const titles = [];
+    const lines = response.split('\n');
+    let currentTitle = null;
+
+    for (const line of lines) {
+      if (line.includes('"title"') || line.includes("'title'")) {
+        const match = line.match(/["']([^"']+)["']/);
+        if (match) {
+          currentTitle = { title: match[1], compliance: true, score: 75 };
+        }
+      } else if (line.includes('compliance') && currentTitle) {
+        currentTitle.compliance = !line.includes('false');
+        currentTitle.reason = currentTitle.compliance ? '符合规范' : '可能不合规';
+      } else if (line.includes('score') && currentTitle) {
+        const scoreMatch = line.match(/\d+/);
+        if (scoreMatch) {
+          currentTitle.score = parseInt(scoreMatch[0]);
+        }
+        titles.push(currentTitle);
+        currentTitle = null;
+      }
+    }
+
+    return titles.length > 0 ? titles : [{ title: '标题解析失败', compliance: false, reason: '解析错误', score: 0 }];
+  }
 }
 
 module.exports = new AIService;

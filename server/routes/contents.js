@@ -1245,4 +1245,39 @@ router.get('/workflows/stats', (req, res) => {
   }
 });
 
+router.post('/optimize-title', async (req, res) => {
+  try {
+    const { title, keywords, targetPlatform = 'toutiao', count = 5 } = req.body;
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: '标题不能为空'
+      });
+    }
+
+    if (!aiService) {
+      return res.status(500).json({
+        success: false,
+        message: 'AI服务不可用'
+      });
+    }
+
+    const result = await aiService.optimizeTitle({
+      title,
+      keywords: keywords || [],
+      targetPlatform,
+      count
+    });
+
+    res.json(result);
+  } catch (error) {
+    logger.error('[ContentAPI] 标题优化失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;

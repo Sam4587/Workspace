@@ -2,14 +2,12 @@ const OpenAI = require('openai');
 const axios = require('axios');
 const { retryWithDefaults } = require('../utils/retry');
 
-// 安全导入LLM模块
 let llmGateway = null;
 try {
   llmGateway = require('./llm');
   console.log('[MultiAIService] LLM Gateway 加载成功');
 } catch (error) {
   console.warn('[MultiAIService] LLM Gateway 加载失败:', error.message);
-  // 创建一个mock版本
   llmGateway = {
     generate: async (messages, options = {}) => {
       return {
@@ -19,7 +17,8 @@ try {
       };
     },
     getAvailableProviders: () => [],
-    getModels: () => []
+    getModels: () => [],
+    hasProviders: () => false
   };
 }
 
@@ -271,10 +270,8 @@ class MultiAIService {
     }
   }
 
-  // 使用免费 LLM 生成内容
   async generateWithFreeLLM(prompt, options = {}) {
-    if (!llmGateway) {
-      // 如果LLM网关也不可用，返回模拟内容
+    if (!llmGateway || !llmGateway.hasProviders()) {
       return {
         content: `模拟生成的内容：${prompt.substring(0, 100)}...`,
         model: 'mock-model',
@@ -298,11 +295,11 @@ class MultiAIService {
       return {
         content: result.content,
         model: result.model,
-        provider: result.provider
+        provider: result.provider,
+        usage: result.usage
       };
     } catch (error) {
       console.error('免费LLM生成失败:', error);
-      // 返回模拟内容
       return {
         content: `模拟生成的内容：${prompt.substring(0, 100)}...`,
         model: 'mock-model',

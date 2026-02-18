@@ -873,6 +873,14 @@ app.use('/api/task-queue', require('./routes/taskQueue'));
 // 注册数据分析路由
 app.use('/api/analytics', require('./routes/analytics'));
 
+// 注册 LLM 路由
+try {
+  app.use('/api/llm', require('./routes/llm'));
+  console.log('[LLMRoute] LLM routes loaded');
+} catch (error) {
+  console.log('[LLMRoute] LLM routes skipped:', error.message);
+}
+
 // 注册视频生成路由（可选，如果依赖缺失则跳过）
 try {
   app.use('/api/video-generation', require('./routes/video'));

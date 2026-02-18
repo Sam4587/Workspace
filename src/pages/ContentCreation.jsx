@@ -6,6 +6,7 @@ import ContentTypeSelector from '../components/ContentTypeSelector';
 import GenerationForm from '../components/GenerationForm';
 import ContentPreview from '../components/ContentPreview';
 import WorkflowPanel from '../components/WorkflowPanel';
+import TitleOptimizer from '../components/TitleOptimizer';
 import api from '../lib/api';
 import { useNotification } from '../contexts/NotificationContext';
 
@@ -18,6 +19,7 @@ const ContentCreation = () => {
   const [formData, setFormData] = useState(null);
   const [generatedContent, setGeneratedContent] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState('news_report');
+  const [optimizedTitle, setOptimizedTitle] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('professional');
   const [optimizations, setOptimizations] = useState(['seo', 'readability']);
   const [availableTemplates, setAvailableTemplates] = useState([]);
@@ -287,6 +289,28 @@ const ContentCreation = () => {
             </div>
           )}
           
+          {formData && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">标题优化</h3>
+              <TitleOptimizer
+                title={formData.title || formData.topic || ''}
+                keywords={formData.keywords?.split(',').filter(Boolean) || []}
+                targetPlatform="toutiao"
+                onSelect={(selectedTitle) => {
+                  setOptimizedTitle(selectedTitle);
+                  setFormData(prev => ({ ...prev, title: selectedTitle }));
+                }}
+              />
+              {optimizedTitle && (
+                <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    已选择优化标题: <strong>{optimizedTitle}</strong>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           <GenerationForm
             type={selectedType}
             onGenerate={handleGenerate}
