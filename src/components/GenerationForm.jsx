@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Textarea } from './ui/textarea';
@@ -20,12 +20,20 @@ const tones = [
   { id: 'formal', label: '正式' },
 ];
 
-export const GenerationForm = ({ onGenerate }) => {
+export const GenerationForm = ({ onGenerate, initialData }) => {
   const [topic, setTopic] = useState('');
   const [contentType, setContentType] = useState('article');
   const [tone, setTone] = useState('professional');
   const [keywords, setKeywords] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      setTopic(initialData.topic || initialData.title || '');
+      setKeywords(initialData.keywords || '');
+      setTone(initialData.tone || 'professional');
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

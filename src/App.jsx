@@ -15,7 +15,12 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <HashRouter>
+        <HashRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+          }}
+        >
           <Layout>
             <Routes>
               {navItems.map(({ to, page }) => (

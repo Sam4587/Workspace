@@ -4,17 +4,76 @@ import { TrendingUp, BarChartIcon, PieChartIcon, Activity } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
+const CATEGORY_TRANSLATIONS = {
+  'other': '其他',
+  'entertainment': '娱乐',
+  'tech': '科技',
+  'finance': '财经',
+  'sports': '体育',
+  'politics': '政治',
+  'health': '健康',
+  'lifestyle': '生活方式'
+};
+
+const SOURCE_TRANSLATIONS = {
+  'weibo': '微博',
+  'weixin': '微信',
+  'zhihu': '知乎',
+  'douyin': '抖音',
+  'bilibili': '哔哩哔哩',
+  'toutiao': '今日头条',
+  'xiaohongshu': '小红书',
+  'baidu': '百度',
+  'tieba': '贴吧',
+  'thepaper': '澎湃新闻',
+  'ifeng': '凤凰网',
+  'wallstreetcn-hot': '华尔街见闻',
+  'cls-hot': '财联社',
+  'bilibili-hot-search': 'B站热搜',
+  'unknown': '未知'
+};
+
+const translateCategory = (category) => {
+  return CATEGORY_TRANSLATIONS[category] || category;
+};
+
+const translateSource = (source) => {
+  return SOURCE_TRANSLATIONS[source] || source;
+};
+
 const HotTopicVisualization = ({ topics = [], loading = false }) => {
   const [activeTab, setActiveTab] = useState('trend');
   const [timeRange, setTimeRange] = useState('24h');
 
+  // 根据时间范围过滤话题
+  const getFilteredTopics = () => {
+    if (!topics.length) return [];
+
+    const now = new Date();
+    const timeRangeMs = {
+      '1h': 60 * 60 * 1000,
+      '6h': 6 * 60 * 60 * 1000,
+      '12h': 12 * 60 * 60 * 1000,
+      '24h': 24 * 60 * 60 * 1000,
+      '7d': 7 * 24 * 60 * 60 * 1000
+    };
+
+    const cutoffTime = new Date(now.getTime() - timeRangeMs[timeRange]);
+
+    return topics.filter(topic => {
+      const topicDate = new Date(topic.publishedAt);
+      return topicDate >= cutoffTime;
+    });
+  };
+
   // 处理趋势数据
   const getTrendData = () => {
-    if (!topics.length) return [];
+    const filteredTopics = getFilteredTopics();
+    if (!filteredTopics.length) return [];
     
     // 按时间分组统计
     const hourlyData = {};
-    topics.forEach(topic => {
+    filteredTopics.forEach(topic => {
       const hour = new Date(topic.publishedAt).getHours();
       if (!hourlyData[hour]) {
         hourlyData[hour] = { hour: `${hour}:00`, count: 0, avgHeat: 0, totalHeat: 0 };
@@ -35,12 +94,14 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
 
   // 处理平台分布数据
   const getSourceData = () => {
-    if (!topics.length) return [];
+    const filteredTopics = getFilteredTopics();
+    if (!filteredTopics.length) return [];
     
     const sourceCount = {};
-    topics.forEach(topic => {
+    filteredTopics.forEach(topic => {
       const source = topic.source || 'unknown';
-      sourceCount[source] = (sourceCount[source] || 0) + 1;
+      const translatedSource = translateSource(source);
+      sourceCount[translatedSource] = (sourceCount[translatedSource] || 0) + 1;
     });
 
     return Object.entries(sourceCount).map(([name, value]) => ({
@@ -51,12 +112,22 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
 
   // 处理分类分布数据
   const getCategoryData = () => {
-    if (!topics.length) return [];
+    const filteredTopics = getFilteredTopics();
+    if (!filteredTopics.length) return [];
     
+    const mainCategories = ['entertainment', 'tech', 'finance', 'sports', 'social', 'international'];
     const categoryCount = {};
-    topics.forEach(topic => {
-      const category = topic.category || '其他';
-      categoryCount[category] = (categoryCount[category] || 0) + 1;
+    
+    filteredTopics.forEach(topic => {
+      let category;
+      if (mainCategories.includes(topic.category)) {
+        category = topic.category;
+      } else {
+        category = 'other'; // 将非主要分类归入其他
+      }
+      
+      const translatedCategory = translateCategory(category);
+      categoryCount[translatedCategory] = (categoryCount[translatedCategory] || 0) + 1;
     });
 
     return Object.entries(categoryCount).map(([name, value]) => ({
@@ -67,7 +138,8 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
 
   // 处理热度分布数据
   const getHeatDistribution = () => {
-    if (!topics.length) return [];
+    const filteredTopics = getFilteredTopics();
+    if (!filteredTopics.length) return [];
     
     const distribution = {
       '90-100': 0,
@@ -77,7 +149,7 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
       '0-29': 0
     };
 
-    topics.forEach(topic => {
+    filteredTopics.forEach(topic => {
       const heat = topic.heat || 0;
       if (heat >= 90) distribution['90-100']++;
       else if (heat >= 70) distribution['70-89']++;
@@ -311,21 +383,24 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
       {/* 数据统计摘要 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-blue-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-blue-600">{topics.length}</div>
+          <div className="text-2xl font-bold text-blue-600">{getFilteredTopics().length}</div>
           <div className="text-sm text-blue-800">总话题数</div>
         </div>
         <div className="bg-green-50 rounded-lg p-4">
           <div className="text-2xl font-bold text-green-600">
-            {topics.length > 0 ? (topics.reduce((sum, t) => sum + (t.heat || 0), 0) / topics.length).toFixed(1) : 0}
+            {(() => {
+              const filteredTopics = getFilteredTopics();
+              return filteredTopics.length > 0 ? (filteredTopics.reduce((sum, t) => sum + (t.heat || 0), 0) / filteredTopics.length).toFixed(1) : 0;
+            })()}
           </div>
           <div className="text-sm text-green-800">平均热度</div>
         </div>
         <div className="bg-purple-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-purple-600">{new Set(topics.map(t => t.source)).size}</div>
+          <div className="text-2xl font-bold text-purple-600">{new Set(getFilteredTopics().map(t => t.source)).size}</div>
           <div className="text-sm text-purple-800">覆盖平台</div>
         </div>
         <div className="bg-orange-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-orange-600">{new Set(topics.map(t => t.category)).size}</div>
+          <div className="text-2xl font-bold text-orange-600">{new Set(getFilteredTopics().map(t => t.category)).size}</div>
           <div className="text-sm text-orange-800">内容分类</div>
         </div>
       </div>

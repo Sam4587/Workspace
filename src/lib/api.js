@@ -64,12 +64,24 @@ class ApiClient {
         success: false,
         message: error.message || '获取热点话题失败，请检查后端服务是否正常运行',
         data: [],
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 0,
-          pages: 1
-        }
+        pagination: { page: 1, limit: 20, total: 0, pages: 1 }
+      };
+    }
+  }
+
+  async getSupportedHotTopicSources() {
+    try {
+      const response = await this.client.get('/hot-topics/sources');
+      return {
+        success: true,
+        data: response.data || []
+      };
+    } catch (error) {
+      console.error('获取支持的热点数据源失败:', error);
+      return {
+        success: false,
+        message: error.message || '获取支持的热点数据源失败',
+        data: []
       };
     }
   }
@@ -116,7 +128,7 @@ class ApiClient {
   }
 
   async updateHotTopics() {
-    return await this.client.post('/hot-topics/update');
+    return await this.client.post('/hot-topics/refresh');
   }
 
   async invalidateCache(source = 'all') {

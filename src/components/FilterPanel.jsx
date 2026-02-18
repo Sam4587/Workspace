@@ -6,10 +6,19 @@ import { Filter } from 'lucide-react';
 
 const sources = [
   { id: 'all', label: '全部来源' },
-  { id: 'weibo', label: '微博' },
+  { id: 'weibo', label: '微博热搜' },
   { id: 'zhihu', label: '知乎' },
-  { id: 'toutiao', label: '头条' },
-  { id: 'baidu', label: '百度' },
+  { id: 'toutiao', label: '今日头条' },
+  { id: 'baidu', label: '百度热搜' },
+  { id: 'douyin', label: '抖音' },
+  { id: 'bilibili', label: '哔哩哔哩' },
+  { id: 'xiaohongshu', label: '小红书' },
+  { id: 'tieba', label: '贴吧热议' },
+  { id: 'thepaper', label: '澎湃新闻' },
+  { id: 'ifeng', label: '凤凰网' },
+  { id: 'wallstreetcn-hot', label: '华尔街见闻' },
+  { id: 'cls-hot', label: '财联社热门' },
+  { id: 'bilibili-hot-search', label: 'B站热搜' },
 ];
 
 const categories = [

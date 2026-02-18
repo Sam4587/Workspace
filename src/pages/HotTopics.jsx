@@ -11,6 +11,49 @@ import HotTopicVisualization from '../components/HotTopicVisualization';
 import api from '../lib/api';
 import { useNotification } from '../contexts/NotificationContext';
 
+const CATEGORY_TRANSLATIONS = {
+  'other': '其他',
+  'entertainment': '娱乐',
+  'tech': '科技',
+  'finance': '财经',
+  'sports': '体育',
+  'social': '社会',
+  'international': '国际'
+};
+
+const SOURCE_TRANSLATIONS = {
+  'weibo': '微博热搜',
+  'weixin': '微信',
+  'zhihu': '知乎',
+  'douyin': '抖音',
+  'bilibili': '哔哩哔哩',
+  'toutiao': '今日头条',
+  'xiaohongshu': '小红书',
+  'baidu': '百度热搜',
+  'tieba': '贴吧热议',
+  'thepaper': '澎湃新闻',
+  'ifeng': '凤凰网',
+  'wallstreetcn-hot': '华尔街见闻',
+  'cls-hot': '财联社热门',
+  'bilibili-hot-search': 'B站热搜',
+  'unknown': '未知'
+};
+
+const translateCategory = (category) => {
+  return CATEGORY_TRANSLATIONS[category] || category;
+};
+
+const translateSource = (source) => {
+  return SOURCE_TRANSLATIONS[source] || source;
+};
+
+const translateCategoryToEnglish = (chineseCategory) => {
+  const reverseMap = Object.fromEntries(
+    Object.entries(CATEGORY_TRANSLATIONS).map(([k, v]) => [v, k])
+  );
+  return reverseMap[chineseCategory] || chineseCategory;
+};
+
 const HotTopics = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -120,12 +163,13 @@ const HotTopics = () => {
 
   const categories = [
     { value: 'all', label: '全部分类' },
-    { value: '娱乐', label: '娱乐' },
-    { value: '科技', label: '科技' },
-    { value: '财经', label: '财经' },
-    { value: '体育', label: '体育' },
-    { value: '社会', label: '社会' },
-    { value: '国际', label: '国际' }
+    { value: 'entertainment', label: '娱乐' },
+    { value: 'tech', label: '科技' },
+    { value: 'finance', label: '财经' },
+    { value: 'sports', label: '体育' },
+    { value: 'social', label: '社会' },
+    { value: 'international', label: '国际' },
+    { value: 'other', label: '其他' }
   ];
 
   const handleRefresh = () => {
@@ -208,7 +252,12 @@ const HotTopics = () => {
         keyword.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
-    const matchesCategory = selectedCategory === 'all' || topic.category === selectedCategory;
+    // 定义主要分类
+    const mainCategories = ['entertainment', 'tech', 'finance', 'sports', 'social', 'international'];
+    
+    const matchesCategory = selectedCategory === 'all' || 
+      (selectedCategory === 'other' && !mainCategories.includes(topic.category)) ||
+      topic.category === selectedCategory;
 
     const matchesHeatRange = topic.heat >= filters.heatRange[0] && topic.heat <= filters.heatRange[1];
 
@@ -332,26 +381,25 @@ const HotTopics = () => {
           />
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* 左侧主内容区 */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* 筛选和搜索 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <input
-                    type="text"
-                    placeholder="搜索热点话题..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+        <div className="space-y-6">
+          {/* 筛选和搜索 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="搜索热点话题..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {categories.map(category => (
                     <option key={category.value} value={category.value}>
@@ -361,14 +409,44 @@ const HotTopics = () => {
                 </select>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex items-center space-x-1.5 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   <Filter className="h-4 w-4" />
                   <span>筛选</span>
                 </button>
               </div>
+            </div>
 
-              {showFilters && (
+            {/* 热门分类快捷按钮 */}
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                key="all"
+                onClick={() => setSelectedCategory('all')}
+                className={`px-2.5 py-1 text-xs rounded-full transition-colors ${
+                  selectedCategory === 'all'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                全部
+              </button>
+              {categories.filter(c => c.value !== 'all').map((category) => (
+                <button
+                  key={category.value}
+                  onClick={() => setSelectedCategory(category.value)}
+                  className={`px-2.5 py-1 text-xs rounded-full transition-colors ${
+                    selectedCategory === category.value
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {category.label}
+                </button>
+              ))}
+            </div>
+
+            {showFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
                 <FilterPanel
                   filters={filters}
                   setFilters={setFilters}
@@ -381,224 +459,138 @@ const HotTopics = () => {
                     trends: []
                   })}
                 />
-              )}
+              </div>
+            )}
+          </div>
+
+          {/* 热点话题列表 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-gray-900">
+                {selectedCategory === 'all' ? '热点话题' : `${categories.find(c => c.value === selectedCategory)?.label}话题`} ({filteredTopics.length})
+              </h2>
+              <div className="flex items-center space-x-3">
+                <span className="text-xs text-gray-500">
+                  {selectedTopicIds.length > 0 && `${selectedTopicIds.length} 项已选`}
+                </span>
+                <button
+                  onClick={handleSelectAll}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  {selectedTopicIds.length === filteredTopics.length ? '取消全选' : '全选'}
+                </button>
+              </div>
             </div>
 
-            {/* 热点话题列表 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  热点话题 ({filteredTopics.length})
-                </h2>
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-500">
-                    {selectedTopicIds.length > 0 && `${selectedTopicIds.length} 项已选`}
-                  </span>
-                  <button
-                    onClick={handleSelectAll}
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    {selectedTopicIds.length === filteredTopics.length ? '取消全选' : '全选'}
-                  </button>
+            <div className="divide-y divide-gray-100">
+              {isLoading ? (
+                <div className="p-6 text-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="mt-2 text-sm text-gray-500">加载中...</p>
                 </div>
-              </div>
-
-              <div className="divide-y divide-gray-100">
-                {isLoading ? (
-                  <div className="p-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-gray-500">加载中...</p>
-                  </div>
-                ) : filteredTopics.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <TrendingUp className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">暂无热点话题</h3>
-                    <p className="mt-1 text-sm text-gray-500">尝试调整筛选条件或刷新数据</p>
-                  </div>
-                ) : (
-                  filteredTopics.map((topic) => (
-                    <div key={topic._id} className="p-6 hover:bg-gray-50">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <button
-                              onClick={() => handleSelectTopic(topic._id)}
-                              className="mt-1"
-                            >
-                              {selectedTopicIds.includes(topic._id) ? (
-                                <CheckSquare className="h-5 w-5 text-blue-600" />
-                              ) : (
-                                <Square className="h-5 w-5 text-gray-400" />
-                              )}
-                            </button>
-                            <div className="flex-1">
-                              <h3 className="text-lg font-medium text-gray-900">{topic.title}</h3>
-                              <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
-                                <span>{topic.source}</span>
-                                <span className="flex items-center">
-                                  <TrendingUp className="h-4 w-4 mr-1 text-orange-500" />
-                                  {topic.heat}
-                                </span>
-                                <span>{topic.category}</span>
-                                <span>{new Date(topic.publishedAt).toLocaleString()}</span>
-                              </div>
-                              {topic.keywords && topic.keywords.length > 0 && (
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  {topic.keywords.map((keyword, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-                                    >
-                                      {keyword}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
+              ) : filteredTopics.length === 0 ? (
+                <div className="p-6 text-center">
+                  <TrendingUp className="mx-auto h-10 w-10 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">暂无热点话题</h3>
+                  <p className="mt-1 text-xs text-gray-500">尝试调整筛选条件或刷新数据</p>
+                </div>
+              ) : (
+                filteredTopics.map((topic) => (
+                  <div key={topic._id} className="px-4 py-3 hover:bg-gray-50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start space-x-3">
                           <button
-                            onClick={() => handleGenerateContent(topic)}
-                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                            onClick={() => handleSelectTopic(topic._id)}
+                            className="mt-0.5 flex-shrink-0"
                           >
-                            <Wand2 className="h-4 w-4" />
-                            <span>生成内容</span>
+                            {selectedTopicIds.includes(topic._id) ? (
+                              <CheckSquare className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <Square className="h-4 w-4 text-gray-400" />
+                            )}
                           </button>
-                          <div className="relative" ref={(el) => (topicMenuRefs.current[topic._id] = el)}>
-                            <button
-                              onClick={() => setOpenTopicMenu(openTopicMenu === topic._id ? null : topic._id)}
-                              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </button>
-                            {openTopicMenu === topic._id && (
-                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                                <button
-                                  onClick={() => {
-                                    handleViewTopicContents(topic);
-                                    setOpenTopicMenu(null);
-                                  }}
-                                  className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  <FileText className="h-4 w-4" />
-                                  <span>查看内容</span>
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    handleShowTrendTimeline(topic);
-                                    setOpenTopicMenu(null);
-                                  }}
-                                  className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  <TrendingUp className="h-4 w-4" />
-                                  <span>查看趋势</span>
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    handleShowCrossPlatform(topic);
-                                    setOpenTopicMenu(null);
-                                  }}
-                                  className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                  <span>跨平台分析</span>
-                                </button>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-base font-medium text-gray-900 truncate">{topic.title}</h3>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                              <span>{translateSource(topic.source)}</span>
+                              <span className="flex items-center">
+                                <TrendingUp className="h-3 w-3 mr-0.5 text-orange-500" />
+                                {topic.heat}
+                              </span>
+                              <span>{translateCategory(topic.category)}</span>
+                              <span>{new Date(topic.publishedAt).toLocaleDateString()}</span>
+                            </div>
+                            {topic.keywords && topic.keywords.length > 0 && (
+                              <div className="mt-1.5 flex flex-wrap gap-1">
+                                {topic.keywords.slice(0, 3).map((keyword, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                                  >
+                                    {keyword}
+                                  </span>
+                                ))}
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* 右侧侧边栏 */}
-          <div className="space-y-6">
-            {/* 实时热点 */}
-            {newTopics && newTopics.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-base font-semibold text-gray-900">实时热点</h3>
-                  <span className="text-xs text-gray-400">{newTopics.length}条</span>
-                </div>
-                <div className="space-y-1">
-                  {newTopics.slice(0, 10).map((topic, index) => (
-                    <div
-                      key={topic._id}
-                      onClick={() => {
-                        setSearchTerm(topic.title);
-                        setSelectedTopicIds([topic._id]);
-                      }}
-                      className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
-                    >
-                      <span className={`text-xs font-bold w-5 ${
-                        index < 3 ? 'text-red-500' : 'text-gray-400'
-                      }`}>
-                        {index + 1}
-                      </span>
-                      <TrendingUp className={`h-3 w-3 flex-shrink-0 ${
-                        index < 3 ? 'text-red-500' : 'text-gray-400'
-                      }`} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 truncate group-hover:text-blue-600">
-                          {topic.title}
-                        </p>
+                      <div className="flex items-center space-x-1 ml-3 flex-shrink-0">
+                        <button
+                          onClick={() => handleGenerateContent(topic)}
+                          className="flex items-center space-x-1 px-2.5 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                        >
+                          <Wand2 className="h-3.5 w-3.5" />
+                          <span>生成内容</span>
+                        </button>
+                        <div className="relative" ref={(el) => (topicMenuRefs.current[topic._id] = el)}>
+                          <button
+                            onClick={() => setOpenTopicMenu(openTopicMenu === topic._id ? null : topic._id)}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button>
+                          {openTopicMenu === topic._id && (
+                            <div className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg py-1 z-10">
+                              <button
+                                onClick={() => {
+                                  handleViewTopicContents(topic);
+                                  setOpenTopicMenu(null);
+                                }}
+                                className="flex items-center space-x-1.5 w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
+                              >
+                                <FileText className="h-3.5 w-3.5" />
+                                <span>查看内容</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleShowTrendTimeline(topic);
+                                  setOpenTopicMenu(null);
+                                }}
+                                className="flex items-center space-x-1.5 w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
+                              >
+                                <TrendingUp className="h-3.5 w-3.5" />
+                                <span>查看趋势</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleShowCrossPlatform(topic);
+                                  setOpenTopicMenu(null);
+                                }}
+                                className="flex items-center space-x-1.5 w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                <span>跨平台分析</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <span className="text-xs text-gray-400 flex-shrink-0">
-                        {topic.heat}
-                      </span>
                     </div>
-                  ))}
-                </div>
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('all');
-                  }}
-                  className="w-full mt-3 text-xs text-gray-500 hover:text-gray-700 py-2 border-t border-gray-100"
-                >
-                  查看全部 →
-                </button>
-              </div>
-            )}
-
-            {/* 热门分类 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <h3 className="text-base font-semibold text-gray-900 mb-3">热门分类</h3>
-              <div className="flex flex-wrap gap-2">
-                {categories.filter(c => c.value !== 'all').slice(0, 6).map((category) => (
-                  <button
-                    key={category.value}
-                    onClick={() => setSelectedCategory(category.value)}
-                    className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
-                      selectedCategory === category.value
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {category.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 快捷统计 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <h3 className="text-base font-semibold text-gray-900 mb-3">数据概览</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 bg-gradient-to-br from-red-50 to-orange-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">{filteredTopics.length}</div>
-                  <div className="text-xs text-gray-500">热点话题</div>
-                </div>
-                <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{selectedTopicIds.length}</div>
-                  <div className="text-xs text-gray-500">已选中</div>
-                </div>
-              </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

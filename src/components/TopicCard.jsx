@@ -2,6 +2,29 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { TrendingUp, Flame, MessageCircle } from 'lucide-react';
 
+// 平台来源翻译映射
+const SOURCE_TRANSLATIONS = {
+  'weibo': '微博热搜',
+  'weixin': '微信',
+  'zhihu': '知乎',
+  'douyin': '抖音',
+  'bilibili': '哔哩哔哩',
+  'toutiao': '今日头条',
+  'xiaohongshu': '小红书',
+  'baidu': '百度热搜',
+  'tieba': '贴吧热议',
+  'thepaper': '澎湃新闻',
+  'ifeng': '凤凰网',
+  'wallstreetcn-hot': '华尔街见闻',
+  'cls-hot': '财联社热门',
+  'bilibili-hot-search': 'B站热搜',
+  'unknown': '未知'
+};
+
+const translateSource = (source) => {
+  return SOURCE_TRANSLATIONS[source] || source;
+};
+
 export const TopicCard = ({ topic, onClick }) => {
   const getIcon = () => {
     switch (topic.source) {
@@ -24,7 +47,7 @@ export const TopicCard = ({ topic, onClick }) => {
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{topic.source}</span>
+          <span>{translateSource(topic.source)}</span>
           <span className="flex items-center gap-1">
             <TrendingUp className="h-3 w-3" />
             {topic.hotScore || 0}

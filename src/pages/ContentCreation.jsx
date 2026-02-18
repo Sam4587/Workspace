@@ -26,6 +26,7 @@ const ContentCreation = () => {
   const [availableStyles, setAvailableStyles] = useState([]);
   const [useWorkflow, setUseWorkflow] = useState(false);
   const [videoSubType, setVideoSubType] = useState('script');
+  const [showSettings, setShowSettings] = useState(false);
 
   const contentTypes = [
     {
@@ -70,11 +71,45 @@ const ContentCreation = () => {
       try {
         const response = await api.getContentTemplates();
         if (response.success) {
-          setAvailableTemplates(response.data.templates);
-          setAvailableStyles(response.data.styles);
+          const templates = response.data.templates || [];
+          const styles = response.data.styles || [];
+          
+          setAvailableTemplates(templates);
+          setAvailableStyles(styles);
+          
+          // 设置默认值
+          if (templates.length > 0 && !selectedTemplate) {
+            setSelectedTemplate(templates[0].id);
+          }
+          if (styles.length > 0 && !selectedStyle) {
+            setSelectedStyle(styles[0].id);
+          }
+        } else {
+          // 默认模板和样式
+          setAvailableTemplates([
+            { id: 'news_report', name: '新闻报道' },
+            { id: 'analysis', name: '深度分析' },
+            { id: 'opinion', name: '观点评论' }
+          ]);
+          setAvailableStyles([
+            { id: 'creative', name: '创意型' },
+            { id: 'professional', name: '专业型' },
+            { id: 'casual', name: '轻松型' }
+          ]);
         }
       } catch (error) {
         console.error('获取模板失败:', error);
+        // 设置默认值
+        setAvailableTemplates([
+          { id: 'news_report', name: '新闻报道' },
+          { id: 'analysis', name: '深度分析' },
+          { id: 'opinion', name: '观点评论' }
+        ]);
+        setAvailableStyles([
+          { id: 'creative', name: '创意型' },
+          { id: 'professional', name: '专业型' },
+          { id: 'casual', name: '轻松型' }
+        ]);
       }
     };
     
@@ -125,7 +160,17 @@ const ContentCreation = () => {
 
   const generateMutation = useMutation({
     mutationFn: async ({ formData, type }) => {
-      const response = await api.generateAIContent(formData, type);
+      const options = {
+        template: selectedTemplate,
+        style: selectedStyle,
+        optimizeFor: optimizations,
+        targetAudience: formData.targetAudience || 'general',
+        length: formData.length || 'medium',
+        sourceType: 'hot_topic',
+        sourceId: formData.hotTopicId,
+        userId: 'current_user'
+      };
+      const response = await api.generateAIContent(formData, type, options);
       return response.data;
     },
     onSuccess: (data) => {
@@ -140,10 +185,16 @@ const ContentCreation = () => {
   const generateAndSaveMutation = useMutation({
     mutationFn: async ({ formData, type }) => {
       const options = {
+        template: selectedTemplate,
+        style: selectedStyle,
+        optimizeFor: optimizations,
+        targetAudience: formData.targetAudience || 'general',
+        length: formData.length || 'medium',
+        targetPlatform: 'toutiao',
+        autoApprove: false,
         sourceType: 'hot_topic',
         sourceId: formData.hotTopicId,
         userId: 'current_user',
-        autoApprove: false,
         category: topic?.category || 'default',
         tags: topic?.keywords || []
       };
@@ -198,6 +249,25 @@ const ContentCreation = () => {
     }
   };
 
+  // 更新后的生成函数，包含设置参数
+  const handleGenerateWithSettings = async (formData) => {
+    const enhancedFormData = {
+      ...formData,
+      template: selectedTemplate,
+      style: selectedStyle,
+      optimizeFor: optimizations,
+      targetAudience: formData.targetAudience || 'general',
+      length: formData.length || 'medium'
+    };
+    
+    setFormData(enhancedFormData);
+    if (useWorkflow) {
+      generateAndSaveMutation.mutate({ formData: enhancedFormData, type: selectedType });
+    } else {
+      generateMutation.mutate({ formData: enhancedFormData, type: selectedType });
+    }
+  };
+
   const handleSave = async (contentData) => {
     saveMutation.mutate(contentData);
   };
@@ -241,7 +311,10 @@ const ContentCreation = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">内容创作</h1>
         <div className="flex items-center space-x-2">
-          <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button 
+            onClick={() => setShowSettings(!showSettings)}
+            className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
             <Settings className="h-4 w-4" />
             <span>生成设置</span>
           </button>
@@ -254,7 +327,7 @@ const ContentCreation = () => {
             }`}
           >
             <Workflow className="h-4 w-4" />
-            <span>工作流模式</span>
+            <span>{useWorkflow ? '关闭工作流' : '工作流模式'}</span>
           </button>
         </div>
       </div>
@@ -313,10 +386,131 @@ const ContentCreation = () => {
 
           <GenerationForm
             type={selectedType}
-            onGenerate={handleGenerate}
+            onGenerate={handleGenerateWithSettings}
             isGenerating={useWorkflow ? generateAndSaveMutation.isLoading : generateMutation.isLoading}
             initialData={formData}
           />
+
+          {/* 设置面板 */}
+          {showSettings && (
+            <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">生成设置</h3>
+                <button 
+                  onClick={() => setShowSettings(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    AI模型选择
+                  </label>
+                  <select
+                    value={selectedStyle}
+                    onChange={(e) => setSelectedStyle(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {availableStyles.map((style) => (
+                      <option key={style.id} value={style.id}>
+                        {style.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    内容长度
+                  </label>
+                  <select
+                    value={formData?.length || 'medium'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, length: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="short">短篇 (200-500字)</option>
+                    <option value="medium">中篇 (500-1000字)</option>
+                    <option value="long">长篇 (1000-2000字)</option>
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    优化选项
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    {[
+                      { id: 'seo', label: 'SEO优化' },
+                      { id: 'readability', label: '可读性' },
+                      { id: 'engagement', label: '互动性' },
+                      { id: 'compliance', label: '合规性检查' }
+                    ].map((opt) => (
+                      <label key={opt.id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={optimizations.includes(opt.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setOptimizations([...optimizations, opt.id]);
+                            } else {
+                              setOptimizations(optimizations.filter(id => id !== opt.id));
+                            }
+                          }}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    目标受众
+                  </label>
+                  <select
+                    value={formData?.targetAudience || 'general'}
+                    onChange={(e) => setFormData(prev => ({ ...prev, targetAudience: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="general">普通大众</option>
+                    <option value="professional">专业人士</option>
+                    <option value="student">学生群体</option>
+                    <option value="business">商业人士</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    模板选择
+                  </label>
+                  <select
+                    value={selectedTemplate}
+                    onChange={(e) => setSelectedTemplate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {availableTemplates.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  确认设置
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6 lg:col-span-2">
