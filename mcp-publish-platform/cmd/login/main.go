@@ -75,5 +75,5 @@ func saveCookies(page *rod.Page) error {
 	}
 
 	cookieLoader := cookies.NewLoadCookie(cookies.GetCookiesFilePath())
-	return cookieLoader.SaveCookies(data)
+	return cookieLoader.SaveCookiesFromJSON(data)
 }
