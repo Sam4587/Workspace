@@ -234,6 +234,7 @@ class AIService {
         sourceType: options.sourceType || 'manual',
         sourceId: options.sourceId || null,
         sourceUrl: options.sourceUrl || '',
+        hotTopicId: formData.hotTopicId || null,
         platforms: options.platforms || [],
         generatedBy: 'ai',
         aiModel: generatedContent.aiModel,

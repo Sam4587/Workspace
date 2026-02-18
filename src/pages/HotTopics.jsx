@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Filter, RefreshCw, TrendingUp, ExternalLink, Wand2, Brain, BarChart3, CheckSquare, Square, Calendar, Download, Bell } from 'lucide-react';
+import { Search, Filter, RefreshCw, TrendingUp, ExternalLink, Wand2, Brain, BarChart3, CheckSquare, Square, Calendar, Download, Bell, FileText } from 'lucide-react';
 import TopicCard from '../components/TopicCard';
 import FilterPanel from '../components/FilterPanel';
 import TrendTimeline from '../components/TrendTimeline';
@@ -31,6 +31,7 @@ const HotTopics = () => {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [activePanel, setActivePanel] = useState(null);
   const [visualizationMode, setVisualizationMode] = useState(false);
+  const [viewingTopicContents, setViewingTopicContents] = useState(null);
 
   const { data: topics, isLoading, refetch } = useQuery({
     queryKey: ['hot-topics', searchTerm, selectedCategory, filters],
@@ -67,6 +68,16 @@ const HotTopics = () => {
     },
     refetchInterval: 300000,
     retry: 1
+  });
+
+  const { data: topicContents } = useQuery({
+    queryKey: ['topic-contents', viewingTopicContents?._id],
+    queryFn: async () => {
+      if (!viewingTopicContents) return [];
+      const response = await api.getHotTopicContents(viewingTopicContents._id);
+      return response.data || [];
+    },
+    enabled: !!viewingTopicContents
   });
 
   const refreshMutation = useMutation({
@@ -148,6 +159,10 @@ const HotTopics = () => {
   const handleShowCrossPlatform = (topic) => {
     setSelectedTopic(topic);
     setActivePanel('crossPlatform');
+  };
+
+  const handleViewTopicContents = (topic) => {
+    setViewingTopicContents(topic);
   };
 
   const handleShowAIAnalysis = () => {
@@ -366,15 +381,78 @@ const HotTopics = () => {
                   </div>
                 ) : (
                   filteredTopics.map((topic) => (
-                    <TopicCard
-                      key={topic._id}
-                      topic={topic}
-                      isSelected={selectedTopicIds.includes(topic._id)}
-                      onSelect={() => handleSelectTopic(topic._id)}
-                      onGenerateContent={() => handleGenerateContent(topic)}
-                      onShowTrend={handleShowTrendTimeline}
-                      onShowCrossPlatform={handleShowCrossPlatform}
-                    />
+                    <div key={topic._id} className="p-6 hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => handleSelectTopic(topic._id)}
+                              className="mt-1"
+                            >
+                              {selectedTopicIds.includes(topic._id) ? (
+                                <CheckSquare className="h-5 w-5 text-blue-600" />
+                              ) : (
+                                <Square className="h-5 w-5 text-gray-400" />
+                              )}
+                            </button>
+                            <div className="flex-1">
+                              <h3 className="text-lg font-medium text-gray-900">{topic.title}</h3>
+                              <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
+                                <span>{topic.source}</span>
+                                <span className="flex items-center">
+                                  <TrendingUp className="h-4 w-4 mr-1 text-orange-500" />
+                                  {topic.heat}
+                                </span>
+                                <span>{topic.category}</span>
+                                <span>{new Date(topic.publishedAt).toLocaleString()}</span>
+                              </div>
+                              {topic.keywords && topic.keywords.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {topic.keywords.map((keyword, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                                    >
+                                      {keyword}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleViewTopicContents(topic)}
+                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span>查看内容</span>
+                          </button>
+                          <button
+                            onClick={() => handleShowTrendTimeline(topic)}
+                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <TrendingUp className="h-4 w-4" />
+                            <span>趋势</span>
+                          </button>
+                          <button
+                            onClick={() => handleShowCrossPlatform(topic)}
+                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            <span>跨平台</span>
+                          </button>
+                          <button
+                            onClick={() => handleGenerateContent(topic)}
+                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                          >
+                            <Wand2 className="h-4 w-4" />
+                            <span>生成内容</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   ))
                 )}
               </div>
@@ -500,6 +578,66 @@ const HotTopics = () => {
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
               <CrossPlatformAnalysis topic={selectedTopic} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 关联内容面板 */}
+      {viewingTopicContents && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">关联内容</h2>
+                <p className="text-sm text-gray-500 mt-1">{viewingTopicContents.title}</p>
+              </div>
+              <button
+                onClick={() => setViewingTopicContents(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              {!topicContents || topicContents.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900">暂无关联内容</h3>
+                  <p className="text-gray-500 mt-2">点击"生成内容"按钮来创建关联内容</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {topicContents.map((content) => (
+                    <div key={content._id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{content.title}</h4>
+                          <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                            <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                              {content.type}
+                            </span>
+                            <span>{content.wordCount} 字</span>
+                            <span>质量: {content.metadata?.qualityScore?.score || 0}/100</span>
+                            <span>{new Date(content.createdAt).toLocaleString()}</span>
+                          </div>
+                          {content.excerpt && (
+                            <p className="mt-2 text-sm text-gray-600 line-clamp-2">{content.excerpt}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => navigate('/content-creation', { state: { contentId: content._id } })}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          查看详情
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

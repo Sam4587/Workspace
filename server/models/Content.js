@@ -37,10 +37,14 @@ class MockContentModel {
   async find(query = {}) {
     return this.data.filter(item => {
       for (const key in query) {
-        if (item[key] !== query[key]) return false;
+        if (query[key] !== undefined && item[key] !== query[key]) return false;
       }
       return true;
     });
+  }
+
+  async findByHotTopicId(hotTopicId) {
+    return this.data.filter(item => item.hotTopicId === hotTopicId);
   }
 
   async findById(id) {

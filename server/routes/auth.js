@@ -30,9 +30,17 @@ router.post('/login',
     console.log('[DEBUG] 环境变量 ADMIN_USERNAME:', process.env.ADMIN_USERNAME);
     console.log('[DEBUG] 环境变量 ADMIN_PASSWORD:', process.env.ADMIN_PASSWORD ? '[已设置]' : '[未设置]');
     
-    // 直接从环境变量读取凭证
-    const validUsername = process.env.ADMIN_USERNAME || 'admin';
-    const validPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    // 强制从环境变量读取凭证
+    const validUsername = process.env.ADMIN_USERNAME;
+    const validPassword = process.env.ADMIN_PASSWORD;
+    
+    if (!validUsername || !validPassword) {
+      console.error('[AUTH] 错误: 管理员凭证未配置');
+      return res.status(500).json({
+        success: false,
+        message: '服务器配置错误: 请配置 ADMIN_USERNAME 和 ADMIN_PASSWORD'
+      });
+    }
     
     console.log('[DEBUG] 有效凭证:', { validUsername, validPassword });
     console.log('[DEBUG] 匹配结果:', { 

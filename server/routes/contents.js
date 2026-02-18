@@ -127,16 +127,32 @@ router.post('/', async (req, res) => {
  * GET /api/contents
  * 获取内容列表
  */
+const ContentModel = require('../models/Content');
+
 router.get('/', async (req, res) => {
   try {
+    const { page = 1, limit = 20, hotTopicId, status, category, search, platform, userId, dateFrom, dateTo } = req.query;
+    
+    if (hotTopicId) {
+      const contents = await ContentModel.findByHotTopicId(hotTopicId);
+      return res.json({
+        success: true,
+        data: contents,
+        pagination: {
+          page: 1,
+          limit: contents.length,
+          total: contents.length,
+          pages: 1
+        }
+      });
+    }
+
     if (!contentService) {
       return res.status(500).json({
         success: false,
         message: '内容服务不可用'
       });
     }
-
-    const { page = 1, limit = 20, status, category, search, platform, userId, dateFrom, dateTo } = req.query;
 
     const filters = {};
     if (status) filters.status = status.split(',');

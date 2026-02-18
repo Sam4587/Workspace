@@ -327,6 +327,32 @@ async function initializeData() {
 // 启动时初始化
 initializeData();
 
+const ContentModel = require('../models/Content');
+
+router.get('/:id/contents', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const contents = await ContentModel.findByHotTopicId(id);
+    
+    res.json({
+      success: true,
+      data: contents,
+      pagination: {
+        page: 1,
+        limit: contents.length,
+        total: contents.length,
+        pages: 1
+      }
+    });
+  } catch (error) {
+    logger.error('获取热点关联内容失败', { error: error.message, hotTopicId: req.params.id });
+    res.status(500).json({
+      success: false,
+      message: '获取热点关联内容失败'
+    });
+  }
+});
+
 module.exports = router;
 module.exports.memoryStorage = memoryStorage;
 module.exports.initializeData = initializeData;

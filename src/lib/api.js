@@ -86,6 +86,35 @@ class ApiClient {
     }
   }
 
+  async getHotTopicContents(id) {
+    try {
+      const response = await this.client.get(`/hot-topics/${id}/contents`);
+      return {
+        success: true,
+        data: response.data || [],
+        pagination: response.pagination || {
+          page: 1,
+          limit: 0,
+          total: 0,
+          pages: 1
+        }
+      };
+    } catch (error) {
+      console.error('获取热点关联内容失败:', error);
+      return {
+        success: false,
+        message: '获取热点关联内容失败',
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 0,
+          total: 0,
+          pages: 1
+        }
+      };
+    }
+  }
+
   async updateHotTopics() {
     try {
       return await this.client.post('/hot-topics/update');
