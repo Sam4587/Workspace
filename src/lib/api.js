@@ -116,15 +116,7 @@ class ApiClient {
   }
 
   async updateHotTopics() {
-    try {
-      return await this.client.post('/hot-topics/update');
-    } catch (error) {
-      console.error('更新热点数据失败:', error);
-      return {
-        success: false,
-        message: '更新热点数据失败'
-      };
-    }
+    return await this.client.post('/hot-topics/update');
   }
 
   async invalidateCache(source = 'all') {
@@ -1362,6 +1354,19 @@ class ApiClient {
     } catch (error) {
       console.error(`DELETE ${url} 失败:`, error);
       throw error;
+    }
+  }
+
+  async optimizeTitle(params) {
+    try {
+      const response = await this.client.post('/contents/optimize-title', params);
+      return response;
+    } catch (error) {
+      console.error('标题优化失败:', error);
+      return {
+        success: false,
+        message: '标题优化失败'
+      };
     }
   }
 }

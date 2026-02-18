@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Filter, RefreshCw, TrendingUp, ExternalLink, Wand2, Brain, BarChart3, CheckSquare, Square, Calendar, Download, Bell, FileText } from 'lucide-react';
+import { Search, Filter, RefreshCw, TrendingUp, ExternalLink, Wand2, Brain, BarChart3, CheckSquare, Square, Calendar, Download, Bell, FileText, MoreHorizontal } from 'lucide-react';
 import TopicCard from '../components/TopicCard';
 import FilterPanel from '../components/FilterPanel';
 import TrendTimeline from '../components/TrendTimeline';
@@ -32,6 +32,11 @@ const HotTopics = () => {
   const [activePanel, setActivePanel] = useState(null);
   const [visualizationMode, setVisualizationMode] = useState(false);
   const [viewingTopicContents, setViewingTopicContents] = useState(null);
+  const [showReportMenu, setShowReportMenu] = useState(false);
+  const [openTopicMenu, setOpenTopicMenu] = useState(null);
+  
+  const reportMenuRef = useRef(null);
+  const topicMenuRefs = useRef({});
 
   const { data: topics, isLoading, refetch } = useQuery({
     queryKey: ['hot-topics', searchTerm, selectedCategory, filters],
@@ -175,6 +180,25 @@ const HotTopics = () => {
     setSelectedTopic(null);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (reportMenuRef.current && !reportMenuRef.current.contains(event.target)) {
+        setShowReportMenu(false);
+      }
+      if (openTopicMenu !== null) {
+        const menuRef = topicMenuRefs.current[openTopicMenu];
+        if (menuRef && !menuRef.contains(event.target)) {
+          setOpenTopicMenu(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openTopicMenu]);
+
   const filteredTopics = topics?.filter(topic => {
     if (!topics || topics.length === 0) return false;
 
@@ -232,36 +256,48 @@ const HotTopics = () => {
             <span>{visualizationMode ? '列表模式' : '可视化模式'}</span>
           </button>
           
-          <div className="relative group">
+          <div className="relative" ref={reportMenuRef}>
             <button
+              onClick={() => setShowReportMenu(!showReportMenu)}
               className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <Download className="h-4 w-4" />
               <span>生成报告</span>
             </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-              <button
-                onClick={() => generateReportMutation.mutate({ type: 'daily', format: 'html' })}
-                disabled={generateReportMutation.isLoading}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-              >
-                📄 日报 (HTML)
-              </button>
-              <button
-                onClick={() => generateReportMutation.mutate({ type: 'weekly', format: 'html' })}
-                disabled={generateReportMutation.isLoading}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-              >
-                📊 周报 (HTML)
-              </button>
-              <button
-                onClick={() => generateReportMutation.mutate({ type: 'monthly', format: 'html' })}
-                disabled={generateReportMutation.isLoading}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-              >
-                📈 月报 (HTML)
-              </button>
-            </div>
+            {showReportMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                <button
+                  onClick={() => {
+                    generateReportMutation.mutate({ type: 'daily', format: 'html' });
+                    setShowReportMenu(false);
+                  }}
+                  disabled={generateReportMutation.isLoading}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  📄 日报 (HTML)
+                </button>
+                <button
+                  onClick={() => {
+                    generateReportMutation.mutate({ type: 'weekly', format: 'html' });
+                    setShowReportMenu(false);
+                  }}
+                  disabled={generateReportMutation.isLoading}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  📊 周报 (HTML)
+                </button>
+                <button
+                  onClick={() => {
+                    generateReportMutation.mutate({ type: 'monthly', format: 'html' });
+                    setShowReportMenu(false);
+                  }}
+                  disabled={generateReportMutation.isLoading}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  📈 月报 (HTML)
+                </button>
+              </div>
+            )}
           </div>
 
           {selectedTopicIds.length > 0 && (
@@ -423,33 +459,54 @@ const HotTopics = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => handleViewTopicContents(topic)}
-                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <FileText className="h-4 w-4" />
-                            <span>查看内容</span>
-                          </button>
-                          <button
-                            onClick={() => handleShowTrendTimeline(topic)}
-                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <TrendingUp className="h-4 w-4" />
-                            <span>趋势</span>
-                          </button>
-                          <button
-                            onClick={() => handleShowCrossPlatform(topic)}
-                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            <span>跨平台</span>
-                          </button>
-                          <button
                             onClick={() => handleGenerateContent(topic)}
                             className="flex items-center space-x-1 px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                           >
                             <Wand2 className="h-4 w-4" />
                             <span>生成内容</span>
                           </button>
+                          <div className="relative" ref={(el) => (topicMenuRefs.current[topic._id] = el)}>
+                            <button
+                              onClick={() => setOpenTopicMenu(openTopicMenu === topic._id ? null : topic._id)}
+                              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                            {openTopicMenu === topic._id && (
+                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                                <button
+                                  onClick={() => {
+                                    handleViewTopicContents(topic);
+                                    setOpenTopicMenu(null);
+                                  }}
+                                  className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  <span>查看内容</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleShowTrendTimeline(topic);
+                                    setOpenTopicMenu(null);
+                                  }}
+                                  className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  <TrendingUp className="h-4 w-4" />
+                                  <span>查看趋势</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleShowCrossPlatform(topic);
+                                    setOpenTopicMenu(null);
+                                  }}
+                                  className="flex items-center space-x-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                  <span>跨平台分析</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -461,55 +518,88 @@ const HotTopics = () => {
 
           {/* 右侧侧边栏 */}
           <div className="space-y-6">
-            {/* 快捷操作 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">快捷操作</h3>
-              <div className="space-y-3">
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshMutation.isLoading}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  <RefreshCw className={`h-4 w-4 ${refreshMutation.isLoading ? 'animate-spin' : ''}`} />
-                  <span>{refreshMutation.isLoading ? '刷新中...' : '刷新数据'}</span>
-                </button>
-                
-                {selectedTopicIds.length > 0 && (
-                  <button
-                    onClick={handleShowAIAnalysis}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    <Brain className="h-4 w-4" />
-                    <span>AI分析 ({selectedTopicIds.length})</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
             {/* 实时热点 */}
             {newTopics && newTopics.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">实时热点</h3>
-                <div className="space-y-3">
-                  {newTopics.slice(0, 5).map((topic) => (
-                    <div key={topic._id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <TrendingUp className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">实时热点</h3>
+                  <span className="text-xs text-gray-400">{newTopics.length}条</span>
+                </div>
+                <div className="space-y-1">
+                  {newTopics.slice(0, 10).map((topic, index) => (
+                    <div
+                      key={topic._id}
+                      onClick={() => {
+                        setSearchTerm(topic.title);
+                        setSelectedTopicIds([topic._id]);
+                      }}
+                      className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
+                    >
+                      <span className={`text-xs font-bold w-5 ${
+                        index < 3 ? 'text-red-500' : 'text-gray-400'
+                      }`}>
+                        {index + 1}
+                      </span>
+                      <TrendingUp className={`h-3 w-3 flex-shrink-0 ${
+                        index < 3 ? 'text-red-500' : 'text-gray-400'
+                      }`} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm text-gray-900 truncate group-hover:text-blue-600">
                           {topic.title}
                         </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            热度 {topic.heat}
-                          </span>
-                          <span className="text-xs text-gray-500">{topic.source}</span>
-                        </div>
                       </div>
+                      <span className="text-xs text-gray-400 flex-shrink-0">
+                        {topic.heat}
+                      </span>
                     </div>
                   ))}
                 </div>
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('all');
+                  }}
+                  className="w-full mt-3 text-xs text-gray-500 hover:text-gray-700 py-2 border-t border-gray-100"
+                >
+                  查看全部 →
+                </button>
               </div>
             )}
+
+            {/* 热门分类 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <h3 className="text-base font-semibold text-gray-900 mb-3">热门分类</h3>
+              <div className="flex flex-wrap gap-2">
+                {categories.filter(c => c.value !== 'all').slice(0, 6).map((category) => (
+                  <button
+                    key={category.value}
+                    onClick={() => setSelectedCategory(category.value)}
+                    className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                      selectedCategory === category.value
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 快捷统计 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <h3 className="text-base font-semibold text-gray-900 mb-3">数据概览</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-3 bg-gradient-to-br from-red-50 to-orange-50 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600">{filteredTopics.length}</div>
+                  <div className="text-xs text-gray-500">热点话题</div>
+                </div>
+                <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{selectedTopicIds.length}</div>
+                  <div className="text-xs text-gray-500">已选中</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

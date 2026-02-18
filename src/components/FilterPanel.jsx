@@ -5,39 +5,47 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Filter } from 'lucide-react';
 
 const sources = [
-  { id: 'all', label: 'All Sources' },
-  { id: 'weibo', label: 'Weibo' },
-  { id: 'zhihu', label: 'Zhihu' },
-  { id: 'toutiao', label: 'Toutiao' },
-  { id: 'baidu', label: 'Baidu' },
+  { id: 'all', label: '全部来源' },
+  { id: 'weibo', label: '微博' },
+  { id: 'zhihu', label: '知乎' },
+  { id: 'toutiao', label: '头条' },
+  { id: 'baidu', label: '百度' },
 ];
 
 const categories = [
-  { id: 'all', label: 'All Categories' },
-  { id: 'hot', label: 'Hot' },
-  { id: 'social', label: 'Social' },
-  { id: 'tech', label: 'Tech' },
-  { id: 'entertainment', label: 'Entertainment' },
+  { id: 'all', label: '全部分类' },
+  { id: 'hot', label: '热门' },
+  { id: 'social', label: '社会' },
+  { id: 'tech', label: '科技' },
+  { id: 'entertainment', label: '娱乐' },
 ];
 
-export const FilterPanel = ({ filters, onFilterChange }) => {
+export const FilterPanel = ({ filters, setFilters, onApply, onReset }) => {
+  const handleSourceChange = (value) => {
+    setFilters({ ...filters, source: value });
+  };
+
+  const handleCategoryChange = (value) => {
+    setFilters({ ...filters, category: value });
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
           <Filter className="h-4 w-4" />
-          Filters
+          筛选条件
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <label className="text-xs font-medium mb-2 block">Source</label>
+          <label className="text-xs font-medium mb-2 block">来源</label>
           <Select
             value={filters.source || 'all'}
-            onValueChange={(value) => onFilterChange({ ...filters, source: value })}
+            onValueChange={handleSourceChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select source" />
+              <SelectValue placeholder="选择来源" />
             </SelectTrigger>
             <SelectContent>
               {sources.map((source) => (
@@ -50,13 +58,13 @@ export const FilterPanel = ({ filters, onFilterChange }) => {
         </div>
         
         <div>
-          <label className="text-xs font-medium mb-2 block">Category</label>
+          <label className="text-xs font-medium mb-2 block">分类</label>
           <Select
             value={filters.category || 'all'}
-            onValueChange={(value) => onFilterChange({ ...filters, category: value })}
+            onValueChange={handleCategoryChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select category" />
+              <SelectValue placeholder="选择分类" />
             </SelectTrigger>
             <SelectContent>
               {categories.map((category) => (
@@ -71,10 +79,10 @@ export const FilterPanel = ({ filters, onFilterChange }) => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => onFilterChange({ source: 'all', category: 'all' })}
+          onClick={onReset}
           className="w-full"
         >
-          Reset Filters
+          重置筛选
         </Button>
       </CardContent>
     </Card>
