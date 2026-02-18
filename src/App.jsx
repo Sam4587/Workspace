@@ -1,7 +1,7 @@
 import { Toaster } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { navItems } from "./nav-items";
 import Layout from "./components/Layout";
 import TranscriptionResult from "./pages/TranscriptionResult";
@@ -21,9 +21,11 @@ const App = () => (
               {navItems.map(({ to, page }) => (
                 <Route key={to} path={to} element={page} />
               ))}
-              {/* 参数化路由 */}
               <Route path="/transcription/:videoId" element={<TranscriptionResult />} />
               <Route path="/content-rewrite" element={<ContentRewrite />} />
+              <Route path="/content-generation" element={<Navigate to="/content-creation" replace />} />
+              <Route path="/publish-management" element={<Navigate to="/publish-center" replace />} />
+              <Route path="/video-generation" element={<Navigate to="/content-creation" replace />} />
             </Routes>
           </Layout>
         </HashRouter>

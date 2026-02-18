@@ -1,12 +1,11 @@
-import { HomeIcon, TrendingUp, FileText, BarChart3, Video, Send } from "lucide-react";
+import { HomeIcon, TrendingUp, FileText, BarChart3, Send } from "lucide-react";
 import Index from "./pages/Index.jsx";
 import HotTopics from "./pages/HotTopics.jsx";
-import ContentGeneration from "./pages/ContentGeneration.jsx";
+import ContentCreation from "./pages/ContentCreation.jsx";
 import Analytics from "./pages/Analytics.jsx";
-import VideoGeneration from "./pages/VideoGeneration.jsx";
 import TranscriptionResult from "./pages/TranscriptionResult.jsx";
 import ContentRewrite from "./pages/ContentRewrite.jsx";
-import PublishManagement from "./pages/PublishManagement.jsx";
+import PublishCenter from "./pages/PublishCenter.jsx";
 
 /**
  * Central place for defining the navigation items. Used for navigation components and routing.
@@ -25,16 +24,16 @@ export const navItems = [
     page: <HotTopics />,
   },
   {
-    title: "内容生成",
-    to: "/content-generation",
+    title: "内容创作",
+    to: "/content-creation",
     icon: <FileText className="h-4 w-4" />,
-    page: <ContentGeneration />,
+    page: <ContentCreation />,
   },
   {
-    title: "发布管理",
-    to: "/publish-management",
+    title: "发布中心",
+    to: "/publish-center",
     icon: <Send className="h-4 w-4" />,
-    page: <PublishManagement />,
+    page: <PublishCenter />,
   },
   {
     title: "数据分析",
@@ -42,13 +41,6 @@ export const navItems = [
     icon: <BarChart3 className="h-4 w-4" />,
     page: <Analytics />,
   },
-  {
-    title: "视频生成",
-    to: "/video-generation",
-    icon: <Video className="h-4 w-4" />,
-    page: <VideoGeneration />,
-  },
-  // 隐藏路由（不在导航菜单中显示）
   {
     title: "转录结果",
     to: "/transcription/:videoId",

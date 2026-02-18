@@ -5,12 +5,30 @@ const os = require('os');
 const process = require('process');
 const v8 = require('v8');
 
-// 增强的健康检查端点
+let llmGateway = null;
+let multiPlatformAdaptationService = null;
+let cacheManager = null;
+
+try {
+  llmGateway = require('../services/llm');
+} catch (e) {}
+
+try {
+  multiPlatformAdaptationService = require('../services/multiPlatformAdaptationService');
+} catch (e) {}
+
+try {
+  cacheManager = require('../utils/CacheManager');
+} catch (e) {}
+
 router.get('/health', (req, res) => {
   const healthCheck = {
-    status: 'healthy',
+    success: true,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    cachedTopics: global.cachedTopics?.length || 0,
+    lastFetchTime: global.lastFetchTime?.toISOString() || null,
     checks: {
       database: mongoose.connection.readyState === 1 ? 'healthy' : 'unhealthy',
       memory: process.memoryUsage(),
@@ -23,6 +41,11 @@ router.get('/health', (req, res) => {
         arch: process.arch,
         nodeVersion: process.version
       }
+    },
+    services: {
+      llmGateway: llmGateway?.hasProviders?.() ? 'available' : (llmGateway ? 'no_providers' : 'unavailable'),
+      multiPlatformAdaptation: multiPlatformAdaptationService ? 'available' : 'unavailable',
+      cacheManager: cacheManager ? 'available' : 'unavailable'
     }
   };
 
@@ -215,7 +238,6 @@ router.get('/alerts', (req, res) => {
   res.json(alerts);
 });
 
-// 版本信息
 router.get('/version', (req, res) => {
   const versionInfo = {
     name: 'AI Content Flow Platform',
@@ -227,6 +249,108 @@ router.get('/version', (req, res) => {
   };
 
   res.json(versionInfo);
+});
+
+router.get('/memory', (req, res) => {
+  try {
+    const memoryMonitor = require('../utils/MemoryMonitor');
+    const report = memoryMonitor.getReport();
+    res.json({
+      success: true,
+      data: report
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+router.get('/memory/history', (req, res) => {
+  try {
+    const memoryMonitor = require('../utils/MemoryMonitor');
+    const history = memoryMonitor.getHistory();
+    res.json({
+      success: true,
+      data: history,
+      count: history.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+router.get('/cache', (req, res) => {
+  try {
+    const cacheManager = require('../utils/CacheManager');
+    const stats = cacheManager.getAllStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+router.get('/cache/health', (req, res) => {
+  try {
+    const cacheManager = require('../utils/CacheManager');
+    const health = cacheManager.healthCheck();
+    res.json({
+      success: true,
+      data: health
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+router.post('/cache/flush', (req, res) => {
+  try {
+    const cacheManager = require('../utils/CacheManager');
+    const { name } = req.body;
+    if (name) {
+      cacheManager.flush(name);
+    } else {
+      cacheManager.flushAll();
+    }
+    res.json({
+      success: true,
+      message: name ? `缓存 ${name} 已清空` : '所有缓存已清空'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+router.get('/cache/memory', (req, res) => {
+  try {
+    const cacheManager = require('../utils/CacheManager');
+    const usage = cacheManager.getMemoryUsage();
+    res.json({
+      success: true,
+      data: usage
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 module.exports = router;

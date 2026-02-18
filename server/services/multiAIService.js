@@ -1,5 +1,6 @@
 const OpenAI = require('openai');
 const axios = require('axios');
+const { retryWithDefaults } = require('../utils/retry');
 
 // 安全导入LLM模块
 let llmGateway = null;
@@ -216,35 +217,45 @@ class MultiAIService {
       .map(([name, _]) => name);
     
     if (availableModels.length === 0) {
-      // 如果没有配置付费模型，尝试使用免费 LLM
       return await this.generateWithFreeLLM(prompt, options);
     }
     
-    // 根据选项选择模型
     let selectedModel = options.model || 'openai';
     
     if (!availableModels.includes(selectedModel)) {
-      selectedModel = availableModels[0]; // 使用第一个可用模型
+      selectedModel = availableModels[0];
     }
     
-    // 尝试生成内容，如果失败则切换到下一个模型
     for (let i = 0; i < availableModels.length; i++) {
       try {
         const model = i === 0 ? selectedModel : availableModels[i];
         
-        switch (model) {
-          case 'openai':
-            if (this.models.openai.client) {
-              return await this.generateWithOpenAI(prompt, options);
+        const result = await retryWithDefaults(
+          async () => {
+            switch (model) {
+              case 'openai':
+                if (this.models.openai.client) {
+                  return await this.generateWithOpenAI(prompt, options);
+                }
+                break;
+              case 'baidu':
+                return await this.generateWithBaidu(prompt, options);
+              case 'xunfei':
+                return await this.generateWithXunfei(prompt, options);
+              default:
+                throw new Error(`Unknown model: ${model}`);
             }
-            break;
-          case 'baidu':
-            return await this.generateWithBaidu(prompt, options);
-          case 'xunfei':
-            return await this.generateWithXunfei(prompt, options);
-          default:
-            continue;
-        }
+            throw new Error(`Model ${model} not available`);
+          },
+          {
+            maxRetries: 2,
+            onRetry: (attempt, error) => {
+              console.warn(`[MultiAIService] ${model} 重试 ${attempt}: ${error.message}`);
+            }
+          }
+        );
+        
+        if (result) return result;
       } catch (error) {
         console.error(`模型 ${availableModels[i]} 生成失败:`, error.message);
         if (i === availableModels.length - 1) {

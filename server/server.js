@@ -7,14 +7,29 @@ const rateLimit = require('express-rate-limit');
 const configLoader = require('./utils/configLoader');
 const enhancedLogger = require('./utils/enhancedLogger');
 const rateLimiter = require('./utils/rateLimiter');
+const memoryMonitor = require('./utils/MemoryMonitor');
+const cacheManager = require('./utils/CacheManager');
 const { loggingMiddleware, errorLoggingMiddleware, auditLoggingMiddleware } = require('./middleware/loggingMiddleware');
 const { validateRequired, validateTypes, validateEmail, sanitizeInput, preventSqlInjection, csrfProtection, requestSizeLimit } = require('./middleware/validation');
-const healthRoutes = require('./routes/health');
+const healthRoutes = require('./routes/enhancedHealth');
 const { metricsCollector } = require('./middleware/metricsMiddleware');
 const alertService = require('./services/alertService');
 
-// 加载环境配置
 configLoader.load();
+
+memoryMonitor.start();
+memoryMonitor.onAlert((alert) => {
+  if (alert.level === 'critical') {
+    alertService.sendAlert({
+      type: 'memory_critical',
+      ...alert
+    }).catch(err => console.error('发送内存告警失败:', err));
+  }
+});
+
+cacheManager.register('hotTopics', { ttl: 1800, maxKeys: 500 });
+cacheManager.register('fetchers', { ttl: 1800, maxKeys: 200 });
+cacheManager.register('api', { ttl: 300, maxKeys: 1000 });
 
 const app = express();
 const PORT = configLoader.getNumber('PORT', 5001);
@@ -50,6 +65,12 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+app.use((req, res, next) => {
+  req.setTimeout(60000);
+  res.setTimeout(60000);
+  next();
+});
 
 // 安全中间件
 app.use(requestSizeLimit(10 * 1024 * 1024)); // 限制请求体大小为10MB
@@ -96,7 +117,10 @@ const { newsNowFetcher, NewsNowFetcher } = require('./fetchers/NewsNowFetcher');
 
 let cachedTopics = [];
 let lastFetchTime = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 分钟缓存（平衡实时性与安全性）
+const CACHE_DURATION = 5 * 60 * 1000;
+
+global.cachedTopics = cachedTopics;
+global.lastFetchTime = lastFetchTime;
 
 /**
  * 格式化时间为相对时间
@@ -164,16 +188,7 @@ async function fetchAndCacheTopics(clearCache = true) {
 // API 路由
 // =====================================================
 
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV,
-    cachedTopics: cachedTopics.length,
-    lastFetchTime: lastFetchTime ? new Date(lastFetchTime).toISOString() : null
-  });
-});
+app.use('/api', healthRoutes);
 
 app.get('/api/hot-topics', async (req, res) => {
   try {

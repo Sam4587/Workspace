@@ -4,80 +4,155 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import { 
   Send, 
-  Upload, 
   CheckCircle, 
   XCircle, 
   Loader2,
   ImageIcon,
   Video,
-  FileText
+  ExternalLink,
+  Settings
 } from 'lucide-react';
 
-export default function PublishManagement() {
+const MCP_PUBLISH_API = import.meta.env.VITE_MCP_PUBLISH_API || 'http://localhost:8080';
+
+const publishApi = {
+  checkLogin: async (platform) => {
+    try {
+      const response = await fetch(`${MCP_PUBLISH_API}/api/${platform}/check_login`);
+      return await response.json();
+    } catch (error) {
+      console.error('检查登录状态失败:', error);
+      return { is_logged_in: false };
+    }
+  },
+  
+  login: async (platform) => {
+    try {
+      const response = await fetch(`${MCP_PUBLISH_API}/api/${platform}/login`, {
+        method: 'POST',
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('登录请求失败:', error);
+      throw error;
+    }
+  },
+  
+  publish: async (platform, data) => {
+    try {
+      const response = await fetch(`${MCP_PUBLISH_API}/api/${platform}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('发布请求失败:', error);
+      throw error;
+    }
+  },
+  
+  search: async (platform, keyword) => {
+    try {
+      const response = await fetch(`${MCP_PUBLISH_API}/api/${platform}/search?keyword=${encodeURIComponent(keyword)}`);
+      return await response.json();
+    } catch (error) {
+      console.error('搜索请求失败:', error);
+      return { notes: [] };
+    }
+  }
+};
+
+const localApi = {
+  checkLogin: async (platform) => {
+    try {
+      const response = await fetch(`/api/${platform}/check_login`);
+      return await response.json();
+    } catch (error) {
+      return { is_logged_in: false };
+    }
+  },
+  
+  login: async (platform) => {
+    try {
+      const response = await fetch(`/api/${platform}/login`, {
+        method: 'POST',
+      });
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  publish: async (platform, data) => {
+    try {
+      const response = await fetch(`/api/${platform}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+export default function PublishCenter() {
   const [selectedPlatform, setSelectedPlatform] = useState('xiaohongshu');
   const [platforms, setPlatforms] = useState([]);
   const [loginStatus, setLoginStatus] = useState({});
   const [publishType, setPublishType] = useState('image_text');
   const [loading, setLoading] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [useMcpApi, setUseMcpApi] = useState(true);
   
-  // 表单数据
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState([]);
   const [videoPath, setVideoPath] = useState('');
   const [tags, setTags] = useState('');
 
-  // 获取平台列表
   useEffect(() => {
     fetchPlatforms();
-    checkLoginStatus();
+    checkAllLoginStatus();
   }, []);
 
   const fetchPlatforms = async () => {
-    try {
-      const response = await fetch('/api/platforms');
-      const data = await response.json();
-      if (data.success) {
-        setPlatforms(data.data.platforms || ['xiaohongshu', 'douyin', 'toutiao']);
-      }
-    } catch (error) {
-      console.log('使用默认平台列表');
-      setPlatforms(['xiaohongshu', 'douyin', 'toutiao']);
-    }
+    setPlatforms(['xiaohongshu', 'douyin', 'toutiao']);
   };
 
-  const checkLoginStatus = async () => {
-    try {
-      const response = await fetch('/api/xiaohongshu/check_login');
-      const data = await response.json();
-      setLoginStatus({ xiaohongshu: data.is_logged_in || false });
-    } catch (error) {
-      setLoginStatus({ xiaohongshu: false });
+  const checkAllLoginStatus = async () => {
+    const api = useMcpApi ? publishApi : localApi;
+    const status = {};
+    for (const platform of ['xiaohongshu', 'douyin', 'toutiao']) {
+      try {
+        const result = await api.checkLogin(platform);
+        status[platform] = result.is_logged_in || false;
+      } catch {
+        status[platform] = false;
+      }
     }
+    setLoginStatus(status);
   };
 
   const handleLogin = async (platform) => {
     setLoading(true);
+    const api = useMcpApi ? publishApi : localApi;
     try {
-      const response = await fetch(`/api/${platform}/login`, {
-        method: 'POST',
-      });
-      const data = await response.json();
+      const data = await api.login(platform);
       
       if (data.img) {
         toast.info('请扫描二维码登录');
-        // 显示二维码（实际应用中可以显示在模态框中）
-        console.log('QR Code available');
       }
       
       toast.success('登录请求已发送，请扫描二维码');
+      setTimeout(() => checkAllLoginStatus(), 2000);
     } catch (error) {
       toast.error('登录请求失败: ' + error.message);
     } finally {
@@ -92,6 +167,7 @@ export default function PublishManagement() {
     }
 
     setPublishing(true);
+    const api = useMcpApi ? publishApi : localApi;
     try {
       const publishData = {
         title,
@@ -105,19 +181,10 @@ export default function PublishManagement() {
         publishData.video_path = videoPath;
       }
 
-      const response = await fetch(`/api/${selectedPlatform}/publish`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(publishData),
-      });
-
-      const data = await response.json();
+      const data = await api.publish(selectedPlatform, publishData);
 
       if (data.success) {
         toast.success('发布成功！');
-        // 清空表单
         setTitle('');
         setContent('');
         setTags('');
@@ -155,13 +222,38 @@ export default function PublishManagement() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">发布管理</h1>
+          <h1 className="text-3xl font-bold">发布中心</h1>
           <p className="text-muted-foreground">多平台内容发布一站式管理</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">API模式:</span>
+            <button
+              onClick={() => setUseMcpApi(!useMcpApi)}
+              className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                useMcpApi 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              {useMcpApi ? 'MCP服务' : '本地API'}
+            </button>
+          </div>
+          {useMcpApi && (
+            <a
+              href={`${MCP_PUBLISH_API}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span className="text-sm">MCP服务状态</span>
+            </a>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 左侧：平台选择和状态 */}
         <div className="space-y-4">
           <Card>
             <CardHeader>
@@ -238,7 +330,6 @@ export default function PublishManagement() {
           </Card>
         </div>
 
-        {/* 右侧：发布表单 */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>

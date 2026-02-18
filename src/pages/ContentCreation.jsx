@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FileText, Video, Mic, Settings, Play, Pause, RotateCcw, Save, Send, Workflow, Zap } from 'lucide-react';
+import { FileText, Video, Mic, Settings, Play, Pause, RotateCcw, Save, Send, Workflow, Zap, Film, VideoIcon, FileVideo } from 'lucide-react';
 import ContentTypeSelector from '../components/ContentTypeSelector';
 import GenerationForm from '../components/GenerationForm';
 import ContentPreview from '../components/ContentPreview';
@@ -9,7 +9,7 @@ import WorkflowPanel from '../components/WorkflowPanel';
 import api from '../lib/api';
 import { useNotification } from '../contexts/NotificationContext';
 
-const ContentGeneration = () => {
+const ContentCreation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { showSuccess, showError } = useNotification();
@@ -23,6 +23,7 @@ const ContentGeneration = () => {
   const [availableTemplates, setAvailableTemplates] = useState([]);
   const [availableStyles, setAvailableStyles] = useState([]);
   const [useWorkflow, setUseWorkflow] = useState(false);
+  const [videoSubType, setVideoSubType] = useState('script');
 
   const contentTypes = [
     {
@@ -41,10 +42,15 @@ const ContentGeneration = () => {
     },
     {
       id: 'video',
-      name: '视频脚本',
+      name: '视频内容',
       icon: Video,
-      description: '生成视频内容脚本',
-      color: 'purple'
+      description: '生成视频脚本、渲染视频',
+      color: 'purple',
+      subTypes: [
+        { id: 'script', name: '视频脚本', icon: FileVideo },
+        { id: 'render', name: '视频渲染', icon: Film },
+        { id: 'transcribe', name: '视频转录', icon: VideoIcon }
+      ]
     },
     {
       id: 'audio',
@@ -58,7 +64,6 @@ const ContentGeneration = () => {
   const topic = location.state?.selectedTopic || null;
 
   useEffect(() => {
-    // 获取可用模板和样式
     const fetchTemplates = async () => {
       try {
         const response = await api.getContentTemplates();
@@ -91,7 +96,6 @@ const ContentGeneration = () => {
     }
   }, [topic]);
 
-  // 增强版内容生成mutation
   const generateEnhancedMutation = useMutation({
     mutationFn: async ({ formData }) => {
       const options = {
@@ -117,7 +121,6 @@ const ContentGeneration = () => {
     }
   });
 
-  // AI增强内容生成的mutation
   const generateMutation = useMutation({
     mutationFn: async ({ formData, type }) => {
       const response = await api.generateAIContent(formData, type);
@@ -132,13 +135,12 @@ const ContentGeneration = () => {
     }
   });
 
-  // AI生成并保存到内容管理服务的mutation
   const generateAndSaveMutation = useMutation({
     mutationFn: async ({ formData, type }) => {
       const options = {
         sourceType: 'hot_topic',
         sourceId: formData.hotTopicId,
-        userId: 'current_user', // 应该从用户上下文获取
+        userId: 'current_user',
         autoApprove: false,
         category: topic?.category || 'default',
         tags: topic?.keywords || []
@@ -178,7 +180,7 @@ const ContentGeneration = () => {
     },
     onSuccess: () => {
       showSuccess('内容发布成功');
-      navigate('/publishing');
+      navigate('/publish-center');
     },
     onError: (error) => {
       showError('内容发布失败: ' + error.message);
@@ -215,7 +217,6 @@ const ContentGeneration = () => {
   };
 
   const handleContentGenerated = (contentId) => {
-    // 当工作流生成内容后，获取内容详情并更新UI
     api.getContentById(contentId).then(response => {
       if (response.success) {
         setGeneratedContent(response.data);
@@ -224,10 +225,19 @@ const ContentGeneration = () => {
     });
   };
 
+  const handleVideoSubAction = (subType) => {
+    setVideoSubType(subType);
+    if (subType === 'render') {
+      navigate('/content-creation', { state: { action: 'render' } });
+    } else if (subType === 'transcribe') {
+      navigate('/content-creation', { state: { action: 'transcribe' } });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">内容生成</h1>
+        <h1 className="text-2xl font-bold text-gray-900">内容创作</h1>
         <div className="flex items-center space-x-2">
           <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <Settings className="h-4 w-4" />
@@ -254,6 +264,28 @@ const ContentGeneration = () => {
             selectedType={selectedType}
             onTypeChange={setSelectedType}
           />
+
+          {selectedType === 'video' && (
+            <div className="bg-white rounded-lg shadow p-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">视频操作</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {contentTypes.find(t => t.id === 'video')?.subTypes?.map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => handleVideoSubAction(sub.id)}
+                    className={`flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                      videoSubType === sub.id
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <sub.icon className="h-4 w-4" />
+                    <span className="text-sm">{sub.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           
           <GenerationForm
             type={selectedType}
@@ -264,7 +296,6 @@ const ContentGeneration = () => {
         </div>
 
         <div className="space-y-6 lg:col-span-2">
-          {/* 工作流面板 - 仅在工作流模式下显示 */}
           {useWorkflow && topic && (
             <WorkflowPanel 
               topic={topic}
@@ -434,4 +465,4 @@ const ContentGeneration = () => {
   );
 };
 
-export default ContentGeneration;
+export default ContentCreation;

@@ -10,7 +10,39 @@ const path = require('path');
 class EnhancedLogger {
   constructor() {
     this.logger = this.createLogger();
-    this.contextStore = new Map(); // 存储请求上下文
+    this.contextStore = new Map();
+    this.maxContextAge = 5 * 60 * 1000;
+    this.maxContextSize = 1000;
+    this.startContextCleanup();
+  }
+
+  startContextCleanup() {
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupStaleContexts();
+    }, 60000);
+    this.cleanupInterval.unref();
+  }
+
+  cleanupStaleContexts() {
+    const now = Date.now();
+    let cleaned = 0;
+    for (const [id, context] of this.contextStore) {
+      if (context._timestamp && (now - context._timestamp > this.maxContextAge)) {
+        this.contextStore.delete(id);
+        cleaned++;
+      }
+    }
+    if (cleaned > 0) {
+      this.debug('[EnhancedLogger] 清理过期上下文', { cleaned, remaining: this.contextStore.size });
+    }
+    if (this.contextStore.size > this.maxContextSize) {
+      const entries = Array.from(this.contextStore.entries());
+      const toDelete = entries.slice(0, this.contextStore.size - this.maxContextSize);
+      for (const [id] of toDelete) {
+        this.contextStore.delete(id);
+      }
+      this.debug('[EnhancedLogger] 清理超出限制的上下文', { deleted: toDelete.length });
+    }
   }
 
   /**
@@ -37,15 +69,27 @@ class EnhancedLogger {
     });
 
     const transports = [
-      // 控制台输出 - 开发环境彩色显示
+      // 控制台输出 - 使用安全的格式化方式
       new winston.transports.Console({
         level: this.getLogLevel(),
         format: winston.format.combine(
-          winston.format.colorize({ all: true }),
           winston.format.timestamp({ format: 'HH:mm:ss:ms' }),
           winston.format.printf(({ timestamp, level, message, ...meta }) => {
-            const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
-            return `[${timestamp}] ${level}: ${message}${metaStr}`;
+            try {
+              const levelColors = {
+                error: '\x1b[31m',
+                warn: '\x1b[33m',
+                info: '\x1b[36m',
+                http: '\x1b[35m',
+                debug: '\x1b[90m'
+              };
+              const reset = '\x1b[0m';
+              const color = levelColors[level] || '';
+              const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+              return `[${timestamp}] ${color}${level}${reset}: ${message}${metaStr}`;
+            } catch (e) {
+              return `[${timestamp}] ${level}: ${message}`;
+            }
           })
         )
       }),
@@ -158,7 +202,10 @@ class EnhancedLogger {
    * 设置请求上下文
    */
   setContext(requestId, context) {
-    this.contextStore.set(requestId, context);
+    this.contextStore.set(requestId, {
+      ...context,
+      _timestamp: Date.now()
+    });
   }
 
   /**
@@ -338,17 +385,58 @@ class EnhancedLogger {
 // 创建单例实例
 const enhancedLogger = new EnhancedLogger();
 
-// 全局错误处理
+// 全局错误处理 - 优雅降级而非立即退出
+let errorCount = 0;
+const MAX_ERRORS_BEFORE_EXIT = 10;
+const ERROR_WINDOW_MS = 60000;
+let errorWindowStart = Date.now();
+
 process.on('uncaughtException', (error) => {
-  enhancedLogger.logError(error, { type: 'uncaughtException' });
-  process.exit(1);
+  const now = Date.now();
+  
+  // 重置错误计数窗口
+  if (now - errorWindowStart > ERROR_WINDOW_MS) {
+    errorCount = 0;
+    errorWindowStart = now;
+  }
+  
+  errorCount++;
+  
+  enhancedLogger.error('Uncaught Exception', {
+    error: error.message,
+    stack: error.stack,
+    type: 'uncaughtException',
+    errorCount,
+    pid: process.pid
+  });
+  
+  // 如果短时间内错误过多，才退出进程
+  if (errorCount >= MAX_ERRORS_BEFORE_EXIT) {
+    enhancedLogger.error('Too many errors, exiting process', {
+      errorCount,
+      windowMs: ERROR_WINDOW_MS
+    });
+    process.exit(1);
+  }
+  
+  // 否则继续运行，实现优雅降级
+  enhancedLogger.warn('Process continuing after error (graceful degradation)', {
+    errorCount,
+    remainingBeforeExit: MAX_ERRORS_BEFORE_EXIT - errorCount
+  });
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  enhancedLogger.logError(reason instanceof Error ? reason : new Error(String(reason)), {
+  const error = reason instanceof Error ? reason : new Error(String(reason));
+  
+  enhancedLogger.error('Unhandled Rejection', {
+    error: error.message,
+    stack: error.stack,
     type: 'unhandledRejection',
     promise: promise.constructor.name
   });
+  
+  // 不退出进程，仅记录错误
 });
 
 module.exports = enhancedLogger;

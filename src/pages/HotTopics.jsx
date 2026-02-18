@@ -117,7 +117,7 @@ const HotTopics = () => {
   };
 
   const handleGenerateContent = (topic) => {
-    navigate('/content-generation', {
+    navigate('/content-creation', {
       state: {
         selectedTopic: topic
       }

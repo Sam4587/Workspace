@@ -114,41 +114,42 @@ class MultiPlatformAdaptationService {
    * 加载优化规则
    */
   loadOptimizationRules() {
+    const self = this;
     return {
       toutiao: {
-        titleOptimization: this.optimizeToutiaoTitle.bind(this),
-        contentOptimization: this.optimizeToutiaoContent.bind(this),
-        imageOptimization: this.optimizeImages.bind(this)
+        titleOptimization: (content, options) => self.optimizeToutiaoTitle(content, options),
+        contentOptimization: (content, options) => self.optimizeToutiaoContent(content, options),
+        imageOptimization: (content, options) => self.optimizeImages(content, options)
       },
       
       weibo: {
-        titleOptimization: this.optimizeWeiboTitle.bind(this),
-        contentOptimization: this.optimizeWeiboContent.bind(this),
-        hashtagOptimization: this.optimizeHashtags.bind(this)
+        titleOptimization: (content, options) => self.optimizeWeiboTitle(content, options),
+        contentOptimization: (content, options) => self.optimizeWeiboContent(content, options),
+        hashtagOptimization: (content, options) => self.optimizeHashtags(content, options)
       },
       
       zhihu: {
-        titleOptimization: this.optimizeZhihuTitle.bind(this),
-        contentOptimization: this.optimizeZhihuContent.bind(this),
-        structureOptimization: this.optimizeStructure.bind(this)
+        titleOptimization: (content, options) => self.optimizeZhihuTitle(content, options),
+        contentOptimization: (content, options) => self.optimizeZhihuContent(content, options),
+        structureOptimization: (content, options) => self.optimizeStructure(content, options)
       },
       
       xiaohongshu: {
-        titleOptimization: this.optimizeXiaohongshuTitle.bind(this),
-        contentOptimization: this.optimizeXiaohongshuContent.bind(this),
-        emojiOptimization: this.optimizeEmojis.bind(this)
+        titleOptimization: (content, options) => self.optimizeXiaohongshuTitle(content, options),
+        contentOptimization: (content, options) => self.optimizeXiaohongshuContent(content, options),
+        emojiOptimization: (content, options) => self.optimizeEmojis(content, options)
       },
       
       douyin: {
-        titleOptimization: this.optimizeDouyinTitle.bind(this),
-        contentOptimization: this.optimizeDouyinContent.bind(this),
-        hookOptimization: this.optimizeVideoHook.bind(this)
+        titleOptimization: (content, options) => self.optimizeDouyinTitle(content, options),
+        contentOptimization: (content, options) => self.optimizeDouyinContent(content, options),
+        hookOptimization: (content, options) => self.optimizeVideoHook(content, options)
       },
       
       bilibili: {
-        titleOptimization: this.optimizeBilibiliTitle.bind(this),
-        contentOptimization: this.optimizeBilibiliContent.bind(this),
-        communityOptimization: this.optimizeCommunityEngagement.bind(this)
+        titleOptimization: (content, options) => self.optimizeBilibiliTitle(content, options),
+        contentOptimization: (content, options) => self.optimizeBilibiliContent(content, options),
+        communityOptimization: (content, options) => self.optimizeCommunityEngagement(content, options)
       }
     };
   }
@@ -400,6 +401,11 @@ class MultiPlatformAdaptationService {
         `**${index + 1}.** ${section}`
       ).join('\n\n');
     }
+    return content;
+  }
+
+  // 图片优化
+  async optimizeImages(content, options) {
     return content;
   }
 

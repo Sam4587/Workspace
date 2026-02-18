@@ -9,10 +9,13 @@ const { v4: uuidv4 } = require('uuid');
 
 class TaskManager {
   constructor() {
-    this.runningTasks = new Map(); // 内存中跟踪正在运行的任务
-    this.taskWorkers = new Map();  // 任务处理器映射
+    this.runningTasks = new Map();
+    this.taskWorkers = new Map();
+    this.maxRunningTasks = 100;
+    this.maxTaskAge = 30 * 60 * 1000;
     this.initializeWorkers();
     this.startCleanupJob();
+    this.startMemoryCleanup();
   }
 
   /**
@@ -72,9 +75,8 @@ class TaskManager {
     }
 
     try {
-      // 标记为处理中
       await task.markAsProcessing();
-      this.runningTasks.set(taskId, task);
+      this.runningTasks.set(taskId, { ...task, _startTime: Date.now() });
 
       // 获取对应的任务处理器
       const WorkerClass = this.taskWorkers.get(task.type);
@@ -197,7 +199,6 @@ class TaskManager {
    * 启动清理作业
    */
   startCleanupJob() {
-    // 每小时清理一次旧任务
     setInterval(async () => {
       try {
         const result = await Task.cleanupOldTasks(7);
@@ -207,7 +208,38 @@ class TaskManager {
       } catch (error) {
         logger.error('[TaskManager] 清理任务失败', { error: error.message });
       }
-    }, 60 * 60 * 1000); // 1小时
+    }, 60 * 60 * 1000);
+  }
+
+  startMemoryCleanup() {
+    this.memoryCleanupInterval = setInterval(() => {
+      this.cleanupStaleTasks();
+    }, 5 * 60 * 1000);
+    this.memoryCleanupInterval.unref();
+  }
+
+  cleanupStaleTasks() {
+    const now = Date.now();
+    let cleaned = 0;
+    for (const [taskId, task] of this.runningTasks) {
+      if (task._startTime && (now - task._startTime > this.maxTaskAge)) {
+        this.runningTasks.delete(taskId);
+        cleaned++;
+        logger.warn('[TaskManager] 清理超时任务', { taskId, age: Math.round((now - task._startTime) / 1000) + 's' });
+      }
+    }
+    if (this.runningTasks.size > this.maxRunningTasks) {
+      const entries = Array.from(this.runningTasks.entries());
+      const toDelete = entries.slice(0, this.runningTasks.size - this.maxRunningTasks);
+      for (const [taskId] of toDelete) {
+        this.runningTasks.delete(taskId);
+        cleaned++;
+      }
+      logger.warn('[TaskManager] 清理超出限制的任务', { deleted: toDelete.length });
+    }
+    if (cleaned > 0) {
+      logger.info('[TaskManager] 内存清理完成', { cleaned, remaining: this.runningTasks.size });
+    }
   }
 
   /**
