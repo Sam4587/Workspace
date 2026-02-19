@@ -1049,6 +1049,14 @@ try {
   console.log('[AIAnalysisRoute] AI Analysis routes skipped:', error.message);
 }
 
+// 注册统一推送服务路由
+try {
+  app.use('/api/push', require('./routes/push'));
+  console.log('[PushRoute] Push routes loaded');
+} catch (error) {
+  console.log('[PushRoute] Push routes skipped:', error.message);
+}
+
 // 注册视频生成路由（可选，如果依赖缺失则跳过）
 try {
   app.use('/api/video-generation', require('./routes/video'));
