@@ -104,4 +104,61 @@ router.post('/chat', async (req, res) => {
   }
 });
 
+router.get('/health', async (req, res) => {
+  try {
+    const results = await llmGateway.checkHealth();
+    const allHealthy = Object.values(results).every(r => r.healthy);
+    
+    res.json({
+      success: true,
+      healthy: allHealthy,
+      data: results
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+router.get('/ollama/models', async (req, res) => {
+  try {
+    const models = await llmGateway.listOllamaModels();
+    res.json({
+      success: true,
+      data: models
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+router.post('/ollama/pull', async (req, res) => {
+  try {
+    const { model } = req.body;
+    
+    if (!model) {
+      return res.status(400).json({
+        success: false,
+        message: 'model 参数不能为空'
+      });
+    }
+
+    const result = await llmGateway.pullOllamaModel(model);
+    res.json({
+      success: result.success,
+      message: result.success ? `模型 ${model} 拉取成功` : result.error
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;

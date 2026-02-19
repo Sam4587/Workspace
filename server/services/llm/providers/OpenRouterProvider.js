@@ -15,7 +15,28 @@ class OpenRouterProvider extends BaseProvider {
   }
 
   async generate(messages, options = {}) {
-    return await this.chatCompletion(messages, options);
+    const model = options.model || this.defaultModel;
+    const temperature = options.temperature || 0.7;
+    const maxTokens = options.maxTokens || 2000;
+
+    try {
+      const response = await this.client.post('/chat/completions', {
+        model,
+        messages,
+        temperature,
+        max_tokens: maxTokens
+      });
+
+      return {
+        content: response.data.choices[0].message.content,
+        model: response.data.model,
+        provider: 'openrouter',
+        usage: response.data.usage,
+        raw: response.data
+      };
+    } catch (error) {
+      throw this.handleError(error);
+    }
   }
 }
 
