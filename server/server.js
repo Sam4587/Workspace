@@ -1073,6 +1073,22 @@ try {
   console.log('[InfiniteTalkRoute] InfiniteTalk routes skipped:', error.message);
 }
 
+// 注册视频处理路由
+try {
+  app.use('/api/video-processing', require('./routes/videoProcessing'));
+  console.log('[VideoProcessingRoute] Video processing routes loaded');
+} catch (error) {
+  console.log('[VideoProcessingRoute] Video processing routes skipped:', error.message);
+}
+
+// 注册视频转录路由
+try {
+  app.use('/api/video-transcription', require('./routes/videoTranscription'));
+  console.log('[VideoTranscriptionRoute] Video transcription routes loaded');
+} catch (error) {
+  console.log('[VideoTranscriptionRoute] Video transcription routes skipped:', error.message);
+}
+
 // 注册视频生成路由（可选，如果依赖缺失则跳过）
 try {
   app.use('/api/video-generation', require('./routes/video'));
