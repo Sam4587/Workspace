@@ -1033,6 +1033,14 @@ try {
   console.log('[LLMRoute] LLM routes skipped:', error.message);
 }
 
+// 注册调度服务路由
+try {
+  app.use('/api/schedule', require('./routes/schedule'));
+  console.log('[ScheduleRoute] Schedule routes loaded');
+} catch (error) {
+  console.log('[ScheduleRoute] Schedule routes skipped:', error.message);
+}
+
 // 注册视频生成路由（可选，如果依赖缺失则跳过）
 try {
   app.use('/api/video-generation', require('./routes/video'));
