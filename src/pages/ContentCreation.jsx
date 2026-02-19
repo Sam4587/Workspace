@@ -228,7 +228,7 @@ const ContentCreation = () => {
 
   const publishMutation = useMutation({
     mutationFn: async (contentId) => {
-      const response = await api.publishToToutiao(contentId);
+      const response = await api.publishContent(contentId, ['toutiao']);
       return response.data;
     },
     onSuccess: () => {

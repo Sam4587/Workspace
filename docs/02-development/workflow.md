@@ -327,8 +327,8 @@ jobs:
 ## 📚 学习资源
 
 ### 内部文档
-- [架构设计文档](architecture.md)
-- [API参考手册](api-reference.md)
+- [架构设计文档](../03-architecture/system-architecture.md)
+- [API参考手册](../05-api/api-reference.md)
 - [技术标准规范](../04-technical-standards/)
 
 ### 外部资源

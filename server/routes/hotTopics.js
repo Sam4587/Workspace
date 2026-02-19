@@ -289,6 +289,32 @@ router.post('/update', async (req, res) => {
   }
 });
 
+router.post('/refresh', async (req, res) => {
+  try {
+    logger.info('收到刷新热点数据请求');
+
+    const topics = await hotTopicService.updateHotTopics();
+
+    res.json({
+      success: true,
+      message: '热点数据刷新成功',
+      data: {
+        count: topics.length,
+        topics: topics.slice(0, 20)
+      }
+    });
+  } catch (error) {
+    logger.error('刷新热点数据失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '刷新热点数据失败'
+    });
+  }
+});
+
 router.post('/invalidate-cache', async (req, res) => {
   try {
     const { source } = req.body;

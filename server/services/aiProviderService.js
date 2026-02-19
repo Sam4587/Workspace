@@ -3,6 +3,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { ZhipuAI } = require('zhipuai');
 const QianfanSDK = require('@baiducloud/qianfan');
+const axios = require('axios');
 const logger = require('../utils/logger');
 
 class AIProviderService {
@@ -176,6 +177,29 @@ class AIProviderService {
       });
     }
 
+    if (process.env.OLLAMA_ENABLED === 'true' || process.env.OLLAMA_BASE_URL) {
+      this.providers.set('ollama', {
+        name: 'Ollama',
+        type: 'ollama',
+        baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+        model: process.env.OLLAMA_MODEL || 'llama3',
+        enabled: true
+      });
+    }
+
+    if (process.env.OPENROUTER_API_KEY) {
+      this.providers.set('openrouter', {
+        name: 'OpenRouter',
+        type: 'openai',
+        client: new openai.OpenAI({
+          apiKey: process.env.OPENROUTER_API_KEY,
+          baseURL: 'https://openrouter.ai/api/v1'
+        }),
+        model: process.env.OPENROUTER_MODEL || 'google/gemma-3-12b-it:free',
+        enabled: true
+      });
+    }
+
     if (process.env.O1_API_KEY) {
       this.providers.set('o1', {
         name: 'O1',
@@ -267,6 +291,14 @@ class AIProviderService {
 
         case 'qianfan':
           result = await this.qianfanCompletion(providerConfig, messages, {
+            model: model || providerConfig.model,
+            temperature,
+            maxTokens
+          });
+          break;
+
+        case 'ollama':
+          result = await this.ollamaCompletion(providerConfig, messages, {
             model: model || providerConfig.model,
             temperature,
             maxTokens
@@ -420,20 +452,57 @@ class AIProviderService {
     };
   }
 
+  async ollamaCompletion(provider, messages, options) {
+    try {
+      const response = await axios.post(
+        `${provider.baseUrl}/api/chat`,
+        {
+          model: options.model,
+          messages,
+          stream: false,
+          options: {
+            num_predict: options.maxTokens || 2000,
+            temperature: options.temperature || 0.7
+          }
+        },
+        {
+          timeout: 120000
+        }
+      );
+
+      return {
+        content: response.data.message.content,
+        model: options.model,
+        usage: {
+          prompt_tokens: response.data.prompt_eval_count || 0,
+          completion_tokens: response.data.eval_count || 0,
+          total_tokens: (response.data.prompt_eval_count || 0) + (response.data.eval_count || 0)
+        }
+      };
+    } catch (error) {
+      throw new Error(`Ollama 调用失败: ${error.message}`);
+    }
+  }
+
   async analyzeTopics(topics, options = {}) {
     const {
       provider = null,
       includeTrends = true,
       includeSentiment = true,
       includeKeywords = true,
-      includeSummary = false
+      includeSummary = false,
+      maxTopics = 50
     } = options;
 
     if (!topics || topics.length === 0) {
       return null;
     }
 
-    const topicsData = topics.map(t => ({
+    const topicsToAnalyze = topics.slice(0, maxTopics);
+    
+    console.log(`[AI] 共 ${topics.length} 条话题，分析前 ${topicsToAnalyze.length} 条`);
+
+    const topicsData = topicsToAnalyze.map(t => ({
       title: t.title,
       source: t.source,
       heat: t.heat,
@@ -458,11 +527,20 @@ class AIProviderService {
       ], {
         provider,
         temperature: 0.3,
-        maxTokens: 2000,
-        responseFormat: { type: 'json_object' }
+        maxTokens: 3000
       });
 
-      const analysis = JSON.parse(result.content);
+      let analysis;
+      try {
+        analysis = JSON.parse(result.content);
+      } catch (parseError) {
+        console.log('直接解析失败，尝试清理内容...');
+        const cleanedContent = result.content
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+        analysis = JSON.parse(cleanedContent);
+      }
 
       logger.info('AI 分析完成');
       return analysis;

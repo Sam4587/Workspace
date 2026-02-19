@@ -195,13 +195,13 @@ npm run dev
 
 ### 核心文档
 - [开发工作流](../02-development/workflow.md) - 完整开发流程
-- [架构设计](../02-development/architecture.md) - 系统架构详解
-- [API 参考](../02-development/api-reference.md) - 接口文档
+- [架构设计](../03-architecture/system-architecture.md) - 系统架构详解
+- [API 参考](../05-api/api-reference.md) - 接口文档
 
 ### 技术标准
-- [环境变量标准](../04-technical-standards/environment-variables.md)
-- [日志系统标准](../04-technical-standards/logging-standard.md)
-- [监控告警标准](../04-technical-standards/monitoring-standard.md)
+- [环境变量标准](../ENVIRONMENT_VARIABLES_STANDARD.md)
+- [日志系统标准](../LOGGING_SYSTEM_STANDARD.md)
+- [监控告警标准](../MONITORING_ALERT_SYSTEM.md)
 
 ---
 

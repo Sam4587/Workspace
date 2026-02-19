@@ -1,3 +1,12 @@
+---
+title: AI Content Flow 核心开发计划
+category: 项目规划
+tags: [开发计划, 进度跟踪, 技术规范]
+updated: 2026-02-19
+version: v1.0
+author: AI开发团队
+---
+
 # AI Content Flow 核心开发计划
 
 > **本文档是项目开发的唯一依据，包含所有开发任务、进度跟踪和技术规范。**
@@ -67,6 +76,8 @@ AI Content Flow 是一个全链路AI内容创作系统，实现从热点发现�
 | Groq | 快速推理 | ✅ 已集成 |
 | Cerebras | 高性能推理 | ✅ 已集成 |
 | DeepSeek | 中文优化 | ✅ 已集成 |
+| Ollama | 本地部署 | ✅ 已集成 |
+| LiteLLM Gateway | 多提供商统一接口 | ✅ 已集成 |
 
 ### 2.4 端口配置
 
@@ -310,11 +321,123 @@ scope: hot-topics|content|publish|analytics|video|system
 
 | 文档 | 位置 | 说明 |
 |------|------|------|
+| 文档中心 | [INDEX.md](INDEX.md) | 文档总索引 |
 | 快速开始 | [01-getting-started/quick-start.md](01-getting-started/quick-start.md) | 环境配置指南 |
 | 开发工作流 | [02-development/workflow.md](02-development/workflow.md) | 标准开发流程 |
-| API参考 | [dev/API.md](dev/API.md) | 完整API文档 |
-| 架构设计 | [dev/ARCHITECTURE.md](dev/ARCHITECTURE.md) | 系统架构说明 |
+| 文档标准 | [DOCUMENTATION_STANDARDS.md](DOCUMENTATION_STANDARDS.md) | 文档编写规范 |
+| API参考 | [05-api/api-reference.md](05-api/api-reference.md) | 完整API文档 |
+| 架构设计 | [03-architecture/system-architecture.md](03-architecture/system-architecture.md) | 系统架构说明 |
 | 安全指南 | [security/QUICK_SECURITY_GUIDE.md](security/QUICK_SECURITY_GUIDE.md) | 安全开发规范 |
+| 环境变量 | [ENVIRONMENT_VARIABLES_STANDARD.md](ENVIRONMENT_VARIABLES_STANDARD.md) | 环境配置标准 |
+
+---
+
+## 十、文档整合计划
+
+### 10.1 文档整合目标
+
+1. 建立清晰的文档分类体系
+2. 统一文档命名和格式规范
+3. 优化文档组织结构
+4. 提升文档检索效率
+5. 建立文档维护机制
+
+### 10.2 文档分类体系
+
+#### 按用途分类
+- **01-getting-started/**: 快速开始指南
+- **02-development/**: 开发指南和规范
+- **03-architecture/**: 架构设计文档
+- **04-standards/**: 技术规范标准
+- **05-api/**: API 完整文档
+- **06-modules/**: 功能模块详细说明
+- **07-deployment/**: 部署运维指南
+- **08-troubleshooting/**: 故障排查文档
+- **09-reference/**: 参考资料和术语
+- **10-archive/**: 归档和历史文档
+
+#### 按受众分类
+- **新手**: 快速开始、安装指南、基础教程
+- **开发者**: API 文档、架构设计、开发规范
+- **运维**: 部署指南、监控、故障排查
+- **管理者**: 项目规划、进度跟踪、决策记录
+
+### 10.3 文档命名规范
+
+#### 文件命名规则
+- 使用小写字母
+- 使用连字符（-）分隔单词
+- 使用描述性名称
+- 避免缩写（除非广泛认知）
+
+#### 示例
+- ✅ `quick-start.md`
+- ✅ `api-reference.md`
+- ✅ `deployment-guide.md`
+- ❌ `quickstart.md`
+- ❌ `api_ref.md`
+- ❌ `deploy.md`
+
+### 10.4 文档格式规范
+
+#### 元数据头部
+每个文档应包含：
+```markdown
+---
+title: 文档标题
+category: 分类
+tags: [标签1, 标签2]
+updated: 2026-02-19
+version: 1.0
+author: 作者名称
+---
+```
+
+#### 标题层级
+```markdown
+# 文档标题（每个文档只有一个）
+## 主要章节
+### 子章节
+#### 详细说明
+```
+
+### 10.5 待完成文档
+
+#### 高优先级
+- [ ] 03-architecture/system-architecture.md - 系统架构文档
+- [ ] 05-api/api-reference.md - API 完整参考
+- [ ] 06-modules/ 目录下的所有模块文档
+
+#### 中优先级
+- [ ] 02-development/coding-standards.md - 代码规范
+- [ ] 02-development/testing-guide.md - 测试指南
+- [ ] 07-deployment/deployment-guide.md - 部署指南
+- [ ] 08-troubleshooting/common-issues.md - 常见问题
+
+#### 低优先级
+- [ ] 09-reference/ 目录下的所有文档
+- [ ] 10-archive/deprecated-features.md - 已弃用功能
+
+### 10.6 文档维护机制
+
+#### 更新频率
+- **核心文档**: 每次功能发布时更新
+- **API 文档**: 每次 API 变更时更新
+- **架构文档**: 重大架构调整时更新
+- **故障排查**: 发现新问题时更新
+
+#### 审查流程
+- 每月进行一次文档审查
+- 检查链接有效性
+- 更新过时内容
+- 收集用户反馈
+
+#### 贡献指南
+1. 遵循文档标准规范
+2. 使用清晰的标题层级
+3. 提供代码示例
+4. 添加必要的图表和说明
+5. 更新相关索引
 
 ---
 

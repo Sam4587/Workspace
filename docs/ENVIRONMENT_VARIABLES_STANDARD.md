@@ -1,8 +1,17 @@
+---
+title: 环境变量标准化管理规范
+category: 技术规范
+tags: [环境变量, 配置, 安全]
+updated: 2026-02-19
+version: 1.0
+author: AI开发团队
+---
+
 # 环境变量标准化管理规范
 
 ## 📅 文档版本
-**版本**: 1.0  
-**最后更新**: 2026年2月16日  
+**版本**: 1.0
+**最后更新**: 2026年2月16日
 **作者**: AI开发团队
 
 ## 🎯 目标
@@ -181,10 +190,10 @@ module.exports = ConfigLoader;
 
 ## 📚 相关文档
 
-- [标准化端口配置](STANDARD_PORT_CONFIGURATION.md)
-- [开发工作流指南](dev/DEV_WORKFLOW.md)
-- [安全加固计划](security/SECURITY_HARDENING_PLAN.md)
+- [文档标准规范](DOCUMENTATION_STANDARDS.md)
+- [快速参考指南](QUICK_REFERENCE.md)
+- [开发工作流](02-development/workflow.md)
 
 ---
-**维护者**: AI开发团队  
+**维护者**: AI开发团队
 **联系方式**: dev-team@example.com

@@ -114,13 +114,19 @@ app.get('/api/rate-limit/status', async (req, res) => {
 // 使用 NewsNowFetcher 获取真实热点数据
 // =====================================================
 const { newsNowFetcher, NewsNowFetcher } = require('./fetchers/NewsNowFetcher');
+const aiProviderService = require('./services/aiProviderService');
+const hotTopicReportService = require('./services/hotTopicReportService');
 
 let cachedTopics = [];
 let lastFetchTime = null;
+let cachedAnalysis = null;
+let lastAnalysisTime = null;
 const CACHE_DURATION = 5 * 60 * 1000;
+const ANALYSIS_CACHE_DURATION = 30 * 60 * 1000;
 
 global.cachedTopics = cachedTopics;
 global.lastFetchTime = lastFetchTime;
+global.cachedAnalysis = cachedAnalysis;
 
 /**
  * 格式化时间为相对时间
@@ -138,6 +144,39 @@ function formatTimeAgo(date) {
   if (diffHours < 24) return `${diffHours}小时前`;
   if (diffDays < 7) return `${diffDays}天前`;
   return past.toLocaleDateString('zh-CN');
+}
+
+/**
+ * 对获取到的热点数据进行 AI 分析
+ */
+async function analyzeTopics(topics) {
+  try {
+    if (!topics || topics.length === 0) {
+      console.log('没有话题数据可供分析');
+      return null;
+    }
+
+    console.log(`开始对 ${topics.length} 条话题进行 AI 分析...`);
+
+    const analysis = await aiProviderService.analyzeTopics(topics, {
+      includeTrends: true,
+      includeSentiment: true,
+      includeKeywords: true,
+      includeSummary: true,
+      maxTopics: 50
+    });
+
+    if (analysis) {
+      console.log('AI 分析完成');
+      return analysis;
+    } else {
+      console.log('AI 分析返回空结果');
+      return null;
+    }
+  } catch (error) {
+    console.error('AI 分析失败:', error.message);
+    return null;
+  }
 }
 
 /**
@@ -332,6 +371,96 @@ app.get('/api/hot-topics/trends/cross-platform/:title', (req, res) => {
       '百度热搜': { count: 1, avgHeat: 90, maxHeat: 90 }
     }
   });
+});
+
+// ========== AI 分析相关 API ==========
+app.post('/api/hot-topics/analyze', async (req, res) => {
+  try {
+    const { force = false } = req.body;
+
+    if (!cachedTopics || cachedTopics.length === 0) {
+      await fetchAndCacheTopics();
+    }
+
+    if (!force && cachedAnalysis && lastAnalysisTime && 
+        (Date.now() - lastAnalysisTime < ANALYSIS_CACHE_DURATION)) {
+      console.log('使用缓存的 AI 分析结果');
+      return res.json({
+        success: true,
+        data: {
+          analysis: cachedAnalysis,
+          topicCount: cachedTopics.length,
+          cached: true
+        }
+      });
+    }
+
+    const analysis = await analyzeTopics(cachedTopics);
+    
+    if (analysis) {
+      cachedAnalysis = analysis;
+      lastAnalysisTime = Date.now();
+    }
+
+    res.json({
+      success: true,
+      data: {
+        analysis: analysis,
+        topicCount: cachedTopics.length,
+        cached: false
+      }
+    });
+  } catch (error) {
+    console.error('AI 分析请求失败:', error);
+    res.status(500).json({
+      success: false,
+      message: 'AI 分析失败'
+    });
+  }
+});
+
+app.get('/api/hot-topics/analysis', async (req, res) => {
+  try {
+    const { force = false } = req.query;
+
+    if (!cachedTopics || cachedTopics.length === 0) {
+      await fetchAndCacheTopics();
+    }
+
+    if (force !== 'true' && cachedAnalysis && lastAnalysisTime && 
+        (Date.now() - lastAnalysisTime < ANALYSIS_CACHE_DURATION)) {
+      return res.json({
+        success: true,
+        data: {
+          analysis: cachedAnalysis,
+          topicCount: cachedTopics.length,
+          cached: true
+        }
+      });
+    }
+
+    const analysis = await analyzeTopics(cachedTopics);
+    
+    if (analysis) {
+      cachedAnalysis = analysis;
+      lastAnalysisTime = Date.now();
+    }
+
+    res.json({
+      success: true,
+      data: {
+        analysis: analysis,
+        topicCount: cachedTopics.length,
+        cached: false
+      }
+    });
+  } catch (error) {
+    console.error('获取 AI 分析结果失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取 AI 分析结果失败'
+    });
+  }
 });
 
 // ========== NewsNow 数据源 API ==========

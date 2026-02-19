@@ -43,15 +43,23 @@ class ApiClient {
     );
   }
 
+  // 确保 client 存在的辅助方法
+  ensureClient() {
+    if (!this.client) {
+      throw new Error('API客户端未初始化');
+    }
+    return this.client;
+  }
+
   // 热点话题相关
   async getHotTopics(params = {}) {
     try {
       const query = new URLSearchParams(params).toString();
-      const response = await this.client.get(`/hot-topics?${query}`);
+      const response = await this.ensureClient().get(`/hot-topics?${query}`);
       return {
         success: true,
-        data: response.data || [],
-        pagination: response.pagination || {
+        data: response?.data || [],
+        pagination: response?.pagination || {
           page: 1,
           limit: 20,
           total: 0,
@@ -128,7 +136,12 @@ class ApiClient {
   }
 
   async updateHotTopics() {
-    return await this.client.post('/hot-topics/refresh');
+    try {
+      return await this.ensureClient().post('/hot-topics/refresh');
+    } catch (error) {
+      console.error('更新热点话题失败:', error);
+      throw error;
+    }
   }
 
   async invalidateCache(source = 'all') {
@@ -1331,7 +1344,7 @@ class ApiClient {
   // 通用HTTP方法
   async get(url, config = {}) {
     try {
-      const response = await this.client.get(url, config);
+      const response = await this.ensureClient().get(url, config);
       return response;
     } catch (error) {
       console.error(`GET ${url} 失败:`, error);
@@ -1341,7 +1354,7 @@ class ApiClient {
 
   async post(url, data = {}, config = {}) {
     try {
-      const response = await this.client.post(url, data, config);
+      const response = await this.ensureClient().post(url, data, config);
       return response;
     } catch (error) {
       console.error(`POST ${url} 失败:`, error);
@@ -1351,7 +1364,7 @@ class ApiClient {
 
   async put(url, data = {}, config = {}) {
     try {
-      const response = await this.client.put(url, data, config);
+      const response = await this.ensureClient().put(url, data, config);
       return response;
     } catch (error) {
       console.error(`PUT ${url} 失败:`, error);
@@ -1361,7 +1374,7 @@ class ApiClient {
 
   async delete(url, config = {}) {
     try {
-      const response = await this.client.delete(url, config);
+      const response = await this.ensureClient().delete(url, config);
       return response;
     } catch (error) {
       console.error(`DELETE ${url} 失败:`, error);
@@ -1371,7 +1384,7 @@ class ApiClient {
 
   async optimizeTitle(params) {
     try {
-      const response = await this.client.post('/contents/optimize-title', params);
+      const response = await this.ensureClient().post('/contents/optimize-title', params);
       return response;
     } catch (error) {
       console.error('标题优化失败:', error);
