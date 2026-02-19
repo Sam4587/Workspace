@@ -1,0 +1,135 @@
+2026-02-16 14:03:02 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "hot-topic-to-content"
+}
+2026-02-16 14:04:10 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "hot-topic-to-content"
+}
+2026-02-16 14:08:08 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "hot-topic-to-content"
+}
+2026-02-16 14:24:22 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "hot-topic-to-content"
+}
+2026-02-16 14:24:22 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "video-transcript-to-content"
+}
+2026-02-16 14:24:22 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "content-to-publish"
+}
+2026-02-16 14:24:22 [info] [FetcherManager] 注册数据源: 微博热搜
+2026-02-16 14:24:22 [info] [FetcherManager] 注册数据源: 今日头条
+2026-02-16 14:24:22 [info] [FetcherManager] 注册数据源: 知乎热榜
+2026-02-16 14:24:22 [info] [FetcherManager] 已初始化 3 个默认数据源
+2026-02-16 14:24:22 [warn] [知乎热榜] API 调用失败: Request failed with status code 401，尝试备用方案
+2026-02-16 14:24:22 [warn] [今日头条] 页面抓取失败: Request failed with status code 404，使用备用数据
+2026-02-16 14:24:22 [info] [微博热搜] 成功获取 20 条数据
+2026-02-16 14:24:22 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 14:24:22 [warn] [知乎热榜] 页面抓取未获取到数据，使用备用数据
+2026-02-16 14:24:22 [info] [FetcherManager] 总计获取 40 条热点数据
+2026-02-16 14:24:22 [info] [PerformanceTrackingService] 性能追踪服务启动
+2026-02-16 14:24:22 [info] [PerformanceTrackingService] 开始执行性能追踪
+2026-02-16 14:24:32 [error] [PerformanceTrackingService] 性能追踪执行失败
+Metadata: {
+  "error": "Operation `contents.find()` buffering timed out after 10000ms"
+}
+2026-02-16 14:33:42 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "hot-topic-to-content"
+}
+2026-02-16 14:33:42 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "video-transcript-to-content"
+}
+2026-02-16 14:33:42 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "content-to-publish"
+}
+2026-02-16 14:33:42 [info] [FetcherManager] 注册数据源: 微博热搜
+2026-02-16 14:33:42 [info] [FetcherManager] 注册数据源: 今日头条
+2026-02-16 14:33:42 [info] [FetcherManager] 注册数据源: 知乎热榜
+2026-02-16 14:33:42 [info] [FetcherManager] 已初始化 3 个默认数据源
+2026-02-16 14:33:42 [warn] [今日头条] 页面抓取失败: Request failed with status code 404，使用备用数据
+2026-02-16 14:33:42 [warn] [知乎热榜] API 调用失败: Request failed with status code 401，尝试备用方案
+2026-02-16 14:33:42 [info] [微博热搜] 成功获取 20 条数据
+2026-02-16 14:33:42 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 14:33:42 [warn] [知乎热榜] 页面抓取未获取到数据，使用备用数据
+2026-02-16 14:33:42 [info] [FetcherManager] 总计获取 40 条热点数据
+2026-02-16 14:33:42 [info] [PerformanceTrackingService] 性能追踪服务启动
+2026-02-16 14:33:42 [info] [PerformanceTrackingService] 开始执行性能追踪
+2026-02-16 14:33:52 [error] [PerformanceTrackingService] 性能追踪执行失败
+Metadata: {
+  "error": "Operation `contents.find()` buffering timed out after 10000ms"
+}
+2026-02-16 14:55:00 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "hot-topic-to-content"
+}
+2026-02-16 14:55:00 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "video-transcript-to-content"
+}
+2026-02-16 14:55:00 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "content-to-publish"
+}
+2026-02-16 14:55:00 [info] [FetcherManager] 注册数据源: 微博热搜
+2026-02-16 14:55:00 [info] [FetcherManager] 注册数据源: 今日头条
+2026-02-16 14:55:00 [info] [FetcherManager] 注册数据源: 知乎热榜
+2026-02-16 14:55:00 [info] [FetcherManager] 已初始化 3 个默认数据源
+2026-02-16 14:55:00 [warn] [知乎热榜] API 调用失败: Request failed with status code 401，尝试备用方案
+2026-02-16 14:55:00 [warn] [今日头条] 页面抓取失败: Request failed with status code 404，使用备用数据
+2026-02-16 14:55:00 [info] [微博热搜] 成功获取 20 条数据
+2026-02-16 14:55:00 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 14:55:00 [warn] [知乎热榜] 页面抓取未获取到数据，使用备用数据
+2026-02-16 14:55:00 [info] [FetcherManager] 总计获取 40 条热点数据
+2026-02-16 14:55:00 [info] [PerformanceTrackingService] 性能追踪服务启动
+2026-02-16 14:55:00 [info] [PerformanceTrackingService] 开始执行性能追踪
+2026-02-16 14:55:10 [error] [PerformanceTrackingService] 性能追踪执行失败
+Metadata: {
+  "error": "Operation `contents.find()` buffering timed out after 10000ms"
+}
+2026-02-16 15:15:10 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "hot-topic-to-content"
+}
+2026-02-16 15:15:10 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "video-transcript-to-content"
+}
+2026-02-16 15:15:10 [info] [WorkflowEngine] 工作流注册成功
+Metadata: {
+  "workflowId": "content-to-publish"
+}
+2026-02-16 15:15:10 [info] [FetcherManager] 注册数据源: 微博热搜
+2026-02-16 15:15:10 [info] [FetcherManager] 注册数据源: 今日头条
+2026-02-16 15:15:10 [info] [FetcherManager] 注册数据源: 知乎热榜
+2026-02-16 15:15:10 [info] [FetcherManager] 已初始化 3 个默认数据源
+2026-02-16 15:15:10 [warn] [今日头条] 页面抓取失败: Request failed with status code 404，使用备用数据
+2026-02-16 15:15:10 [warn] [知乎热榜] API 调用失败: Request failed with status code 401，尝试备用方案
+2026-02-16 15:15:10 [info] [微博热搜] 成功获取 20 条数据
+2026-02-16 15:15:10 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 15:15:10 [warn] [知乎热榜] 页面抓取未获取到数据，使用备用数据
+2026-02-16 15:15:10 [info] [FetcherManager] 总计获取 40 条热点数据
+2026-02-16 15:15:10 [info] [PerformanceTrackingService] 性能追踪服务启动
+2026-02-16 15:15:10 [info] [PerformanceTrackingService] 开始执行性能追踪
+2026-02-16 15:15:20 [error] [PerformanceTrackingService] 性能追踪执行失败
+Metadata: {
+  "error": "Operation `contents.find()` buffering timed out after 10000ms"
+}
+2026-02-16 15:49:17 [info] [FetcherManager] 注册数据源: 微博热搜
+2026-02-16 15:49:17 [info] [FetcherManager] 注册数据源: 今日头条
+2026-02-16 15:49:17 [info] [FetcherManager] 注册数据源: 知乎热榜
+2026-02-16 15:49:17 [info] [FetcherManager] 已初始化 3 个默认数据源
+2026-02-16 15:49:18 [warn] [知乎热榜] API 调用失败: Request failed with status code 401，尝试备用方案
+2026-02-16 15:49:18 [warn] [今日头条] 页面抓取失败: Request failed with status code 404，使用备用数据
+2026-02-16 15:49:18 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 15:49:18 [warn] [知乎热榜] 页面抓取未获取到数据，使用备用数据
+2026-02-16 15:49:18 [info] [微博热搜] 成功获取 20 条数据
+2026-02-16 15:49:18 [info] [FetcherManager] 总计获取 40 条热点数据
+2026-02-16 15:49:18 [warn] [PerformanceTrackingService] 服务已禁用，依赖 MongoDB

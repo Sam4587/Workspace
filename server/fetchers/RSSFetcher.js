@@ -126,13 +126,14 @@ class RSSFetcher extends BaseFetcher {
   }
 
   categorizeTopic(title) {
+    // 统一使用英文分类值，与 types.js 和前端保持一致
     const categories = {
-      '娱乐': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐'],
-      '科技': ['AI', '人工智能', '科技', '互联网', '手机', '数码', '编程', '代码', '开发'],
-      '财经': ['股市', '经济', '金融', '投资', '房价', '财经'],
-      '体育': ['足球', '篮球', '奥运', '体育', '运动员'],
-      '社会': ['社会', '民生', '政策', '教育', '医疗'],
-      '国际': ['国际', '外交', '战争', '政治', '国家']
+      'entertainment': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐'],
+      'tech': ['AI', '人工智能', '科技', '互联网', '手机', '数码', '编程', '代码', '开发'],
+      'finance': ['股市', '经济', '金融', '投资', '房价', '财经'],
+      'sports': ['足球', '篮球', '奥运', '体育', '运动员'],
+      'social': ['社会', '民生', '政策', '教育', '医疗'],
+      'international': ['国际', '外交', '战争', '政治', '国家']
     };
 
     for (const [category, keywords] of Object.entries(categories)) {
@@ -141,7 +142,7 @@ class RSSFetcher extends BaseFetcher {
       }
     }
 
-    return '其他';
+    return 'other';
   }
 
   getTrend(index) {

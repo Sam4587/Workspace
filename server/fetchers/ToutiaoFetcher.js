@@ -128,16 +128,16 @@ class ToutiaoFetcher extends BaseFetcher {
    */
   getFallbackData() {
     const fallbackTopics = [
-      { title: '量子计算技术商业化进程加速', category: '科技', heat: 97 },
-      { title: '数字经济占GDP比重持续提升', category: '财经', heat: 94 },
-      { title: '虚拟现实技术在教育领域应用', category: '科技', heat: 91 },
-      { title: '乡村振兴战略取得新成效', category: '社会', heat: 88 },
-      { title: '健康产业迎来发展新机遇', category: '社会', heat: 85 },
-      { title: '绿色出行方式越来越普及', category: '社会', heat: 82 },
-      { title: '智慧物流系统效率大幅提升', category: '科技', heat: 79 },
-      { title: '消费市场持续回暖复苏', category: '财经', heat: 76 },
-      { title: '文化产业数字化转型升级', category: '娱乐', heat: 73 },
-      { title: '老年健康服务体系不断完善', category: '社会', heat: 70 }
+      { title: '量子计算技术商业化进程加速', category: 'tech', heat: 97 },
+      { title: '数字经济占GDP比重持续提升', category: 'finance', heat: 94 },
+      { title: '虚拟现实技术在教育领域应用', category: 'tech', heat: 91 },
+      { title: '乡村振兴战略取得新成效', category: 'social', heat: 88 },
+      { title: '健康产业迎来发展新机遇', category: 'social', heat: 85 },
+      { title: '绿色出行方式越来越普及', category: 'social', heat: 82 },
+      { title: '智慧物流系统效率大幅提升', category: 'tech', heat: 79 },
+      { title: '消费市场持续回暖复苏', category: 'finance', heat: 76 },
+      { title: '文化产业数字化转型升级', category: 'entertainment', heat: 73 },
+      { title: '老年健康服务体系不断完善', category: 'social', heat: 70 }
     ];
 
     return fallbackTopics.map((topic, index) => ({
@@ -155,13 +155,14 @@ class ToutiaoFetcher extends BaseFetcher {
   }
 
   categorizeTopic(title) {
+    // 统一使用英文分类值，与 types.js 和前端保持一致
     const categories = {
-      '娱乐': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐'],
-      '科技': ['AI', '人工智能', '科技', '互联网', '手机', '数码'],
-      '财经': ['股市', '经济', '金融', '投资', '房价', '财经'],
-      '体育': ['足球', '篮球', '奥运', '体育', '运动员'],
-      '社会': ['社会', '民生', '政策', '教育', '医疗'],
-      '国际': ['国际', '外交', '战争', '政治', '国家']
+      'entertainment': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐'],
+      'tech': ['AI', '人工智能', '科技', '互联网', '手机', '数码'],
+      'finance': ['股市', '经济', '金融', '投资', '房价', '财经'],
+      'sports': ['足球', '篮球', '奥运', '体育', '运动员'],
+      'social': ['社会', '民生', '政策', '教育', '医疗'],
+      'international': ['国际', '外交', '战争', '政治', '国家']
     };
 
     for (const [category, keywords] of Object.entries(categories)) {
@@ -170,7 +171,7 @@ class ToutiaoFetcher extends BaseFetcher {
       }
     }
 
-    return '其他';
+    return 'other';
   }
 
   getTrend(index) {

@@ -87,8 +87,10 @@ class HotTopicService {
       return { valid: false, error: '热度值必须在 0-100 之间' };
     }
 
-    if (!topic.category || !['娱乐', '科技', '财经', '体育', '社会', '国际', '其他'].includes(topic.category)) {
-      topic.category = '其他';
+    // 统一使用英文分类值
+    const validCategories = ['entertainment', 'tech', 'finance', 'sports', 'social', 'international', 'other'];
+    if (!topic.category || !validCategories.includes(topic.category)) {
+      topic.category = 'other';
     }
 
     return { valid: true };
@@ -370,22 +372,23 @@ class HotTopicService {
   }
 
   categorizeTopic(title) {
+    // 统一使用英文分类值，与 types.js 和前端保持一致
     const categories = {
-      '娱乐': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐'],
-      '科技': ['AI', '人工智能', '科技', '互联网', '手机', '数码'],
-      '财经': ['股市', '经济', '金融', '投资', '房价', '财经'],
-      '体育': ['足球', '篮球', '奥运', '体育', '运动员'],
-      '社会': ['社会', '民生', '政策', '教育', '医疗'],
-      '国际': ['国际', '外交', '战争', '政治', '国家']
+      'entertainment': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐', '演员', '歌手', '票房'],
+      'tech': ['AI', '人工智能', '科技', '互联网', '手机', '数码', '芯片', '软件', 'APP', '华为', '苹果', '小米'],
+      'finance': ['股市', '经济', '金融', '投资', '房价', '财经', '股票', '基金', '银行', '利率'],
+      'sports': ['足球', '篮球', '奥运', '体育', '运动员', 'NBA', '世界杯', '比赛', '联赛'],
+      'social': ['社会', '民生', '政策', '教育', '医疗', '学校', '高考', '就业'],
+      'international': ['国际', '外交', '战争', '政治', '国家', '美国', '俄罗斯', '欧盟']
     };
-    
+
     for (const [category, keywords] of Object.entries(categories)) {
       if (keywords.some(keyword => title.includes(keyword))) {
         return category;
       }
     }
-    
-    return '其他';
+
+    return 'other';
   }
 
   getTrend(index) {

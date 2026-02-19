@@ -1,25 +1,25 @@
 @echo off
 echo ========================================
-echo    AI Content Flow - Service Starter
+echo    AI Content Flow - Service Diagnostic
 echo ========================================
 echo.
-echo Starting services...
+echo Running diagnostics...
 echo.
 
 cd /d "%~dp0"
 
-if not exist "scripts\start-service.cjs" (
-    echo [ERROR] Cannot find scripts\start-service.cjs
+if not exist "scripts\diagnose-services.cjs" (
+    echo [ERROR] Cannot find scripts\diagnose-services.cjs
     echo Please run this script from project root
     pause
     exit /b 1
 )
 
-node scripts\start-service.cjs
+node scripts\diagnose-services.cjs
 
 if %errorlevel% neq 0 (
     echo.
-    echo [ERROR] Failed to start services
+    echo [ERROR] Diagnostic failed
     echo.
     pause
 )

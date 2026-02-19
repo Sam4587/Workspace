@@ -1,0 +1,21 @@
+2026-02-16 14:24:22 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 14:24:32 [error] [PerformanceTrackingService] 性能追踪执行失败
+Metadata: {
+  "error": "Operation `contents.find()` buffering timed out after 10000ms"
+}
+2026-02-16 14:33:42 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 14:33:52 [error] [PerformanceTrackingService] 性能追踪执行失败
+Metadata: {
+  "error": "Operation `contents.find()` buffering timed out after 10000ms"
+}
+2026-02-16 14:55:00 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 14:55:10 [error] [PerformanceTrackingService] 性能追踪执行失败
+Metadata: {
+  "error": "Operation `contents.find()` buffering timed out after 10000ms"
+}
+2026-02-16 15:15:10 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403
+2026-02-16 15:15:20 [error] [PerformanceTrackingService] 性能追踪执行失败
+Metadata: {
+  "error": "Operation `contents.find()` buffering timed out after 10000ms"
+}
+2026-02-16 15:49:18 [error] [知乎热榜] 备用抓取方案也失败: Request failed with status code 403

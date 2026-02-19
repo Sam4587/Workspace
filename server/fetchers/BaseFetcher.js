@@ -101,6 +101,11 @@ class BaseFetcher {
       return { valid: false, error: '热度值必须在 0-100 之间' };
     }
 
+    const validCategories = ['entertainment', 'tech', 'finance', 'sports', 'social', 'international', 'other'];
+    if (topic.category !== undefined && !validCategories.includes(topic.category)) {
+      return { valid: false, error: `分类值无效，必须是: ${validCategories.join(', ')} 之一` };
+    }
+
     return { valid: true };
   }
 

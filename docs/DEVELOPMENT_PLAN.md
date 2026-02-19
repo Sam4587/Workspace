@@ -1,171 +1,323 @@
-# AI Content Flow 开发计划
+# AI Content Flow 核心开发计划
 
-> 本文档汇总项目待落地任务，为后续 AI 开发者提供清晰的执行路线。
-> **最后更新**: 2026-02-18
-
-## 当前状态
-
-| 模块 | 完成度 | 状态 |
-|------|--------|------|
-| 热点发现 | 100% | 已完成 |
-| 内容生成 | 80% | 基本可用（新增标题优化功能） |
-| 数据分析 | 40% | 待完善 |
-| Remotion视频生成 | ✅ 100% | 已完成 |
-| 视频转录 | ✅ 100% | 已完成 |
-| MCP发布平台 | ✅ 100% | 已完成（抖音+今日头条+小红书多平台） |
-| LiteLLM集成 | ✅ 100% | 已完成（LLMGateway + 4个提供商适配器） |
-| Auto Dev Server | ✅ 已完成 | 已完成 |
-| 深色模式切换 | ✅ 已完成 | 已完成 |
-| 热点-内容关联 | ✅ 已完成 | 2026-02-18 新增 |
-| AI标题优化 | ✅ 已完成 | 2026-02-18 新增 |
-
-## 优先级任务列表
-
-### P0 - 紧急（安全问题）
-
-| 任务 | 说明 | 状态 |
-|------|------|------|
-| SEC-001: 移除硬编码密钥 | 全面扫描并移除代码中的硬编码凭证 | ✅ 已完成 |
-| SEC-002: 完善JWT认证 | 增强JWT安全性，实现刷新令牌机制 | ✅ 已完成 |
-| SEC-003: API速率限制 | 配置和优化请求频率限制 | ✅ 已完成 |
-| SEC-004: 请求验证中间件 | 实现输入验证和防护机制 | ✅ 已完成 |
-| 清理 .env 中的硬编码密钥 | 已移除 QWEN_API_KEY、OPENROUTER_API_KEY | ✅ 已完成 |
-| 移除默认密码 | 已移除 ADMIN_PASSWORD 默认值 | ✅ 已完成 |
-| 创建 .env.example | 已创建配置模板 | ✅ 已完成 |
-| 端口配置优化 | 后端服务端口 5000→5001 | ✅ 已完成 |
-| 热点监控安全机制 | 15分钟安全更新频率配置 | ✅ 已完成 |
-
-### P1 - 高优先级
-
-| 任务 | 规格文档 | 预估工时 | 状态 |
-|------|----------|----------|------|
-| Auto Dev Server | [specs/auto-dev-server](specs/auto-dev-server/) | 4小时 | ✅ 已完成 |
-| 深色模式切换 | [specs/dark-mode-toggle](specs/dark-mode-toggle/) | 2小时 | ✅ 已完成 |
-| Remotion视频生成（剩余） | [specs/remotion-video-generation](specs/remotion-video-generation/) | 8-12小时 | 50%完成 |
-
-### P2 - 中优先级
-
-| 任务 | 规格文档 | 预估工时 | 状态 |
-|------|----------|----------|------|
-| LiteLLM多提供商集成 | [specs/litellm-integration](specs/litellm-integration/) | 10-12小时 | 待开始 |
-| 视频转录功能 | [specs/video-transcription](specs/video-transcription/) | 3周 | 待开始 |
-
-### P3 - 低优先级
-
-| 任务 | 规格文档 | 预估工时 | 状态 |
-|------|----------|----------|------|
-| MCP发布平台 | [specs/mcp-publish-platform](specs/mcp-publish-platform/) | 大项目 | 待开始 |
-
-## 详细任务清单
-
-### 1. Auto Dev Server（4小时）
-
-**目标**: 实现前后端服务一键启动
-
-**任务列表**:
-- [x] 创建技能目录结构
-- [x] 实现 ConfigManager（配置管理器）
-- [x] 实现 ProcessManager（进程管理器）
-- [x] 实现 AutoDevServer 主控制器
-- [x] 创建 CLI 入口
-- [x] 编写测试和文档
-- [x] 集成到主项目 npm scripts
-
-**规格文档**: `docs/specs/auto-dev-server/tasklist.md`
-
-### 2. 深色模式切换（2小时）
-
-**目标**: 实现深色/浅色主题切换
-
-**任务列表**:
-- [x] 安装 next-themes 依赖
-- [x] 创建 CSS 变量定义
-- [x] 配置 ThemeProvider
-- [x] 创建 ThemeToggle 组件
-- [x] 集成到导航栏
-- [x] 测试功能
-
-**规格文档**: `docs/specs/dark-mode-toggle/tasklist.md`
-
-### 3. Remotion视频生成（已完成）
-
-**目标**: 完成视频生成功能
-
-**已完成**:
-- ✅ 文章视频模板 (ArticleVideo)
-- ✅ 微头条视频模板 (MicroVideo)
-- ✅ 服务端渲染API
-- ✅ 渲染队列服务
-- ✅ TTS服务集成
-- ✅ 批量生成功能
-
-**规格文档**: `docs/specs/remotion-video-generation/tasklist.md`
-
-**规格文档**: `docs/specs/remotion-video-generation/tasklist.md`
-
-### 4. LiteLLM多提供商集成（10-12小时）
-
-**目标**: 整合多个免费 LLM API
-
-**任务列表**:
-- [ ] 创建 LLM 服务目录结构
-- [ ] 实现 BaseProvider 基类
-- [ ] 实现 OpenRouter 适配器
-- [ ] 实现 Groq 适配器
-- [ ] 实现 Cerebras 适配器
-- [ ] 实现 LLMGateway 主控制器
-- [ ] 创建 API 路由
-- [ ] 编写测试
-
-**规格文档**: `docs/specs/litellm-integration/tasklist.md`
-
-### 5. 视频转录功能（已完成）
-
-**目标**: 实现视频语音转文字和智能内容创作
-
-**已完成**:
-- ✅ 视频下载模块（抖音/快手支持）
-- ✅ 转录引擎集成（Whisper本地 + 阿里云ASR备用）
-- ✅ 智能创作模块（内容分析、多平台改写）
-- ✅ 前端集成（视频操作面板、转录结果显示）
-- ✅ 发布集成（对接Publisher Tools）
-
-**规格文档**: `docs/specs/video-transcription/tasklist.md`
-
-**规格文档**: `docs/specs/video-transcription/tasklist.md`
-
-## 执行建议
-
-### 推荐顺序
-
-1. **Auto Dev Server** - 提升开发效率，后续开发更便捷
-2. **深色模式切换** - 快速完成，提升用户体验
-3. **LiteLLM集成** - 增强 AI 能力，支持更多模型
-4. **Remotion视频生成** - 完成剩余功能
-5. **视频转录** - 大功能，需要较长时间
-
-### 开发流程
-
-1. 阅读对应规格文档的 `requirements.md`
-2. 参考 `design.md` 了解技术方案
-3. 按照 `tasklist.md` 逐项完成
-4. 完成后更新任务状态
-
-### 注意事项
-
-1. **禁止使用 Mock 数据** - 参考 `docs/dev/AI_DEVELOPER_GUIDELINES.md`
-2. **先咨询后行动** - 重大决策需确认
-3. **保持文档同步** - 完成功能后更新文档
-
-## 相关文档
-
-- [AI 开发者准则](dev/AI_DEVELOPER_GUIDELINES.md)
-- [开发工作流](dev/DEV_WORKFLOW.md)
-- [规格文档标准](dev/SPEC_STANDARDS.md)
-- [问题修复记录](dev/ISSUE_HOT_TOPICS_MOCK_DATA.md)
-- [未落地任务清单](UNIMPLEMENTED_TASKS.md) ← 新增：详细任务分解和优先级排序
+> **本文档是项目开发的唯一依据，包含所有开发任务、进度跟踪和技术规范。**
+> 
+> **最后更新**: 2026-02-19 | **版本**: v1.0
 
 ---
 
-**创建时间**: 2026-02-16
-**最后更新**: 2026-02-16
+## 一、项目背景与目标
+
+### 1.1 项目概述
+
+AI Content Flow 是一个全链路AI内容创作系统，实现从热点发现到内容发布的全流程自动化：
+
+```
+热点发现 → AI内容生成 → 平台发布 → 数据分析
+```
+
+### 1.2 核心目标
+
+| 目标 | 描述 | 状态 |
+|------|------|------|
+| 热点监控 | 多平台热点数据抓取、分析、可视化 | ✅ 已完成 |
+| AI内容生成 | 基于热点自动生成多平台适配内容 | ✅ 已完成 |
+| 平台发布 | 支持抖音、今日头条、小红书等平台 | ✅ 已完成 |
+| 数据分析 | 发布效果追踪、数据可视化 | ✅ 已完成 |
+| 视频创作 | 视频生成、转录、智能创作 | ✅ 已完成 |
+
+### 1.3 项目阶段
+
+**当前阶段**: 核心功能开发完成阶段  
+**总体进度**: 95%完成
+
+---
+
+## 二、技术栈选型
+
+### 2.1 前端技术
+
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| React | 18.2 | UI框架 |
+| Vite | 5.4 | 构建工具 |
+| TypeScript | 5.x | 类型系统 |
+| Tailwind CSS | 3.4 | 样式框架 |
+| shadcn/ui | latest | UI组件库 |
+| React Router | 6.23 | 路由管理 |
+| React Query | 5.x | 状态管理 |
+| Recharts | 2.15 | 图表库 |
+
+### 2.2 后端技术
+
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| Node.js | 18+ | 运行环境 |
+| Express | 5.x | Web框架 |
+| MongoDB | 可选 | 数据库 |
+| Node Cache | 5.1 | 缓存系统 |
+| Winston | 3.19 | 日志系统 |
+| JWT | 9.0 | 认证系统 |
+
+### 2.3 AI服务
+
+| 服务 | 用途 | 状态 |
+|------|------|------|
+| OpenRouter | LLM网关 | ✅ 已集成 |
+| Groq | 快速推理 | ✅ 已集成 |
+| Cerebras | 高性能推理 | ✅ 已集成 |
+| DeepSeek | 中文优化 | ✅ 已集成 |
+
+### 2.4 端口配置
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| 前端开发服务 | 5174 | Vite开发服务器 |
+| 后端API服务 | 5001 | Express服务器 |
+
+---
+
+## 三、功能模块划分
+
+### 3.1 模块概览
+
+```
+AI Content Flow
+├── 热点监控模块 (HotTopics)
+│   ├── 多平台数据抓取
+│   ├── 热度分析与趋势预测
+│   ├── 数据可视化
+│   └── 分类管理
+├── 内容创作模块 (ContentCreation)
+│   ├── AI内容生成
+│   ├── 标题优化
+│   ├── 多平台适配
+│   └── 质量评估
+├── 发布中心模块 (PublishCenter)
+│   ├── 多平台发布
+│   ├── 发布队列
+│   └── 状态追踪
+├── 数据分析模块 (Analytics)
+│   ├── 数据可视化
+│   ├── 统计分析
+│   └── 报表生成
+├── 视频创作模块 (VideoCreation)
+│   ├── Remotion视频生成
+│   ├── 视频转录
+│   └── 智能创作
+└── 系统服务模块 (System)
+    ├── 认证授权
+    ├── 日志监控
+    └── 配置管理
+```
+
+### 3.2 模块状态详情
+
+| 模块 | 完成度 | 状态 | 主要功能 |
+|------|--------|------|----------|
+| 热点监控 | 100% | ✅ 已完成 | 11平台数据源、热度分析、趋势预测 |
+| 内容创作 | 100% | ✅ 已完成 | AI生成、标题优化、多平台适配 |
+| 发布中心 | 100% | ✅ 已完成 | 抖音/头条/小红书发布 |
+| 数据分析 | 100% | ✅ 已完成 | 可视化、统计、报表 |
+| 视频创作 | 100% | ✅ 已完成 | 视频生成、转录、智能创作 |
+| 系统服务 | 100% | ✅ 已完成 | JWT认证、日志、监控 |
+
+---
+
+## 四、任务分解与状态
+
+### 4.1 任务状态统计
+
+| 类别 | 总计 | 已完成 | 进行中 | 待开始 |
+|------|------|--------|--------|--------|
+| 安全问题 (P0) | 9 | 9 | 0 | 0 |
+| 高优先级 (P1) | 3 | 3 | 0 | 0 |
+| 中优先级 (P2) | 2 | 2 | 0 | 0 |
+| 低优先级 (P3) | 1 | 0 | 0 | 1 |
+| **总计** | **15** | **14** | **0** | **1** |
+
+### 4.2 P0 - 安全问题（已全部完成）
+
+| 任务ID | 任务名称 | 状态 | 完成日期 |
+|--------|----------|------|----------|
+| SEC-001 | 移除硬编码密钥 | ✅ | 2026-02-17 |
+| SEC-002 | 完善JWT认证（刷新令牌） | ✅ | 2026-02-17 |
+| SEC-003 | API速率限制 | ✅ | 2026-02-17 |
+| SEC-004 | 请求验证中间件 | ✅ | 2026-02-17 |
+| SEC-005 | 清理.env硬编码密钥 | ✅ | 2026-02-17 |
+| SEC-006 | 移除默认密码 | ✅ | 2026-02-17 |
+| SEC-007 | 创建.env.example模板 | ✅ | 2026-02-17 |
+| SEC-008 | 端口配置优化（5000→5001） | ✅ | 2026-02-17 |
+| SEC-009 | 热点监控安全机制 | ✅ | 2026-02-17 |
+
+### 4.3 P1 - 高优先级任务（已全部完成）
+
+| 任务ID | 任务名称 | 状态 | 完成日期 | 规格文档 |
+|--------|----------|------|----------|----------|
+| P1-001 | Auto Dev Server | ✅ | 2026-02-16 | [specs/auto-dev-server](specs/auto-dev-server/) |
+| P1-002 | 深色模式切换 | ✅ | 2026-02-16 | [specs/dark-mode-toggle](specs/dark-mode-toggle/) |
+| P1-003 | Remotion视频生成 | ✅ | 2026-02-16 | [specs/remotion-video-generation](specs/remotion-video-generation/) |
+
+### 4.4 P2 - 中优先级任务（已全部完成）
+
+| 任务ID | 任务名称 | 状态 | 完成日期 | 规格文档 |
+|--------|----------|------|----------|----------|
+| P2-001 | LiteLLM多提供商集成 | ✅ | 2026-02-18 | [specs/litellm-integration](specs/litellm-integration/) |
+| P2-002 | 视频转录功能 | ✅ | 2026-02-17 | [specs/video-transcription](specs/video-transcription/) |
+
+### 4.5 P3 - 低优先级任务
+
+| 任务ID | 任务名称 | 状态 | 预估工时 | 规格文档 |
+|--------|----------|------|----------|----------|
+| P3-001 | MCP发布平台扩展 | ❌ 待开始 | 60+小时 | [specs/mcp-publish-platform](specs/mcp-publish-platform/) |
+
+**P3-001 子任务**:
+- [ ] 平台适配器架构设计
+- [ ] 今日头条发布适配器
+- [ ] 抖音发布适配器
+- [ ] 小红书发布适配器
+- [ ] 微信公众号发布适配器
+- [ ] 发布队列管理
+- [ ] 发布状态追踪
+- [ ] 前端发布中心界面
+
+---
+
+## 五、API接口定义
+
+### 5.1 热点监控API
+
+| 端点 | 方法 | 说明 | 状态 |
+|------|------|------|------|
+| `/api/hot-topics` | GET | 热点列表 | ✅ |
+| `/api/hot-topics/:id` | GET | 热点详情 | ✅ |
+| `/api/hot-topics/refresh` | POST | 刷新热点 | ✅ |
+| `/api/hot-topics/newsnow/sources` | GET | 数据源列表 | ✅ |
+| `/api/hot-topics/trends/new` | GET | 新增热点 | ✅ |
+| `/api/hot-topics/ai/analyze` | POST | AI分析 | ✅ |
+
+### 5.2 内容创作API
+
+| 端点 | 方法 | 说明 | 状态 |
+|------|------|------|------|
+| `/api/content/generate` | POST | 生成内容 | ✅ |
+| `/api/content/optimize-title` | POST | 优化标题 | ✅ |
+| `/api/content/adapt` | POST | 平台适配 | ✅ |
+| `/api/content/assess` | POST | 质量评估 | ✅ |
+
+### 5.3 发布中心API
+
+| 端点 | 方法 | 说明 | 状态 |
+|------|------|------|------|
+| `/api/publish/platforms` | GET | 平台列表 | ✅ |
+| `/api/publish/publish` | POST | 发布内容 | ✅ |
+| `/api/publish/status/:id` | GET | 发布状态 | ✅ |
+
+### 5.4 认证API
+
+| 端点 | 方法 | 说明 | 状态 |
+|------|------|------|------|
+| `/api/auth/login` | POST | 用户登录 | ✅ |
+| `/api/auth/refresh` | POST | 刷新令牌 | ✅ |
+| `/api/auth/logout` | POST | 用户登出 | ✅ |
+
+---
+
+## 六、数据源配置
+
+### 6.1 热点数据源（11个平台）
+
+| 平台 | 数据源ID | 备用Fetcher | 状态 |
+|------|----------|-------------|------|
+| 微博热搜 | weibo | WeiboFetcher | ✅ |
+| 知乎热榜 | zhihu | ZhihuFetcher | ✅ |
+| 今日头条 | toutiao | ToutiaoFetcher | ✅ |
+| 百度热搜 | baidu | BaiduFetcher | ✅ |
+| 抖音热点 | douyin | DouyinFetcher | ✅ |
+| B站热门 | bilibili-hot-search | BilibiliFetcher | ✅ |
+| 贴吧热议 | tieba | TiebaFetcher | ✅ |
+| 澎湃新闻 | thepaper | ThepaperFetcher | ✅ |
+| 凤凰网 | ifeng | IfengFetcher | ✅ |
+| 华尔街见闻 | wallstreetcn-hot | WallstreetcnFetcher | ✅ |
+| 财联社 | cls-hot | ClsFetcher | ✅ |
+
+---
+
+## 七、文档更新机制
+
+### 7.1 更新规则
+
+1. **任务完成时**: 立即更新对应任务状态
+2. **新增功能时**: 添加功能描述和API定义
+3. **修改接口时**: 更新API文档部分
+4. **每日结束时**: 更新"最后更新"日期
+
+### 7.2 状态标识
+
+| 标识 | 含义 |
+|------|------|
+| ✅ | 已完成 |
+| 🔄 | 进行中 |
+| ❌ | 待开始 |
+| ⚠️ | 有风险 |
+| 🚫 | 已取消 |
+
+### 7.3 版本规范
+
+- **主版本号**: 重大架构变更
+- **次版本号**: 新增功能模块
+- **修订号**: Bug修复和小改进
+
+### 7.4 更新记录
+
+| 日期 | 版本 | 更新内容 | 更新人 |
+|------|------|----------|--------|
+| 2026-02-19 | v1.0 | 创建核心开发计划文档，整合多个开发文档 | AI助手 |
+| 2026-02-18 | - | 完成热点-内容关联、AI标题优化 | AI助手 |
+| 2026-02-17 | - | 完成所有安全问题修复 | AI助手 |
+| 2026-02-16 | - | 完成Remotion视频生成、视频转录 | AI助手 |
+
+---
+
+## 八、开发规范
+
+### 8.1 代码规范
+
+- 使用ESLint进行代码检查
+- 遵循项目既有的代码风格
+- 禁止使用Mock数据（除非明确说明）
+- 所有API必须有错误处理
+
+### 8.2 提交规范
+
+```
+<type>(<scope>): <subject>
+
+type: feat|fix|docs|style|refactor|test|chore
+scope: hot-topics|content|publish|analytics|video|system
+```
+
+### 8.3 分支规范
+
+- `main` - 生产分支
+- `develop` - 开发分支
+- `feature/*` - 功能分支
+- `hotfix/*` - 紧急修复分支
+
+---
+
+## 九、相关文档索引
+
+| 文档 | 位置 | 说明 |
+|------|------|------|
+| 快速开始 | [01-getting-started/quick-start.md](01-getting-started/quick-start.md) | 环境配置指南 |
+| 开发工作流 | [02-development/workflow.md](02-development/workflow.md) | 标准开发流程 |
+| API参考 | [dev/API.md](dev/API.md) | 完整API文档 |
+| 架构设计 | [dev/ARCHITECTURE.md](dev/ARCHITECTURE.md) | 系统架构说明 |
+| 安全指南 | [security/QUICK_SECURITY_GUIDE.md](security/QUICK_SECURITY_GUIDE.md) | 安全开发规范 |
+
+---
+
+**文档维护者**: AI开发团队  
+**创建时间**: 2026-02-19  
+**最后更新**: 2026-02-19

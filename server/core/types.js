@@ -23,14 +23,14 @@ const Source = {
   OTHER: 'other'
 };
 
-// 分类枚举
+// 分类枚举 - 统一使用英文小写，与前端和后端路由保持一致
 const Category = {
-  HOT: 'hot',
-  SOCIAL: 'social',
-  TECH: 'tech',
   ENTERTAINMENT: 'entertainment',
-  SPORTS: 'sports',
+  TECH: 'tech',
   FINANCE: 'finance',
+  SPORTS: 'sports',
+  SOCIAL: 'social',
+  INTERNATIONAL: 'international',
   OTHER: 'other'
 };
 

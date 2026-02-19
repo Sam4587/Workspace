@@ -192,7 +192,7 @@ app.use('/api', healthRoutes);
 
 app.get('/api/hot-topics', async (req, res) => {
   try {
-    const { page = 1, limit = 20, category = 'all', search = '', sortBy = 'heat', sortOrder = 'desc' } = req.query;
+    const { page = 1, limit = 100, category = 'all', search = '', sortBy = 'heat', sortOrder = 'desc' } = req.query;
     
     let topics = cachedTopics;
     
@@ -277,6 +277,26 @@ app.post('/api/hot-topics/update', async (req, res) => {
   }
 });
 
+app.post('/api/hot-topics/refresh', async (req, res) => {
+  try {
+    const topics = await fetchAndCacheTopics(true);
+    res.json({
+      success: true,
+      message: '热点数据刷新成功',
+      data: {
+        count: topics.length,
+        topics: topics.slice(0, 20)
+      }
+    });
+  } catch (error) {
+    console.error('刷新热点数据失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '刷新热点数据失败'
+    });
+  }
+});
+
 app.get('/api/hot-topics/trends/new', (req, res) => {
   res.json({
     success: true,
@@ -321,10 +341,13 @@ const NEWSNOW_SOURCES = [
   { id: 'zhihu', name: '知乎热榜', enabled: true },
   { id: 'toutiao', name: '今日头条', enabled: true },
   { id: 'baidu', name: '百度热搜', enabled: true },
+  { id: 'tieba', name: '贴吧热议', enabled: true },
+  { id: 'thepaper', name: '澎湃新闻', enabled: true },
+  { id: 'ifeng', name: '凤凰网', enabled: true },
   { id: 'douyin', name: '抖音热点', enabled: true },
   { id: 'bilibili-hot-search', name: 'B站热门', enabled: true },
-  { id: 'thepaper', name: '澎湃新闻', enabled: true },
-  { id: 'wallstreetcn-hot', name: '华尔街见闻', enabled: true }
+  { id: 'wallstreetcn-hot', name: '华尔街见闻', enabled: true },
+  { id: 'cls-hot', name: '财联社热门', enabled: true }
 ];
 
 app.get('/api/hot-topics/newsnow/sources', (req, res) => {

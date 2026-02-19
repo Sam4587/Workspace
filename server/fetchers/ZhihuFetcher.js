@@ -127,16 +127,16 @@ class ZhihuFetcher extends BaseFetcher {
    */
   getFallbackData() {
     const fallbackTopics = [
-      { title: '如何评价2026年的人工智能发展', category: '科技', heat: 96 },
-      { title: '有哪些让你相见恨晚的生活技巧', category: '社会', heat: 93 },
-      { title: '未来十年最有前景的行业是什么', category: '财经', heat: 90 },
-      { title: '如何保持长期的学习动力', category: '社会', heat: 87 },
-      { title: '有哪些优质的国产影视作品推荐', category: '娱乐', heat: 84 },
-      { title: '如何科学地进行健康管理', category: '社会', heat: 81 },
-      { title: '程序员如何规划职业发展', category: '科技', heat: 78 },
-      { title: '有哪些值得一读的好书', category: '社会', heat: 75 },
-      { title: '如何高效管理时间', category: '社会', heat: 72 },
-      { title: '年轻人如何理财投资', category: '财经', heat: 69 }
+      { title: '如何评价2026年的人工智能发展', category: 'tech', heat: 96 },
+      { title: '有哪些让你相见恨晚的生活技巧', category: 'social', heat: 93 },
+      { title: '未来十年最有前景的行业是什么', category: 'finance', heat: 90 },
+      { title: '如何保持长期的学习动力', category: 'social', heat: 87 },
+      { title: '有哪些优质的国产影视作品推荐', category: 'entertainment', heat: 84 },
+      { title: '如何科学地进行健康管理', category: 'social', heat: 81 },
+      { title: '程序员如何规划职业发展', category: 'tech', heat: 78 },
+      { title: '有哪些值得一读的好书', category: 'social', heat: 75 },
+      { title: '如何高效管理时间', category: 'social', heat: 72 },
+      { title: '年轻人如何理财投资', category: 'finance', heat: 69 }
     ];
 
     return fallbackTopics.map((topic, index) => ({
@@ -211,13 +211,14 @@ class ZhihuFetcher extends BaseFetcher {
   }
 
   categorizeTopic(title) {
+    // 统一使用英文分类值，与 types.js 和前端保持一致
     const categories = {
-      '娱乐': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐'],
-      '科技': ['AI', '人工智能', '科技', '互联网', '手机', '数码', '编程', '代码'],
-      '财经': ['股市', '经济', '金融', '投资', '房价', '财经'],
-      '体育': ['足球', '篮球', '奥运', '体育', '运动员'],
-      '社会': ['社会', '民生', '政策', '教育', '医疗'],
-      '国际': ['国际', '外交', '战争', '政治', '国家']
+      'entertainment': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐', '演员', '歌手', '票房'],
+      'tech': ['AI', '人工智能', '科技', '互联网', '手机', '数码', '芯片', '软件', 'APP', '编程', '代码'],
+      'finance': ['股市', '经济', '金融', '投资', '房价', '财经', '股票', '基金', '银行', '利率'],
+      'sports': ['足球', '篮球', '奥运', '体育', '运动员', 'NBA', '世界杯', '比赛', '联赛'],
+      'social': ['社会', '民生', '政策', '教育', '医疗', '学校', '高考', '就业'],
+      'international': ['国际', '外交', '战争', '政治', '国家', '美国', '俄罗斯', '欧盟']
     };
 
     for (const [category, keywords] of Object.entries(categories)) {
@@ -226,7 +227,7 @@ class ZhihuFetcher extends BaseFetcher {
       }
     }
 
-    return '其他';
+    return 'other';
   }
 
   getTrend(index) {

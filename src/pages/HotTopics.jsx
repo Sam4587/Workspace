@@ -91,7 +91,7 @@ const HotTopics = () => {
           minHeat: filters.heatRange[0],
           maxHeat: filters.heatRange[1],
           page: 1,
-          limit: 50,
+          limit: 200,
           sortBy: 'heat',
           sortOrder: 'desc'
         };

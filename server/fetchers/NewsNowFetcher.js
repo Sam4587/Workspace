@@ -15,6 +15,14 @@ const { SourceType, Source, Category, Trend } = require('../core/types');
 const WeiboFetcher = require('./WeiboFetcher');
 const ZhihuFetcher = require('./ZhihuFetcher');
 const ToutiaoFetcher = require('./ToutiaoFetcher');
+const BaiduFetcher = require('./BaiduFetcher');
+const DouyinFetcher = require('./DouyinFetcher');
+const BilibiliFetcher = require('./BilibiliFetcher');
+const TiebaFetcher = require('./TiebaFetcher');
+const ThepaperFetcher = require('./ThepaperFetcher');
+const IfengFetcher = require('./IfengFetcher');
+const WallstreetcnFetcher = require('./WallstreetcnFetcher');
+const ClsFetcher = require('./ClsFetcher');
 
 // NewsNow API 基础地址
 const NEWSNOW_API_BASE = 'https://newsnow.busiyi.world/api/s';
@@ -24,21 +32,21 @@ const NEWSNOW_SOURCE_MAP = {
   // 社交媒体
   weibo: { name: '微博热搜', source: Source.WEIBO, fetcher: WeiboFetcher },
   zhihu: { name: '知乎热榜', source: Source.ZHIHU, fetcher: ZhihuFetcher },
-  tieba: { name: '贴吧热议', source: Source.OTHER },
+  tieba: { name: '贴吧热议', source: Source.OTHER, fetcher: TiebaFetcher },
 
   // 新闻资讯
   toutiao: { name: '今日头条', source: Source.TOUTIAO, fetcher: ToutiaoFetcher },
-  baidu: { name: '百度热搜', source: Source.BAIDU },
-  thepaper: { name: '澎湃新闻', source: Source.OTHER },
-  ifeng: { name: '凤凰网', source: Source.OTHER },
+  baidu: { name: '百度热搜', source: Source.BAIDU, fetcher: BaiduFetcher },
+  thepaper: { name: '澎湃新闻', source: Source.OTHER, fetcher: ThepaperFetcher },
+  ifeng: { name: '凤凰网', source: Source.OTHER, fetcher: IfengFetcher },
 
   // 视频平台
-  douyin: { name: '抖音热搜', source: Source.DOUYIN },
-  'bilibili-hot-search': { name: 'B站热搜', source: Source.BILIBILI },
+  douyin: { name: '抖音热搜', source: Source.DOUYIN, fetcher: DouyinFetcher },
+  'bilibili-hot-search': { name: 'B站热搜', source: Source.BILIBILI, fetcher: BilibiliFetcher },
 
   // 财经类
-  'wallstreetcn-hot': { name: '华尔街见闻', source: Source.OTHER },
-  'cls-hot': { name: '财联社热门', source: Source.OTHER }
+  'wallstreetcn-hot': { name: '华尔街见闻', source: Source.OTHER, fetcher: WallstreetcnFetcher },
+  'cls-hot': { name: '财联社热门', source: Source.OTHER, fetcher: ClsFetcher }
 };
 
 class NewsNowFetcher extends BaseFetcher {
@@ -57,7 +65,7 @@ class NewsNowFetcher extends BaseFetcher {
       cacheTTL: 1800 // 30 分钟缓存
     });
 
-    this.maxItems = options.maxItems || 20;
+    this.maxItems = options.maxItems || 50;
     this.axiosInstance = axios.create({
       baseURL: NEWSNOW_API_BASE,
       timeout: this.timeout,
@@ -141,14 +149,15 @@ class NewsNowFetcher extends BaseFetcher {
       const fetcher = new FetcherClass();
       const topics = await fetcher.fetch();
 
-      // 转换为 NewsNow 数据格式
+      // 转换为 NewsNow 数据格式，保留原有的 category 字段
       const items = topics.map((topic, index) => ({
         title: topic.title,
         url: topic.sourceUrl || '',
         hot: topic.heat,
         pub_date: topic.publishedAt?.toISOString() || new Date().toISOString(),
         source: sourceId,
-        sourceName: sourceInfo.name
+        sourceName: sourceInfo.name,
+        category: topic.category
       }));
 
       logger.info(`[NewsNow] 使用备用 fetcher 获取 ${sourceId} 数据: ${items.length} 条`);
@@ -175,7 +184,7 @@ class NewsNowFetcher extends BaseFetcher {
     return {
       title: item.title?.trim() || '',
       description: item.title || '',
-      category: this.categorizeTopic(item.title || ''),
+      category: item.category || this.categorizeTopic(item.title || ''),
       heat: this.calculateHeat(item, index),
       trend: this.getTrend(index),
       source: sourceName,
@@ -213,12 +222,58 @@ class NewsNowFetcher extends BaseFetcher {
    */
   categorizeTopic(title) {
     const categories = {
-      [Category.ENTERTAINMENT]: ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐', '演员', '歌手', '票房'],
-      [Category.TECH]: ['AI', '人工智能', '科技', '互联网', '手机', '数码', '芯片', '软件', 'APP', '华为', '苹果', '小米'],
-      [Category.FINANCE]: ['股市', '经济', '金融', '投资', '房价', '财经', '股票', '基金', '银行', '利率'],
-      [Category.SPORTS]: ['足球', '篮球', '奥运', '体育', '运动员', 'NBA', '世界杯', '比赛', '联赛'],
-      [Category.SOCIETY]: ['社会', '民生', '政策', '教育', '医疗', '学校', '高考', '就业'],
-      [Category.INTERNATIONAL]: ['国际', '外交', '战争', '政治', '国家', '美国', '俄罗斯', '欧盟']
+      [Category.ENTERTAINMENT]: [
+        '电影', '明星', '综艺', '音乐', '电视剧', '娱乐', '演员', '歌手', '票房',
+        '动画', '动漫', '游戏', '电竞', '手游', '网游', '单机', '视频', 'B站', '抖音',
+        '热搜', '热榜', '八卦', '绯闻', '恋情', '结婚', '离婚', '出轨', '道歉', '声明',
+        '直播', '网红', '博主', 'UP主', '粉丝', '应援', '打榜', '应援', '应援会'
+      ],
+      [Category.TECH]: [
+        'AI', '人工智能', '科技', '互联网', '手机', '数码', '芯片', '软件', 'APP',
+        '华为', '苹果', '小米', 'OPPO', 'vivo', '三星', '腾讯', '阿里', '百度', '字节',
+        '5G', '6G', '云计算', '大数据', '区块链', '元宇宙', 'VR', 'AR', '自动驾驶',
+        '新能源', '电动车', '电池', '充电', '光伏', '风电', '半导体', '集成电路',
+        'CPU', 'GPU', '处理器', '显卡', '内存', '硬盘', '电脑', '笔记本', '平板',
+        '评测', '开箱', '体验', '上手', '测评', '对比', '横评'
+      ],
+      [Category.FINANCE]: [
+        '股市', '经济', '金融', '投资', '房价', '财经', '股票', '基金', '银行', '利率',
+        '楼市', '房产', '购房', '房贷', '贷款', '降息', '加息', '通胀', '通缩', 'CPI',
+        'GDP', '就业', '失业', '收入', '工资', '薪酬', '加薪', '降薪', '裁员', '破产',
+        'A股', '港股', '美股', '牛市', '熊市', '涨停', '跌停', '开盘', '收盘', '熔断',
+        '汇率', '人民币', '美元', '欧元', '日元', '英镑', '外汇', '外贸', '进出口',
+        '债券', '国债', '企业债', '理财', '保险', '信托', '期货', '期权', '黄金', '白银'
+      ],
+      [Category.SPORTS]: [
+        '足球', '篮球', '奥运', '体育', '运动员', 'NBA', '世界杯', '比赛', '联赛',
+        '梅西', 'C罗', '詹姆斯', '姚明', '易建联', '孙颖莎', '樊振东', '全红婵',
+        '欧冠', '英超', '西甲', '意甲', '德甲', '中超', 'CBA', '亚运会', '世锦赛',
+        '网球', '羽毛球', '乒乓球', '游泳', '田径', '体操', '跳水', '举重', '摔跤',
+        '滑雪', '滑冰', '冰球', '足球赛', '篮球赛', '运动会', '锦标赛', '冠军', '亚军',
+        '决赛', '半决赛', '八强', '四强', '晋级', '淘汰', '夺冠', '卫冕', '败北', '失利'
+      ],
+      [Category.SOCIETY]: [
+        '社会', '民生', '政策', '教育', '医疗', '学校', '高考', '就业',
+        '政府', '市委', '省委', '国务院', '发改委', '教育部', '卫健委', '公安部',
+        '新闻', '通报', '公告', '通知', '通告', '公示', '辟谣', '澄清', '声明',
+        '疫情', '病毒', '疫苗', '口罩', '核酸', '抗原', '隔离', '封控', '解封',
+        '交通事故', '火灾', '地震', '洪水', '台风', '暴雨', '干旱', '灾害', '救援',
+        '婚丧嫁娶', '彩礼', '婚礼', '离婚', '再婚', '生育', '二胎', '三胎', '出生率',
+        '养老', '退休', '养老金', '社保', '医保', '公积金', '低保', '五保', '扶贫',
+        '城管', '交警', '警察', '民警', '辅警', '消防员', '医生', '护士', '教师',
+        '农民工', '外卖员', '快递员', '网约车', '出租车', '公交车', '地铁', '高铁',
+        '火车票', '机票', '酒店', '民宿', '旅游', '景区', '景点', '公园', '广场'
+      ],
+      [Category.INTERNATIONAL]: [
+        '国际', '外交', '战争', '政治', '国家', '美国', '俄罗斯', '欧盟',
+        '中国', '日本', '韩国', '朝鲜', '印度', '越南', '菲律宾', '马来西亚', '新加坡',
+        '英国', '法国', '德国', '意大利', '西班牙', '加拿大', '澳大利亚', '新西兰',
+        '以色列', '巴勒斯坦', '乌克兰', '中东', '北约', 'G7', 'G20', '联合国',
+        '总统', '总理', '首相', '国王', '女王', '元首', '领导人', '访华', '出访',
+        '建交', '断交', '军演', '导弹', '航母', '战机', '坦克', '核武器', '核试验',
+        '贸易战', '制裁', '关税', 'WTO', '世界银行', 'IMF', '亚投行', '金砖国家',
+        '一带一路', '上合组织', '东盟', '非盟', '阿盟', '海合会', '欧佩克', 'OPEC'
+      ]
     };
 
     for (const [category, keywords] of Object.entries(categories)) {

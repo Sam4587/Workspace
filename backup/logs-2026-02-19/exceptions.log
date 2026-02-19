@@ -1,0 +1,983 @@
+2026-02-16 13:52:07 [error] uncaughtException: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+Error: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+    at new OpenAI (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\client.js:94:19)
+    at new module.exports (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\index.js:4:10)
+    at new MultiAIService (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:10:17)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:265:18)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+Error: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+    at new OpenAI (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\client.js:94:19)
+    at new module.exports (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\index.js:4:10)
+    at new MultiAIService (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:10:17)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:265:18)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+Metadata: {
+  "error": {},
+  "exception": true,
+  "date": "Mon Feb 16 2026 13:52:07 GMT+0800 (中国标准时间)",
+  "process": {
+    "pid": 41648,
+    "uid": null,
+    "gid": null,
+    "cwd": "D:\\Projects\\ai-content-flow\\Workspace",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v24.13.0",
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server.js"
+    ],
+    "memoryUsage": {
+      "rss": 110030848,
+      "heapTotal": 62148608,
+      "heapUsed": 33362760,
+      "external": 22341472,
+      "arrayBuffers": 18350611
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 162265.859
+  },
+  "trace": [
+    {
+      "column": 19,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\openai\\client.js",
+      "function": "new OpenAI",
+      "line": 94,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\openai\\index.js",
+      "function": "new module.exports",
+      "line": 4,
+      "method": "exports",
+      "native": false
+    },
+    {
+      "column": 17,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\services\\multiAIService.js",
+      "function": "new MultiAIService",
+      "line": 10,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 18,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\services\\multiAIService.js",
+      "function": null,
+      "line": 265,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1761,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Object..js",
+      "line": 1893,
+      "method": ".js",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1481,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._load",
+      "line": 1300,
+      "method": "_load",
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:diagnostics_channel",
+      "function": "TracingChannel.traceSync",
+      "line": 328,
+      "method": "traceSync",
+      "native": false
+    },
+    {
+      "column": 24,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "wrapModuleLoad",
+      "line": 245,
+      "method": null,
+      "native": false
+    }
+  ]
+}
+2026-02-16 13:52:16 [error] uncaughtException: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+Error: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+    at new OpenAI (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\client.js:94:19)
+    at new module.exports (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\index.js:4:10)
+    at new MultiAIService (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:10:17)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:265:18)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+Error: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+    at new OpenAI (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\client.js:94:19)
+    at new module.exports (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\index.js:4:10)
+    at new MultiAIService (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:10:17)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:265:18)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+Metadata: {
+  "error": {},
+  "exception": true,
+  "date": "Mon Feb 16 2026 13:52:16 GMT+0800 (中国标准时间)",
+  "process": {
+    "pid": 44288,
+    "uid": null,
+    "gid": null,
+    "cwd": "D:\\Projects\\ai-content-flow\\Workspace",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v24.13.0",
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server.js"
+    ],
+    "memoryUsage": {
+      "rss": 109162496,
+      "heapTotal": 62672896,
+      "heapUsed": 32671344,
+      "external": 22341472,
+      "arrayBuffers": 18350611
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 162275.375
+  },
+  "trace": [
+    {
+      "column": 19,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\openai\\client.js",
+      "function": "new OpenAI",
+      "line": 94,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\openai\\index.js",
+      "function": "new module.exports",
+      "line": 4,
+      "method": "exports",
+      "native": false
+    },
+    {
+      "column": 17,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\services\\multiAIService.js",
+      "function": "new MultiAIService",
+      "line": 10,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 18,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\services\\multiAIService.js",
+      "function": null,
+      "line": 265,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1761,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Object..js",
+      "line": 1893,
+      "method": ".js",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1481,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._load",
+      "line": 1300,
+      "method": "_load",
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:diagnostics_channel",
+      "function": "TracingChannel.traceSync",
+      "line": 328,
+      "method": "traceSync",
+      "native": false
+    },
+    {
+      "column": 24,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "wrapModuleLoad",
+      "line": 245,
+      "method": null,
+      "native": false
+    }
+  ]
+}
+2026-02-16 13:56:40 [error] uncaughtException: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+Error: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+    at new OpenAI (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\client.js:94:19)
+    at new module.exports (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\index.js:4:10)
+    at new MultiAIService (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:10:17)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:265:18)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+Error: Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.
+    at new OpenAI (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\client.js:94:19)
+    at new module.exports (D:\Projects\ai-content-flow\Workspace\server\node_modules\openai\index.js:4:10)
+    at new MultiAIService (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:10:17)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\services\multiAIService.js:265:18)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+Metadata: {
+  "error": {},
+  "exception": true,
+  "date": "Mon Feb 16 2026 13:56:40 GMT+0800 (中国标准时间)",
+  "process": {
+    "pid": 47328,
+    "uid": null,
+    "gid": null,
+    "cwd": "D:\\Projects\\ai-content-flow\\Workspace",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v24.13.0",
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js"
+    ],
+    "memoryUsage": {
+      "rss": 110055424,
+      "heapTotal": 62148608,
+      "heapUsed": 31658568,
+      "external": 21915480,
+      "arrayBuffers": 18350611
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 162539.687
+  },
+  "trace": [
+    {
+      "column": 19,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\openai\\client.js",
+      "function": "new OpenAI",
+      "line": 94,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\openai\\index.js",
+      "function": "new module.exports",
+      "line": 4,
+      "method": "exports",
+      "native": false
+    },
+    {
+      "column": 17,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\services\\multiAIService.js",
+      "function": "new MultiAIService",
+      "line": 10,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 18,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\services\\multiAIService.js",
+      "function": null,
+      "line": 265,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1761,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Object..js",
+      "line": 1893,
+      "method": ".js",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1481,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._load",
+      "line": 1300,
+      "method": "_load",
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:diagnostics_channel",
+      "function": "TracingChannel.traceSync",
+      "line": 328,
+      "method": "traceSync",
+      "native": false
+    },
+    {
+      "column": 24,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "wrapModuleLoad",
+      "line": 245,
+      "method": null,
+      "native": false
+    }
+  ]
+}
+2026-02-16 14:01:28 [error] uncaughtException: listen EADDRINUSE: address already in use :::8090
+Error: listen EADDRINUSE: address already in use :::8090
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\Projects\ai-content-flow\Workspace\server\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\simple-server-safe.js:948:5)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+Error: listen EADDRINUSE: address already in use :::8090
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\Projects\ai-content-flow\Workspace\server\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\simple-server-safe.js:948:5)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+Metadata: {
+  "error": {
+    "code": "EADDRINUSE",
+    "errno": -4091,
+    "syscall": "listen",
+    "address": "::",
+    "port": 8090
+  },
+  "exception": true,
+  "date": "Mon Feb 16 2026 14:01:28 GMT+0800 (中国标准时间)",
+  "process": {
+    "pid": 30680,
+    "uid": null,
+    "gid": null,
+    "cwd": "D:\\Projects\\ai-content-flow\\Workspace\\server",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v24.13.0",
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js"
+    ],
+    "memoryUsage": {
+      "rss": 106811392,
+      "heapTotal": 60575744,
+      "heapUsed": 32958136,
+      "external": 22458938,
+      "arrayBuffers": 18350611
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 162826.718
+  },
+  "trace": [
+    {
+      "column": 16,
+      "file": "node:net",
+      "function": "Server.setupListenHandle [as _listen2]",
+      "line": 1940,
+      "method": "setupListenHandle [as _listen2]",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:net",
+      "function": "listenInCluster",
+      "line": 1997,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 7,
+      "file": "node:net",
+      "function": "Server.listen",
+      "line": 2102,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 24,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\express\\lib\\application.js",
+      "function": "app.listen",
+      "line": 635,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 5,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js",
+      "function": null,
+      "line": 948,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1761,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Object..js",
+      "line": 1893,
+      "method": ".js",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1481,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._load",
+      "line": 1300,
+      "method": "_load",
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:diagnostics_channel",
+      "function": "TracingChannel.traceSync",
+      "line": 328,
+      "method": "traceSync",
+      "native": false
+    }
+  ]
+}
+2026-02-16 14:03:02 [error] uncaughtException: listen EADDRINUSE: address already in use :::8090
+Error: listen EADDRINUSE: address already in use :::8090
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\Projects\ai-content-flow\Workspace\server\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\simple-server-safe.js:948:5)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+Error: listen EADDRINUSE: address already in use :::8090
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\Projects\ai-content-flow\Workspace\server\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\simple-server-safe.js:948:5)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+Metadata: {
+  "error": {
+    "code": "EADDRINUSE",
+    "errno": -4091,
+    "syscall": "listen",
+    "address": "::",
+    "port": 8090
+  },
+  "exception": true,
+  "date": "Mon Feb 16 2026 14:03:02 GMT+0800 (中国标准时间)",
+  "process": {
+    "pid": 52632,
+    "uid": null,
+    "gid": null,
+    "cwd": "D:\\Projects\\ai-content-flow\\Workspace\\server",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v24.13.0",
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js"
+    ],
+    "memoryUsage": {
+      "rss": 110718976,
+      "heapTotal": 62148608,
+      "heapUsed": 32741688,
+      "external": 22458938,
+      "arrayBuffers": 18350611
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 162920.953
+  },
+  "trace": [
+    {
+      "column": 16,
+      "file": "node:net",
+      "function": "Server.setupListenHandle [as _listen2]",
+      "line": 1940,
+      "method": "setupListenHandle [as _listen2]",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:net",
+      "function": "listenInCluster",
+      "line": 1997,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 7,
+      "file": "node:net",
+      "function": "Server.listen",
+      "line": 2102,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 24,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\express\\lib\\application.js",
+      "function": "app.listen",
+      "line": 635,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 5,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js",
+      "function": null,
+      "line": 948,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1761,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Object..js",
+      "line": 1893,
+      "method": ".js",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1481,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._load",
+      "line": 1300,
+      "method": "_load",
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:diagnostics_channel",
+      "function": "TracingChannel.traceSync",
+      "line": 328,
+      "method": "traceSync",
+      "native": false
+    }
+  ]
+}
+2026-02-16 14:04:10 [error] uncaughtException: listen EADDRINUSE: address already in use :::8090
+Error: listen EADDRINUSE: address already in use :::8090
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\Projects\ai-content-flow\Workspace\server\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\simple-server-safe.js:948:5)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+Error: listen EADDRINUSE: address already in use :::8090
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\Projects\ai-content-flow\Workspace\server\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\simple-server-safe.js:948:5)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+Metadata: {
+  "error": {
+    "code": "EADDRINUSE",
+    "errno": -4091,
+    "syscall": "listen",
+    "address": "::",
+    "port": 8090
+  },
+  "exception": true,
+  "date": "Mon Feb 16 2026 14:04:10 GMT+0800 (中国标准时间)",
+  "process": {
+    "pid": 55516,
+    "uid": null,
+    "gid": null,
+    "cwd": "D:\\Projects\\ai-content-flow\\Workspace\\server",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v24.13.0",
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js"
+    ],
+    "memoryUsage": {
+      "rss": 109875200,
+      "heapTotal": 60575744,
+      "heapUsed": 35352056,
+      "external": 22032946,
+      "arrayBuffers": 18350611
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 162989.078
+  },
+  "trace": [
+    {
+      "column": 16,
+      "file": "node:net",
+      "function": "Server.setupListenHandle [as _listen2]",
+      "line": 1940,
+      "method": "setupListenHandle [as _listen2]",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:net",
+      "function": "listenInCluster",
+      "line": 1997,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 7,
+      "file": "node:net",
+      "function": "Server.listen",
+      "line": 2102,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 24,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\express\\lib\\application.js",
+      "function": "app.listen",
+      "line": 635,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 5,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js",
+      "function": null,
+      "line": 948,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1761,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Object..js",
+      "line": 1893,
+      "method": ".js",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1481,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._load",
+      "line": 1300,
+      "method": "_load",
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:diagnostics_channel",
+      "function": "TracingChannel.traceSync",
+      "line": 328,
+      "method": "traceSync",
+      "native": false
+    }
+  ]
+}
+2026-02-16 14:08:08 [error] uncaughtException: listen EADDRINUSE: address already in use :::8090
+Error: listen EADDRINUSE: address already in use :::8090
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\Projects\ai-content-flow\Workspace\server\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\simple-server-safe.js:948:5)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+Error: listen EADDRINUSE: address already in use :::8090
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\Projects\ai-content-flow\Workspace\server\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\ai-content-flow\Workspace\server\simple-server-safe.js:948:5)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+Metadata: {
+  "error": {
+    "code": "EADDRINUSE",
+    "errno": -4091,
+    "syscall": "listen",
+    "address": "::",
+    "port": 8090
+  },
+  "exception": true,
+  "date": "Mon Feb 16 2026 14:08:08 GMT+0800 (中国标准时间)",
+  "process": {
+    "pid": 47048,
+    "uid": null,
+    "gid": null,
+    "cwd": "D:\\Projects\\ai-content-flow\\Workspace\\server",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v24.13.0",
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js"
+    ],
+    "memoryUsage": {
+      "rss": 109879296,
+      "heapTotal": 60837888,
+      "heapUsed": 35223608,
+      "external": 22032946,
+      "arrayBuffers": 18350611
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 163227.109
+  },
+  "trace": [
+    {
+      "column": 16,
+      "file": "node:net",
+      "function": "Server.setupListenHandle [as _listen2]",
+      "line": 1940,
+      "method": "setupListenHandle [as _listen2]",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:net",
+      "function": "listenInCluster",
+      "line": 1997,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 7,
+      "file": "node:net",
+      "function": "Server.listen",
+      "line": 2102,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 24,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\node_modules\\express\\lib\\application.js",
+      "function": "app.listen",
+      "line": 635,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 5,
+      "file": "D:\\Projects\\ai-content-flow\\Workspace\\server\\simple-server-safe.js",
+      "function": null,
+      "line": 948,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1761,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Object..js",
+      "line": 1893,
+      "method": ".js",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1481,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._load",
+      "line": 1300,
+      "method": "_load",
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:diagnostics_channel",
+      "function": "TracingChannel.traceSync",
+      "line": 328,
+      "method": "traceSync",
+      "native": false
+    }
+  ]
+}

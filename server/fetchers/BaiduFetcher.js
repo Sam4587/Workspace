@@ -1,5 +1,5 @@
 /**
- * 微博热搜抓取器
+ * 百度热搜抓取器
  */
 
 const axios = require('axios');
@@ -7,17 +7,17 @@ const BaseFetcher = require('./BaseFetcher');
 const { Source } = require('../core/types');
 const logger = require('../utils/logger');
 
-class WeiboFetcher extends BaseFetcher {
+class BaiduFetcher extends BaseFetcher {
   constructor() {
     super({
-      name: Source.WEIBO,
-      url: 'https://weibo.com/ajax/side/hotSearch',
+      name: Source.BAIDU,
+      url: 'https://top.baidu.com/api/board',
       type: 'api',
       headers: {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-        'Referer': 'https://weibo.com/'
+        'Referer': 'https://top.baidu.com/'
       }
     });
 
@@ -27,45 +27,46 @@ class WeiboFetcher extends BaseFetcher {
     });
   }
 
-  /**
-   * 抓取微博热搜数据
-   * @returns {Promise<import('../core/types').HotTopic[]>}
-   */
   async fetch() {
-    const cacheKey = 'weibo-hot-topics';
+    const cacheKey = 'baidu-hot-topics';
     const cached = this.getFromCache(cacheKey);
     if (cached) return cached;
 
     try {
       return await this.fetchWithRetry(async () => {
         try {
-          const response = await this.axiosInstance.get(this.url);
+          const response = await this.axiosInstance.get(this.url, {
+            params: {
+              tab: 'realtime',
+              board: '1'
+            }
+          });
 
-          if (!response.data || !response.data.data) {
+          if (!response.data || !response.data.data || !response.data.data.cards) {
             logger.warn(`[${this.name}] 响应数据格式异常，使用备用数据`);
             return this.getFallbackData();
           }
 
-          const rawData = response.data.data.realtime || [];
-          if (!Array.isArray(rawData) || rawData.length === 0) {
-            logger.warn(`[${this.name}] 数据不是数组格式或为空，使用备用数据`);
+          const card = response.data.data.cards[0];
+          if (!card || !card.content) {
+            logger.warn(`[${this.name}] 数据格式异常，使用备用数据`);
             return this.getFallbackData();
           }
 
-          const topics = rawData.slice(0, 20).map((topic, index) => {
+          const topics = card.content.slice(0, 20).map((topic, index) => {
             const title = topic.word || topic.query || '';
-            const validated = this.validateTopic({ title, source: Source.WEIBO });
+            const validated = this.validateTopic({ title, source: Source.BAIDU });
 
             if (!validated.valid) return null;
 
             return {
               title: title.trim(),
-              description: topic.word_zh || topic.desc || title.trim(),
+              description: topic.desc || title.trim(),
               category: this.categorizeTopic(title),
-              heat: Math.max(1, 100 - index * 2),
+              heat: Math.max(1, Math.min(100, (topic.hotScore || (100 - index * 2)))),
               trend: this.getTrend(index),
-              source: Source.WEIBO,
-              sourceUrl: `https://s.weibo.com/weibo?q=${encodeURIComponent(title)}`,
+              source: Source.BAIDU,
+              sourceUrl: `https://www.baidu.com/s?wd=${encodeURIComponent(title)}`,
               keywords: this.extractKeywords(title),
               suitability: this.calculateSuitability(title),
               publishedAt: new Date()
@@ -91,21 +92,18 @@ class WeiboFetcher extends BaseFetcher {
     }
   }
 
-  /**
-   * 获取备用数据（当 API 不可用时使用）
-   */
   getFallbackData() {
     const fallbackTopics = [
-      { title: '人工智能技术突破：大模型应用再升级', category: 'tech', heat: 98 },
-      { title: '2026年春节档票房创新高', category: 'entertainment', heat: 95 },
-      { title: '新能源汽车销量持续增长', category: 'tech', heat: 92 },
-      { title: '央行发布最新货币政策报告', category: 'finance', heat: 89 },
-      { title: '冬奥会中国队获得多枚金牌', category: 'sports', heat: 86 },
-      { title: '一线城市楼市政策调整', category: 'social', heat: 83 },
-      { title: 'AI医疗影像诊断准确率提升', category: 'tech', heat: 80 },
-      { title: '国产芯片技术取得新进展', category: 'tech', heat: 77 },
-      { title: '暑期档电影预售火爆', category: 'entertainment', heat: 74 },
-      { title: '跨境电商平台促销活动', category: 'finance', heat: 71 }
+      { title: '2026年春运旅客发送量创新高', category: 'social', heat: 97 },
+      { title: '国产大飞机C919商业运营一周年', category: 'tech', heat: 94 },
+      { title: '春节假期全国旅游收入稳步增长', category: 'finance', heat: 91 },
+      { title: '5G网络覆盖范围持续扩大', category: 'tech', heat: 88 },
+      { title: '中小学寒假时间安排公布', category: 'social', heat: 85 },
+      { title: '新能源汽车充电基础设施建设加速', category: 'tech', heat: 82 },
+      { title: '电商平台年货节促销活动开启', category: 'finance', heat: 79 },
+      { title: '全民健身计划实施成效显著', category: 'sports', heat: 76 },
+      { title: '医疗保障制度改革持续推进', category: 'social', heat: 73 },
+      { title: '数字经济发展势头强劲', category: 'tech', heat: 70 }
     ];
 
     return fallbackTopics.map((topic, index) => ({
@@ -114,26 +112,23 @@ class WeiboFetcher extends BaseFetcher {
       category: topic.category,
       heat: topic.heat,
       trend: this.getTrend(index),
-      source: Source.WEIBO,
-      sourceUrl: `https://s.weibo.com/weibo?q=${encodeURIComponent(topic.title)}`,
+      source: Source.BAIDU,
+      sourceUrl: `https://www.baidu.com/s?wd=${encodeURIComponent(topic.title)}`,
       keywords: this.extractKeywords(topic.title),
       suitability: this.calculateSuitability(topic.title),
       publishedAt: new Date()
     }));
   }
 
-  /**
-   * 分类话题
-   */
   categorizeTopic(title) {
     // 统一使用英文分类值，与 types.js 和前端保持一致
     const categories = {
-      'entertainment': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐', '演员', '歌手', '票房'],
-      'tech': ['AI', '人工智能', '科技', '互联网', '手机', '数码', '芯片', '软件', 'APP', '华为', '苹果', '小米'],
-      'finance': ['股市', '经济', '金融', '投资', '房价', '财经', '股票', '基金', '银行', '利率'],
-      'sports': ['足球', '篮球', '奥运', '体育', '运动员', 'NBA', '世界杯', '比赛', '联赛'],
-      'social': ['社会', '民生', '政策', '教育', '医疗', '学校', '高考', '就业'],
-      'international': ['国际', '外交', '战争', '政治', '国家', '美国', '俄罗斯', '欧盟']
+      'entertainment': ['电影', '明星', '综艺', '音乐', '电视剧', '娱乐'],
+      'tech': ['AI', '人工智能', '科技', '互联网', '手机', '数码', '5G', '芯片'],
+      'finance': ['股市', '经济', '金融', '投资', '房价', '财经', '电商', '旅游'],
+      'sports': ['足球', '篮球', '奥运', '体育', '运动员', '健身'],
+      'social': ['社会', '民生', '政策', '教育', '医疗', '春运', '假期'],
+      'international': ['国际', '外交', '战争', '政治', '国家']
     };
 
     for (const [category, keywords] of Object.entries(categories)) {
@@ -145,18 +140,12 @@ class WeiboFetcher extends BaseFetcher {
     return 'other';
   }
 
-  /**
-   * 获取趋势
-   */
   getTrend(index) {
     if (index < 5) return 'up';
     if (index > 15) return 'down';
     return 'stable';
   }
 
-  /**
-   * 提取关键词
-   */
   extractKeywords(title) {
     const commonWords = ['的', '了', '在', '是', '我', '有', '和', '就', '不', '人', '都', '一', '一个', '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看', '好', '自己', '这'];
 
@@ -166,18 +155,15 @@ class WeiboFetcher extends BaseFetcher {
       .slice(0, 5);
   }
 
-  /**
-   * 计算适配度
-   */
   calculateSuitability(title) {
     let score = 50;
 
     if (title.length > 10 && title.length < 50) score += 20;
     if (title.includes('？') || title.includes('!')) score += 10;
-    if (title.includes('最新') || title.includes('突发')) score += 15;
+    if (title.includes('最新') || title.includes('突发') || title.includes('创新高')) score += 15;
 
     return Math.min(100, Math.max(0, score));
   }
 }
 
-module.exports = WeiboFetcher;
+module.exports = BaiduFetcher;

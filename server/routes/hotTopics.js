@@ -19,11 +19,12 @@ const router = express.Router();
 
 const validSortBy = ['heat', 'createdAt', 'publishedAt', 'suitability'];
 const validSortOrder = ['asc', 'desc'];
-const validCategories = ['all', '娱乐', '科技', '财经', '体育', '社会', '国际', '其他'];
+// 统一使用英文分类值，与 types.js 和前端保持一致
+const validCategories = ['all', 'entertainment', 'tech', 'finance', 'sports', 'social', 'international', 'other'];
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce.number().int().min(1).max(500).default(100),
   category: z.enum(validCategories).default('all'),
   search: z.string().max(100).default(''),
   minHeat: z.coerce.number().min(0).max(100).default(0),
