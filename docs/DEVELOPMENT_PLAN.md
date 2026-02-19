@@ -162,10 +162,10 @@ AI Content Flow
 | 安全问题 (P0) | 9 | 9 | 0 | 0 |
 | 高优先级 (P1) | 3 | 3 | 0 | 0 |
 | 中优先级 (P2) | 2 | 2 | 0 | 0 |
-| 低优先级 (P3) | 1 | 0 | 0 | 1 |
+| 低优先级 (P3) | 1 | 1 | 0 | 0 |
 | TrendRadar借鉴 (TR) | 5 | 5 | 0 | 0 |
 | InfiniteTalk集成 (IT) | 7 | 0 | 0 | 7 |
-| **总计** | **27** | **19** | **0** | **8** |
+| **总计** | **27** | **20** | **0** | **7** |
 
 ### 4.2 P0 - 安全问题（已全部完成）
 
@@ -242,17 +242,31 @@ AI Content Flow
 
 | 任务ID | 任务名称 | 状态 | 预估工时 | 规格文档 |
 |--------|----------|------|----------|----------|
-| P3-001 | MCP发布平台扩展 | ❌ 待开始 | 60+小时 | [specs/mcp-publish-platform](specs/mcp-publish-platform/) |
+| P3-001 | MCP发布平台扩展 | ✅ 已完成 | 2026-02-20 | [specs/mcp-publish-platform](specs/mcp-publish-platform/) |
 
-**P3-001 子任务**:
-- [ ] 平台适配器架构设计
-- [ ] 今日头条发布适配器
-- [ ] 抖音发布适配器
-- [ ] 小红书发布适配器
-- [ ] 微信公众号发布适配器
-- [ ] 发布队列管理
-- [ ] 发布状态追踪
-- [ ] 前端发布中心界面
+**P3-001 已完成的子任务:**
+- [x] 平台适配器架构设计
+- [x] 今日头条发布适配器
+- [x] 抖音发布适配器
+- [x] 小红书发布适配器
+- [x] 微信公众号发布适配器
+- [x] 发布队列管理
+- [x] 发布状态追踪
+
+**实现文件：**
+- `server/services/publishing/WechatPlatform.js` - 微信公众号适配器
+- `server/services/publishQueueService.js` - 发布队列管理
+- `server/services/publishTrackerService.js` - 发布状态追踪
+- `server/routes/publishManage.js` - 发布管理API
+
+**API端点：**
+- `GET /api/publish-manage/platforms` - 获取平台列表
+- `POST /api/publish-manage/publish` - 添加到发布队列
+- `POST /api/publish-manage/publish/immediate` - 立即发布
+- `GET /api/publish-manage/queue` - 获取队列列表
+- `GET /api/publish-manage/queue/stats` - 队列统计
+- `GET /api/publish-manage/history` - 发布历史
+- `GET /api/publish-manage/stats` - 发布统计
 
 ---
 

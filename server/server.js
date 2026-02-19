@@ -1057,6 +1057,14 @@ try {
   console.log('[PushRoute] Push routes skipped:', error.message);
 }
 
+// 注册发布管理路由
+try {
+  app.use('/api/publish-manage', require('./routes/publishManage'));
+  console.log('[PublishManageRoute] Publish manage routes loaded');
+} catch (error) {
+  console.log('[PublishManageRoute] Publish manage routes skipped:', error.message);
+}
+
 // 注册视频生成路由（可选，如果依赖缺失则跳过）
 try {
   app.use('/api/video-generation', require('./routes/video'));
