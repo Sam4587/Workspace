@@ -1065,6 +1065,14 @@ try {
   console.log('[PublishManageRoute] Publish manage routes skipped:', error.message);
 }
 
+// 注册InfiniteTalk路由
+try {
+  app.use('/api/infiniteTalk', require('./routes/infiniteTalk'));
+  console.log('[InfiniteTalkRoute] InfiniteTalk routes loaded');
+} catch (error) {
+  console.log('[InfiniteTalkRoute] InfiniteTalk routes skipped:', error.message);
+}
+
 // 注册视频生成路由（可选，如果依赖缺失则跳过）
 try {
   app.use('/api/video-generation', require('./routes/video'));
