@@ -1089,6 +1089,23 @@ try {
   console.log('[VideoTranscriptionRoute] Video transcription routes skipped:', error.message);
 }
 
+// 注册管道路由
+try {
+  app.use('/api/pipeline', require('./routes/pipeline'));
+  console.log('[PipelineRoute] Pipeline routes loaded');
+} catch (error) {
+  console.log('[PipelineRoute] Pipeline routes skipped:', error.message);
+}
+
+// 初始化WebSocket进度服务
+try {
+  const { progressNotifierService } = require('./services/progressNotifierService');
+  progressNotifierService.initialize(server);
+  console.log('[ProgressNotifier] WebSocket progress service initialized');
+} catch (error) {
+  console.log('[ProgressNotifier] WebSocket progress service skipped:', error.message);
+}
+
 // 注册视频生成路由（可选，如果依赖缺失则跳过）
 try {
   app.use('/api/video-generation', require('./routes/video'));

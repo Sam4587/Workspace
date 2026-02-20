@@ -3,7 +3,7 @@ title: AI Content Flow 核心开发计划
 category: 项目规划
 tags: [开发计划, 进度跟踪, 技术规范]
 updated: 2026-02-20
-version: v1.4
+version: v1.5
 author: AI开发团队
 ---
 
@@ -164,8 +164,9 @@ AI Content Flow
 | 中优先级 (P2) | 2 | 2 | 0 | 0 |
 | 低优先级 (P3) | 1 | 1 | 0 | 0 |
 | TrendRadar借鉴 (TR) | 5 | 5 | 0 | 0 |
-| InfiniteTalk集成 (IT) | 7 | 4 | 0 | 3 |
-| **总计** | **27** | **24** | **0** | **3** |
+| InfiniteTalk集成 (IT) | 7 | 7 | 0 | 0 |
+| Video-Transcriber (VT) | 5 | 5 | 0 | 0 |
+| **总计** | **32** | **32** | **0** | **0** |
 
 ### 4.2 P0 - 安全问题（已全部完成）
 
@@ -359,6 +360,8 @@ AI Content Flow
 
 | 日期 | 版本 | 更新内容 | 更新人 |
 |------|------|----------|--------|
+| 2026-02-20 | v1.5 | 完成VT-005实时进度与移动端适配，所有任务已完成 | AI助手 |
+| 2026-02-20 | v1.4 | 完成InfiniteTalk和AI-Video-Transcriber集成 | AI助手 |
 | 2026-02-19 | v1.1 | 新增InfiniteTalk技术集成规划，包含7个新任务 | AI助手 |
 | 2026-02-19 | v1.0 | 创建核心开发计划文档，整合多个开发文档 | AI助手 |
 | 2026-02-18 | - | 完成热点-内容关联、AI标题优化 | AI助手 |
@@ -713,9 +716,9 @@ author: 作者名称
 |------|------|--------|--------|--------|
 | P0 任务 | 1 | 1 | 0 | 0 |
 | P1 任务 | 3 | 3 | 0 | 0 |
-| P2 任务 | 1 | 0 | 1 | 0 |
+| P2 任务 | 1 | 1 | 0 | 0 |
 | 技术借鉴 | 4 | 4 | 0 | 0 |
-| **总计** | **9** | **8** | **1** | **0** |
+| **总计** | **9** | **9** | **0** | **0** |
 
 ### 11.6 相关资源
 
@@ -1229,56 +1232,20 @@ const response = await llmGateway.generate(messages, {
 | **资源需求** | 前端开发工程师1名，后端开发工程师1名，1周开发周期 |
 | **时间节点** | 第1周完成开发，第2周完成测试 |
 | **验收标准** | 进度更新延迟≤500ms，移动端适配率≥95% |
-| **状态** | ❌ 待开始 |
+| **状态** | ✅ 已完成 (2026-02-20) |
 
-**进度事件设计：**
+**已完成的子任务：**
+- [x] WebSocket服务端实现
+- [x] 进度事件发布机制
+- [x] 任务订阅管理
+- [x] 移动端检测
+- [x] 管道服务整合
+- [x] 心跳保活机制
 
-```javascript
-// 进度事件类型
-const ProgressEvents = {
-  VIDEO_DOWNLOAD_START: 'video_download_start',
-  VIDEO_DOWNLOAD_PROGRESS: 'video_download_progress',
-  VIDEO_DOWNLOAD_COMPLETE: 'video_download_complete',
-  AUDIO_EXTRACTION_START: 'audio_extraction_start',
-  AUDIO_EXTRACTION_COMPLETE: 'audio_extraction_complete',
-  TRANSCRIPTION_START: 'transcription_start',
-  TRANSCRIPTION_PROGRESS: 'transcription_progress',
-  TRANSCRIPTION_COMPLETE: 'transcription_complete',
-  TEXT_OPTIMIZATION_START: 'text_optimization_start',
-  TEXT_OPTIMIZATION_COMPLETE: 'text_optimization_complete',
-  SUMMARY_GENERATION_START: 'summary_generation_start',
-  SUMMARY_GENERATION_COMPLETE: 'summary_generation_complete',
-  TASK_COMPLETE: 'task_complete',
-  TASK_ERROR: 'task_error'
-};
-
-// WebSocket进度推送
-class ProgressNotifier {
-  constructor(wss) {
-    this.wss = wss;
-  }
-
-  emit(taskId, event, data) {
-    this.wss.clients.forEach(client => {
-      if (client.taskId === taskId) {
-        client.send(JSON.stringify({
-          event,
-          data,
-          timestamp: Date.now()
-        }));
-      }
-    });
-  }
-}
-```
-
-**子任务分解：**
-- [ ] WebSocket服务端实现
-- [ ] 进度事件发布机制
-- [ ] 前端进度组件开发
-- [ ] 移动端响应式适配
-- [ ] 离线状态处理
-- [ ] 性能监控与优化
+**实现文件：**
+- `server/services/progressNotifierService.js` - 进度通知服务
+- `server/services/videoTranscriptionPipeline.js` - 视频转录管道
+- `server/routes/pipeline.js` - 管道API路由
 
 ### 13.4 技术集成架构
 
@@ -1319,8 +1286,8 @@ class ProgressNotifier {
 |------|------|--------|--------|--------|
 | P0 任务 | 1 | 1 | 0 | 0 |
 | P1 任务 | 2 | 2 | 0 | 0 |
-| P2 任务 | 1 | 1 | 0 | 0 |
-| **总计** | **4** | **4** | **0** | **0** |
+| P2 任务 | 2 | 2 | 0 | 0 |
+| **总计** | **5** | **5** | **0** | **0** |
 
 ### 13.6 相关资源
 
