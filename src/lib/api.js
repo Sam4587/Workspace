@@ -12,6 +12,8 @@ class ApiClient {
       },
     });
 
+    this.csrfToken = null;
+
     // 请求拦截器
     this.client.interceptors.request.use(
       (config) => {
@@ -19,6 +21,14 @@ class ApiClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        
+        // 添加 CSRF 令牌
+        const csrfToken = this.getCsrfToken();
+        console.log('Request CSRF Token:', csrfToken);
+        if (csrfToken) {
+          config.headers['X-CSRF-Token'] = csrfToken;
+        }
+        
         return config;
       },
       (error) => {
@@ -29,6 +39,11 @@ class ApiClient {
     // 响应拦截器
     this.client.interceptors.response.use(
       (response) => {
+        // 从响应头获取新的 CSRF 令牌
+        const newCsrfToken = response.headers['x-csrf-token'];
+        if (newCsrfToken) {
+          this.setCsrfToken(newCsrfToken);
+        }
         return response.data;
       },
       (error) => {
@@ -41,6 +56,33 @@ class ApiClient {
         return Promise.reject(new Error(message));
       }
     );
+  }
+
+  getCsrfToken() {
+    if (this.csrfToken) {
+      return this.csrfToken;
+    }
+    return localStorage.getItem('csrfToken');
+  }
+
+  setCsrfToken(token) {
+    this.csrfToken = token;
+    localStorage.setItem('csrfToken', token);
+  }
+
+  async fetchCsrfToken() {
+    try {
+      const response = await this.client.get('/csrf-token');
+      console.log('CSRF Response:', response);
+      if (response && response.csrfToken) {
+        this.setCsrfToken(response.csrfToken);
+        console.log('CSRF Token set:', response.csrfToken);
+        return response.csrfToken;
+      }
+    } catch (error) {
+      console.error('获取CSRF令牌失败:', error);
+    }
+    return null;
   }
 
   // 确保 client 存在的辅助方法
@@ -137,7 +179,7 @@ class ApiClient {
 
   async updateHotTopics() {
     try {
-      return await this.ensureClient().post('/hot-topics/refresh');
+      return await this.client.post('/hot-topics/refresh');
     } catch (error) {
       console.error('更新热点话题失败:', error);
       throw error;
@@ -859,10 +901,7 @@ class ApiClient {
   async getWorkflows() {
     try {
       const response = await this.client.get('/contents/workflows');
-      return {
-        success: true,
-        data: response.data?.data || []
-      };
+      return response;
     } catch (error) {
       console.error('获取工作流列表失败:', error);
       return {
@@ -1391,6 +1430,107 @@ class ApiClient {
       return {
         success: false,
         message: '标题优化失败'
+      };
+    }
+  }
+
+  // 视频结构分析相关
+  async analyzeVideoStructure(transcript, metadata = {}) {
+    try {
+      const response = await this.ensureClient().post('/video-analysis/structure', {
+        transcript,
+        metadata
+      });
+      return response;
+    } catch (error) {
+      console.error('视频结构分析失败:', error);
+      return {
+        success: false,
+        message: error.message || '视频结构分析失败'
+      };
+    }
+  }
+
+  async batchAnalyzeVideos(videos) {
+    try {
+      const response = await this.ensureClient().post('/video-analysis/batch', {
+        videos
+      });
+      return response;
+    } catch (error) {
+      console.error('批量视频分析失败:', error);
+      return {
+        success: false,
+        message: error.message || '批量视频分析失败'
+      };
+    }
+  }
+
+  async getVideoStructureTypes() {
+    try {
+      const response = await this.ensureClient().get('/video-analysis/structure-types');
+      return response;
+    } catch (error) {
+      console.error('获取结构类型失败:', error);
+      return {
+        success: false,
+        message: error.message || '获取结构类型失败'
+      };
+    }
+  }
+
+  // 标题生成相关
+  async generateTitles(params) {
+    try {
+      const response = await this.ensureClient().post('/contents/generate-titles', params);
+      return response;
+    } catch (error) {
+      console.error('标题生成失败:', error);
+      return {
+        success: false,
+        message: error.message || '标题生成失败'
+      };
+    }
+  }
+
+  async getTitlePlatforms() {
+    try {
+      const response = await this.ensureClient().get('/contents/title-platforms');
+      return response;
+    } catch (error) {
+      console.error('获取平台规则失败:', error);
+      return {
+        success: false,
+        message: error.message || '获取平台规则失败'
+      };
+    }
+  }
+
+  async getViralPatterns() {
+    try {
+      const response = await this.ensureClient().get('/contents/viral-patterns');
+      return response;
+    } catch (error) {
+      console.error('获取爆款模式失败:', error);
+      return {
+        success: false,
+        message: error.message || '获取爆款模式失败'
+      };
+    }
+  }
+
+  async checkTitleCompliance(title, platform = 'toutiao') {
+    try {
+      const response = await this.ensureClient().post('/contents/check-title-compliance', {
+        title,
+        platform
+      });
+      return response;
+    } catch (error) {
+      console.error('标题合规检查失败:', error);
+      return {
+        success: false,
+        message: error.message || '标题合规检查失败'
       };
     }
   }

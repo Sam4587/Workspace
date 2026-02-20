@@ -110,6 +110,16 @@ app.get('/api/rate-limit/status', async (req, res) => {
   }
 });
 
+// CSRF 令牌端点
+app.get('/api/csrf-token', (req, res) => {
+  const csrfToken = require('crypto').randomBytes(32).toString('hex');
+  res.setHeader('X-CSRF-Token', csrfToken);
+  res.json({
+    success: true,
+    csrfToken: csrfToken
+  });
+});
+
 // =====================================================
 // 使用 NewsNowFetcher 获取真实热点数据
 // =====================================================
@@ -560,6 +570,133 @@ app.get('/api/hot-topics/sources', (req, res) => {
     success: true,
     data: NEWSNOW_SOURCES
   });
+});
+
+// ========== 热点报告生成 API ==========
+
+app.get('/api/hot-topics/reports/daily', async (req, res) => {
+  try {
+    const { 
+      date = new Date().toISOString(),
+      platforms = 'weibo,toutiao,zhihu',
+      topN = 20,
+      includeAnalysis = true,
+      format = 'html'
+    } = req.query;
+
+    const platformList = platforms.split(',').map(p => p.trim());
+    
+    const report = await hotTopicReportService.generateDailyReport({
+      date: new Date(date),
+      platforms: platformList,
+      topN: parseInt(topN),
+      includeAnalysis: includeAnalysis === 'true',
+      format
+    });
+
+    if (format === 'json') {
+      res.json({
+        success: true,
+        data: report.content
+      });
+    } else {
+      res.setHeader('Content-Type', format === 'html' ? 'text/html' : 'text/markdown');
+      res.send(report.content);
+    }
+  } catch (error) {
+    logger.error('生成日报失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '生成日报失败: ' + error.message
+    });
+  }
+});
+
+app.get('/api/hot-topics/reports/weekly', async (req, res) => {
+  try {
+    const { 
+      date = new Date().toISOString(),
+      platforms = 'weibo,toutiao,zhihu',
+      topN = 50,
+      includeAnalysis = true,
+      format = 'html'
+    } = req.query;
+
+    const platformList = platforms.split(',').map(p => p.trim());
+    
+    const report = await hotTopicReportService.generateWeeklyReport({
+      date: new Date(date),
+      platforms: platformList,
+      topN: parseInt(topN),
+      includeAnalysis: includeAnalysis === 'true',
+      format
+    });
+
+    if (format === 'json') {
+      res.json({
+        success: true,
+        data: report.content
+      });
+    } else {
+      res.setHeader('Content-Type', format === 'html' ? 'text/html' : 'text/markdown');
+      res.send(report.content);
+    }
+  } catch (error) {
+    logger.error('生成周报失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '生成周报失败: ' + error.message
+    });
+  }
+});
+
+app.get('/api/hot-topics/reports/monthly', async (req, res) => {
+  try {
+    const { 
+      year = new Date().getFullYear(),
+      month = new Date().getMonth() + 1,
+      platforms = 'weibo,toutiao,zhihu',
+      topN = 100,
+      includeAnalysis = true,
+      format = 'html'
+    } = req.query;
+
+    const platformList = platforms.split(',').map(p => p.trim());
+    
+    const report = await hotTopicReportService.generateMonthlyReport({
+      year: parseInt(year),
+      month: parseInt(month),
+      platforms: platformList,
+      topN: parseInt(topN),
+      includeAnalysis: includeAnalysis === 'true',
+      format
+    });
+
+    if (format === 'json') {
+      res.json({
+        success: true,
+        data: report.content
+      });
+    } else {
+      res.setHeader('Content-Type', format === 'html' ? 'text/html' : 'text/markdown');
+      res.send(report.content);
+    }
+  } catch (error) {
+    logger.error('生成月报失败', {
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({
+      success: false,
+      message: '生成月报失败: ' + error.message
+    });
+  }
 });
 
 // ========== 内容相关 API ==========
@@ -1016,6 +1153,9 @@ app.use('/api/video', require('./routes/videoDownload'));
 // 注册视频下载路由
 app.use('/api/video-download', require('./routes/videoDownload'));
 
+// 注册视频结构分析路由
+app.use('/api/video-analysis', require('./routes/videoAnalysis'));
+
 // 注册转录路由
 app.use('/api/transcription', require('./routes/transcription'));
 
@@ -1097,14 +1237,7 @@ try {
   console.log('[PipelineRoute] Pipeline routes skipped:', error.message);
 }
 
-// 初始化WebSocket进度服务
-try {
-  const { progressNotifierService } = require('./services/progressNotifierService');
-  progressNotifierService.initialize(server);
-  console.log('[ProgressNotifier] WebSocket progress service initialized');
-} catch (error) {
-  console.log('[ProgressNotifier] WebSocket progress service skipped:', error.message);
-}
+
 
 // 注册视频生成路由（可选，如果依赖缺失则跳过）
 try {
@@ -1166,42 +1299,160 @@ app.use('*', (req, res) => {
   });
 });
 
-// 启动服务器
-app.listen(PORT, async () => {
-  enhancedLogger.info('服务器启动成功', { 
-    port: PORT, 
-    environment: configLoader.getEnvironment(),
-    pid: process.pid
+const net = require('net');
+
+async function isPortInUse(port) {
+  return new Promise((resolve) => {
+    const tester = net.createServer()
+      .once('error', () => resolve(true))
+      .once('listening', () => {
+        tester.close();
+        resolve(false);
+      })
+      .listen(port);
   });
-  enhancedLogger.info('健康检查端点', { url: `http://localhost:${PORT}/api/health` });
-  enhancedLogger.info('监控面板端点', { url: `http://localhost:${PORT}/api/monitoring` });
+}
+
+async function startServer() {
+  const portInUse = await isPortInUse(PORT);
   
-  // 启动定期监控检查
-  startMonitoringChecks();
-  
-  // 启动时获取热点数据
-  await fetchAndCacheTopics(false);
-  
-  // 启动定时清理过期令牌任务（每小时执行一次）
-  const tokenService = require('./services/TokenService');
-  setInterval(() => {
-    tokenService.cleanupExpiredTokens();
-  }, 60 * 60 * 1000); // 每小时
-  
-  console.log('✅ JWT刷新令牌机制已启用');
-  
-  // 启动定时自动更新热点数据任务（每15分钟执行一次，降低频率确保安全）
-  setInterval(async () => {
+  if (portInUse) {
+    enhancedLogger.error('端口已被占用，尝试终止占用进程', { port: PORT });
+    
     try {
-      const topics = await fetchAndCacheTopics();
-      console.log(`[自动更新] 热点数据更新完成，获取 ${topics.length} 条数据`);
+      const { exec } = require('child_process');
+      const platform = process.platform;
+      
+      if (platform === 'win32') {
+        exec(`netstat -ano | findstr :${PORT}`, (err, stdout) => {
+          if (!err && stdout) {
+            const lines = stdout.trim().split('\n');
+            const lastLine = lines[lines.length - 1];
+            const pidMatch = lastLine.match(/\s+(\d+)\s*$/);
+            if (pidMatch) {
+              const pid = pidMatch[1];
+              enhancedLogger.info('找到占用端口的进程，正在终止', { pid });
+              exec(`taskkill /F /PID ${pid}`, (killErr) => {
+                if (!killErr) {
+                  enhancedLogger.info('进程已终止，重新启动服务器');
+                  setTimeout(startServer, 1000);
+                } else {
+                  enhancedLogger.error('无法终止进程，请手动处理', { error: killErr.message });
+                }
+              });
+            }
+          }
+        });
+      } else {
+        exec(`lsof -ti :${PORT} | xargs -r kill -9`, (err) => {
+          if (!err) {
+            enhancedLogger.info('进程已终止，重新启动服务器');
+            setTimeout(startServer, 1000);
+          } else {
+            enhancedLogger.error('无法终止进程，请手动处理', { error: err.message });
+          }
+        });
+      }
     } catch (error) {
-      console.error('[自动更新] 热点数据更新失败:', error.message);
+      enhancedLogger.error('处理端口冲突失败', { error: error.message });
     }
-  }, 15 * 60 * 1000); // 每15分钟（更安全的频率）
-  
-  console.log('✅ 自动热点数据更新机制已启用');
-});
+    return;
+  }
+
+  const server = app.listen(PORT, async () => {
+    enhancedLogger.info('服务器启动成功', { 
+      port: PORT, 
+      environment: configLoader.getEnvironment(),
+      pid: process.pid
+    });
+    enhancedLogger.info('健康检查端点', { url: `http://localhost:${PORT}/api/health` });
+    enhancedLogger.info('监控面板端点', { url: `http://localhost:${PORT}/api/monitoring` });
+    
+    try {
+      const { progressNotifierService } = require('./services/progressNotifierService');
+      progressNotifierService.initialize(server);
+      console.log('[ProgressNotifier] WebSocket progress service initialized');
+    } catch (error) {
+      console.log('[ProgressNotifier] WebSocket progress service skipped:', error.message);
+    }
+    
+    startMonitoringChecks();
+    
+    try {
+      await fetchAndCacheTopics(false);
+    } catch (error) {
+      enhancedLogger.warn('初始热点数据获取失败', { error: error.message });
+    }
+    
+    try {
+      const tokenService = require('./services/TokenService');
+      setInterval(() => {
+        try {
+          tokenService.cleanupExpiredTokens();
+        } catch (error) {
+          enhancedLogger.error('令牌清理失败', { error: error.message });
+        }
+      }, 60 * 60 * 1000);
+      
+      console.log('✅ JWT刷新令牌机制已启用');
+    } catch (error) {
+      enhancedLogger.warn('令牌服务初始化失败', { error: error.message });
+    }
+    
+    setInterval(async () => {
+      try {
+        const topics = await fetchAndCacheTopics();
+        console.log(`[自动更新] 热点数据更新完成，获取 ${topics.length} 条数据`);
+      } catch (error) {
+        console.error('[自动更新] 热点数据更新失败:', error.message);
+      }
+    }, 15 * 60 * 1000);
+    
+    console.log('✅ 自动热点数据更新机制已启用');
+  });
+
+  process.on('SIGTERM', () => {
+    enhancedLogger.info('收到 SIGTERM 信号，正在优雅关闭...');
+    server.close(() => {
+      enhancedLogger.info('服务器已关闭');
+      process.exit(0);
+    });
+  });
+
+  process.on('SIGINT', () => {
+    enhancedLogger.info('收到 SIGINT 信号，正在优雅关闭...');
+    server.close(() => {
+      enhancedLogger.info('服务器已关闭');
+      process.exit(0);
+    });
+  });
+
+  process.on('uncaughtException', (error) => {
+    enhancedLogger.error('未捕获的异常', { 
+      error: error.message, 
+      stack: error.stack 
+    });
+    
+    try {
+      server.close(() => {
+        enhancedLogger.info('服务器关闭，准备重启...');
+        process.exit(1);
+      });
+    } catch (err) {
+      enhancedLogger.error('强制退出', { error: err.message });
+      process.exit(1);
+    }
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    enhancedLogger.error('未处理的 Promise 拒绝', { 
+      reason: reason?.message || reason,
+      stack: reason?.stack
+    });
+  });
+}
+
+startServer();
 
 // 定期监控检查函数
 async function startMonitoringChecks() {

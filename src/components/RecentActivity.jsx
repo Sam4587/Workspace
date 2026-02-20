@@ -78,15 +78,15 @@ const RecentActivity = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-card rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">最近活动</h3>
-        <div className="space-y-3">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h3 className="text-xl font-semibold text-gray-900 mb-6">最近活动</h3>
+        <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="animate-pulse flex items-center gap-3">
-              <div className="h-8 w-8 bg-muted rounded-full"></div>
+            <div key={i} className="animate-pulse flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+              <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
               <div className="flex-1">
-                <div className="h-4 bg-muted rounded w-3/4 mb-1"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
+                <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
               </div>
             </div>
           ))}
@@ -97,32 +97,35 @@ const RecentActivity = () => {
 
   if (error) {
     return (
-      <div className="bg-card rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">最近活动</h3>
-        <p className="text-muted-foreground">加载失败</p>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">最近活动</h3>
+        <p className="text-gray-500 text-center py-8">加载失败</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-card rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4">最近活动</h3>
-      <div className="space-y-3">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+      <h3 className="text-xl font-semibold text-gray-900 mb-6">最近活动</h3>
+      <div className="space-y-4">
         {activities && activities.length > 0 ? (
           activities.map((activity) => (
-            <div key={activity.id} className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded-lg transition-colors">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <div key={activity.id} className="flex items-center gap-4 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all cursor-pointer">
+              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                 {getIcon(activity.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{activity.title}</p>
-                <p className="text-xs text-muted-foreground">{activity.time}</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
+                <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
               </div>
               {getStatusIcon(activity.status)}
             </div>
           ))
         ) : (
-          <p className="text-muted-foreground text-sm text-center py-4">暂无最近活动</p>
+          <div className="text-center py-12">
+            <FileText className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+            <p className="text-gray-500">暂无最近活动</p>
+          </div>
         )}
       </div>
     </div>

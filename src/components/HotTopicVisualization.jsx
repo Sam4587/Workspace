@@ -44,6 +44,7 @@ const translateSource = (source) => {
 const HotTopicVisualization = ({ topics = [], loading = false }) => {
   const [activeTab, setActiveTab] = useState('trend');
   const [timeRange, setTimeRange] = useState('24h');
+  const [sourceChartType, setSourceChartType] = useState('bar');
 
   // 根据时间范围过滤话题
   const getFilteredTopics = () => {
@@ -208,10 +209,10 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
   const heatData = getHeatDistribution();
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-8">
       {/* 时间范围选择 */}
-      <div className="flex items-center justify-between">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-wrap gap-2 bg-gray-50 p-1.5 rounded-xl">
           {[
             { key: '1h', label: '1小时' },
             { key: '6h', label: '6小时' },
@@ -221,22 +222,29 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
           ].map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => setTimeRange(key)}
-              className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+              onClick={() => {
+                console.log(`点击时间标签: ${key}`);
+                setTimeRange(key);
+              }}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all cursor-pointer ${
                 timeRange === key
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white text-blue-600 shadow-sm ring-1 ring-blue-200'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
+              type="button"
             >
               {label}
             </button>
           ))}
         </div>
+        <div className="text-sm text-gray-500">
+          当前选择: {timeRange === '1h' ? '1小时' : timeRange === '6h' ? '6小时' : timeRange === '12h' ? '12小时' : timeRange === '24h' ? '24小时' : '7天'}
+        </div>
       </div>
 
       {/* 图表标签页 */}
       <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+        <nav className="-mb-px flex flex-wrap gap-2">
           {[
             { key: 'trend', label: '趋势分析', icon: TrendingUp },
             { key: 'source', label: '平台分布', icon: BarChartIcon },
@@ -245,12 +253,16 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => setActiveTab(key)}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+              onClick={() => {
+                console.log(`点击图表标签: ${key}`);
+                setActiveTab(key);
+              }}
+              className={`py-3 px-4 border-b-2 font-medium text-sm flex items-center space-x-2 cursor-pointer ${
                 activeTab === key
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
+              type="button"
             >
               <Icon className="h-4 w-4" />
               <span>{label}</span>
@@ -260,67 +272,106 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
       </div>
 
       {/* 图表内容 */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
         {activeTab === 'trend' && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">热点发布趋势</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hour" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="count"
-                  name="话题数量"
-                  stroke="#8884d8"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="avgHeat"
-                  name="平均热度"
-                  stroke="#82ca9d"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="space-y-8">
+            <div className="text-center pb-4 border-b border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900">热点发布趋势</h3>
+              <p className="text-sm text-gray-500 mt-1">不同时间段的话题发布数量与平均热度</p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+              <ResponsiveContainer width="100%" height={500}>
+                <LineChart data={trendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: 20 }} />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="count"
+                    name="话题数量"
+                    stroke="#8884d8"
+                    strokeWidth={3}
+                    dot={{ r: 5 }}
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="avgHeat"
+                    name="平均热度"
+                    stroke="#82ca9d"
+                    strokeWidth={3}
+                    dot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
 
         {activeTab === 'source' && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">平台分布</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={sourceData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-100">
+              <div className="text-center sm:text-left">
+                <h3 className="text-xl font-semibold text-gray-900">平台分布</h3>
+                <p className="text-sm text-gray-500 mt-1">各内容平台的话题覆盖情况</p>
+              </div>
+              <div className="flex bg-gray-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setSourceChartType('bar')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 ${
+                    sourceChartType === 'bar'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <BarChartIcon className="h-4 w-4" />
+                  <span>柱状图</span>
+                </button>
+                <button
+                  onClick={() => setSourceChartType('pie')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 ${
+                    sourceChartType === 'pie'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <PieChartIcon className="h-4 w-4" />
+                  <span>饼图</span>
+                </button>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+              {sourceChartType === 'bar' ? (
+                <ResponsiveContainer width="100%" height={500}>
+                  <BarChart data={sourceData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fontSize: 12 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend />
-                    <Bar dataKey="value" name="话题数量" fill="#8884d8" />
+                    <Legend wrapperStyle={{ paddingTop: 20 }} />
+                    <Bar dataKey="value" name="话题数量" fill="#8884d8" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-              <div>
-                <ResponsiveContainer width="100%" height={300}>
+              ) : (
+                <ResponsiveContainer width="100%" height={500}>
                   <PieChart>
                     <Pie
                       data={sourceData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
+                      labelLine={true}
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
+                      outerRadius={180}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -329,79 +380,89 @@ const HotTopicVisualization = ({ topics = [], loading = false }) => {
                       ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend />
+                    <Legend wrapperStyle={{ paddingTop: 30 }} />
                   </PieChart>
                 </ResponsiveContainer>
-              </div>
+              )}
             </div>
           </div>
         )}
 
         {activeTab === 'category' && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">内容分类分布</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={120}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="space-y-8">
+            <div className="text-center pb-4 border-b border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900">内容分类分布</h3>
+              <p className="text-sm text-gray-500 mt-1">不同内容分类的话题占比</p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+              <ResponsiveContainer width="100%" height={500}>
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={160}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: 30 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
 
         {activeTab === 'heat' && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">热度等级分布</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={heatData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={80} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Bar dataKey="value" name="话题数量" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="space-y-8">
+            <div className="text-center pb-4 border-b border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900">热度等级分布</h3>
+              <p className="text-sm text-gray-500 mt-1">各热度区间的话题数量统计</p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+              <ResponsiveContainer width="100%" height={500}>
+                <BarChart data={heatData} layout="vertical" margin={{ top: 20, right: 30, left: 80, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis type="number" tick={{ fontSize: 12 }} />
+                  <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: 20 }} />
+                  <Bar dataKey="value" name="话题数量" fill="#82ca9d" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
       </div>
 
       {/* 数据统计摘要 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-blue-600">{getFilteredTopics().length}</div>
-          <div className="text-sm text-blue-800">总话题数</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+          <div className="text-3xl font-bold text-blue-700 mb-2">{getFilteredTopics().length}</div>
+          <div className="text-sm font-medium text-blue-900">总话题数</div>
         </div>
-        <div className="bg-green-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-green-600">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+          <div className="text-3xl font-bold text-green-700 mb-2">
             {(() => {
               const filteredTopics = getFilteredTopics();
               return filteredTopics.length > 0 ? (filteredTopics.reduce((sum, t) => sum + (t.heat || 0), 0) / filteredTopics.length).toFixed(1) : 0;
             })()}
           </div>
-          <div className="text-sm text-green-800">平均热度</div>
+          <div className="text-sm font-medium text-green-900">平均热度</div>
         </div>
-        <div className="bg-purple-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-purple-600">{new Set(getFilteredTopics().map(t => t.source)).size}</div>
-          <div className="text-sm text-purple-800">覆盖平台</div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+          <div className="text-3xl font-bold text-purple-700 mb-2">{new Set(getFilteredTopics().map(t => t.source)).size}</div>
+          <div className="text-sm font-medium text-purple-900">覆盖平台</div>
         </div>
-        <div className="bg-orange-50 rounded-lg p-4">
-          <div className="text-2xl font-bold text-orange-600">{new Set(getFilteredTopics().map(t => t.category)).size}</div>
-          <div className="text-sm text-orange-800">内容分类</div>
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+          <div className="text-3xl font-bold text-orange-700 mb-2">{new Set(getFilteredTopics().map(t => t.category)).size}</div>
+          <div className="text-sm font-medium text-orange-900">内容分类</div>
         </div>
       </div>
     </div>

@@ -178,6 +178,89 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * GET /api/workflows
+ * 获取工作流列表
+ */
+router.get('/workflows', (req, res) => {
+  try {
+    if (!workflowEngine) {
+      return res.status(500).json({
+        success: false,
+        message: '工作流引擎不可用'
+      });
+    }
+
+    const workflows = workflowEngine.getWorkflows();
+
+    res.json({
+      success: true,
+      data: workflows
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取工作流列表失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/workflows/stats
+ * 获取工作流统计
+ */
+router.get('/workflows/stats', (req, res) => {
+  try {
+    if (!workflowEngine) {
+      return res.status(500).json({
+        success: false,
+        message: '工作流引擎不可用'
+      });
+    }
+
+    const stats = workflowEngine.getStats();
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取工作流统计失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/workflows/execute
+ * 执行工作流
+ */
+router.post('/workflows/execute', async (req, res) => {
+  try {
+    if (!workflowEngine) {
+      return res.status(500).json({
+        success: false,
+        message: '工作流引擎不可用'
+      });
+    }
+
+    const { workflowId, context, trigger = 'manual' } = req.body;
+
+    const result = await workflowEngine.executeWorkflow(workflowId, context, trigger);
+
+    res.json(result);
+  } catch (error) {
+    logger.error('[ContentAPI] 执行工作流失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
  * GET /api/contents/:id
  * 获取内容详情
  */
@@ -1162,89 +1245,6 @@ router.get('/performance/trends', async (req, res) => {
   }
 });
 
-/**
- * POST /api/workflows/execute
- * 执行工作流
- */
-router.post('/workflows/execute', async (req, res) => {
-  try {
-    if (!workflowEngine) {
-      return res.status(500).json({
-        success: false,
-        message: '工作流引擎不可用'
-      });
-    }
-
-    const { workflowId, context, trigger = 'manual' } = req.body;
-
-    const result = await workflowEngine.executeWorkflow(workflowId, context, trigger);
-
-    res.json(result);
-  } catch (error) {
-    logger.error('[ContentAPI] 执行工作流失败', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-});
-
-/**
- * GET /api/workflows
- * 获取工作流列表
- */
-router.get('/workflows', (req, res) => {
-  try {
-    if (!workflowEngine) {
-      return res.status(500).json({
-        success: false,
-        message: '工作流引擎不可用'
-      });
-    }
-
-    const workflows = workflowEngine.getWorkflows();
-
-    res.json({
-      success: true,
-      data: workflows
-    });
-  } catch (error) {
-    logger.error('[ContentAPI] 获取工作流列表失败', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-});
-
-/**
- * GET /api/workflows/stats
- * 获取工作流统计
- */
-router.get('/workflows/stats', (req, res) => {
-  try {
-    if (!workflowEngine) {
-      return res.status(500).json({
-        success: false,
-        message: '工作流引擎不可用'
-      });
-    }
-
-    const stats = workflowEngine.getStats();
-
-    res.json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    logger.error('[ContentAPI] 获取工作流统计失败', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-});
-
 router.post('/optimize-title', async (req, res) => {
   try {
     const { title, keywords, targetPlatform = 'toutiao', count = 5 } = req.body;
@@ -1273,6 +1273,103 @@ router.post('/optimize-title', async (req, res) => {
     res.json(result);
   } catch (error) {
     logger.error('[ContentAPI] 标题优化失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+router.post('/generate-titles', async (req, res) => {
+  try {
+    const titleGenerationService = require('../services/titleGenerationService');
+    const { topic, keywords, platform = 'toutiao', count = 5, style = 'balanced' } = req.body;
+
+    if (!topic) {
+      return res.status(400).json({
+        success: false,
+        message: '主题不能为空'
+      });
+    }
+
+    const result = await titleGenerationService.generateTitles({
+      topic,
+      keywords: keywords || [],
+      platform,
+      count,
+      style
+    });
+
+    res.json(result);
+  } catch (error) {
+    logger.error('[ContentAPI] 标题生成失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+router.get('/title-platforms', (req, res) => {
+  try {
+    const titleGenerationService = require('../services/titleGenerationService');
+    const platforms = {
+      toutiao: titleGenerationService.getPlatformRules('toutiao'),
+      douyin: titleGenerationService.getPlatformRules('douyin'),
+      xiaohongshu: titleGenerationService.getPlatformRules('xiaohongshu'),
+      weibo: titleGenerationService.getPlatformRules('weibo'),
+      bilibili: titleGenerationService.getPlatformRules('bilibili'),
+      zhihu: titleGenerationService.getPlatformRules('zhihu')
+    };
+
+    res.json({
+      success: true,
+      platforms
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+router.get('/viral-patterns', (req, res) => {
+  try {
+    const titleGenerationService = require('../services/titleGenerationService');
+    const patterns = titleGenerationService.getViralPatterns();
+
+    res.json({
+      success: true,
+      patterns
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+router.post('/check-title-compliance', (req, res) => {
+  try {
+    const titleGenerationService = require('../services/titleGenerationService');
+    const { title, platform = 'toutiao' } = req.body;
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: '标题不能为空'
+      });
+    }
+
+    const result = titleGenerationService.quickComplianceCheck(title, platform);
+
+    res.json({
+      success: true,
+      ...result
+    });
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: error.message

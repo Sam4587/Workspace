@@ -2,14 +2,14 @@
 title: AI Content Flow 文档中心
 category: 文档索引
 tags: [文档中心, 导航, 索引]
-updated: 2026-02-19
-version: 1.0
+updated: 2026-02-20
+version: 2.0
 author: AI开发团队
 ---
 
 # AI Content Flow 文档中心
 
-> **项目文档总索引** | **最后更新**: 2026-02-19
+> **项目文档总索引** | **最后更新**: 2026-02-20
 
 欢迎来到 AI Content Flow 项目文档中心！本文档帮助你快速找到所需信息。
 
@@ -24,7 +24,7 @@ author: AI开发团队
 | **新手** | 快速开始、安装指南 | [快速开始](01-getting-started/quick-start.md) |
 | **开发者** | API 文档、架构设计、开发规范 | [开发指南](02-development/) |
 | **运维** | 部署指南、监控、故障排查 | [部署运维](07-deployment/) |
-| **管理者** | 项目规划、进度跟踪、决策记录 | [项目规划](DEVELOPMENT_PLAN.md) |
+| **管理者** | 项目规划、进度跟踪、决策记录 | [项目规划](02-development/DEVELOPMENT_PLAN.md) |
 
 ### 按主题查找
 
@@ -47,39 +47,46 @@ docs/
 ├── 01-getting-started/          # 快速开始
 │   └── quick-start.md              # 环境配置和启动指南
 ├── 02-development/              # 开发指南
-│   └── workflow.md                # 开发工作流
+│   ├── workflow.md                # 开发工作流
+│   ├── DEVELOPMENT_PLAN.md        # 开发计划
+│   ├── API.md                      # API 文档
+│   ├── ARCHITECTURE.md            # 架构文档
+│   └── ... (其他开发文档)
 ├── 03-architecture/             # 架构设计
 │   └── adr-template.md            # 技术决策记录模板
 ├── 04-technical-standards/     # 技术规范
-│   └── index.md                  # 技术标准总览
+│   ├── index.md                  # 技术标准总览
+│   ├── DOCUMENTATION_STANDARDS.md # 文档标准规范
+│   ├── ENVIRONMENT_VARIABLES_STANDARD.md
+│   ├── LOGGING_SYSTEM_STANDARD.md
+│   ├── MONITORING_ALERT_SYSTEM.md
+│   └── ... (其他技术规范)
+├── 05-api/                   # API 文档（预留）
 ├── 06-modules/                # 功能模块文档
-│   ├── ai-services/             # AI 服务模块
-│   ├── hot-topics/             # 热点监控模块
-│   ├── content-creation/        # 内容创作模块
-│   ├── publish-center/          # 发布中心模块
-│   ├── analytics/               # 数据分析模块
-│   ├── video-creation/          # 视频创作模块
-│   └── authentication/          # 认证授权模块
-├── 07-deployment/             # 部署运维
+│   └── ai-services/             # AI 服务模块
+├── 07-deployment/             # 部署运维（预留）
 ├── 08-troubleshooting/        # 故障排查
-│   └── common-issues.md         # 常见问题
+│   ├── common-issues.md         # 常见问题
+│   └── SERVICE_LAUNCHER_TEST_PLAN.md
 ├── 09-reference/              # 参考资料
+│   ├── QUICK_REFERENCE.md        # 快速参考
+│   ├── AI-SERVICES-COMPARISON.md # AI服务对比
+│   └── ... (其他参考资料)
 ├── 10-archive/               # 归档文档
 │   ├── old-plans/             # 旧计划
 │   ├── old-reports/           # 旧报告
+│   ├── PROJECT_SEPARATION.md   # 归档项目
 │   └── changelog-template.md    # 变更日志模板
 ├── specs/                    # 功能规格文档
-├── plans/                    # 开发计划
-├── security/                  # 安全文档
-├── dev/                      # 开发文档
-├── analysis/                 # 分析文档
-├── test/                     # 测试文档
-├── DOCUMENTATION_STANDARDS.md  # 文档标准规范
-├── ENVIRONMENT_VARIABLES_STANDARD.md
-├── LOGGING_SYSTEM_STANDARD.md
-├── MONITORING_ALERT_SYSTEM.md
-├── QUICK_REFERENCE.md
-├── DEVELOPMENT_PLAN.md
+│   ├── ai-analysis-enhancement/
+│   ├── auto-dev-server/
+│   ├── dark-mode-toggle/
+│   ├── data-analytics/
+│   ├── litellm-integration/
+│   ├── mcp-publish-platform/
+│   ├── remotion-video-generation/
+│   ├── title-generation/
+│   └── video-transcription/
 └── INDEX.md
 ```
 
@@ -113,27 +120,27 @@ docs/
 | 关键词 | 相关文档 |
 |--------|----------|
 | **安装** | [快速开始](01-getting-started/quick-start.md), [部署指南](07-deployment/deployment-guide.md) |
-| **配置** | [环境变量](ENVIRONMENT_VARIABLES_STANDARD.md), [快速参考](QUICK_REFERENCE.md) |
-| **API** | [API 参考](05-api/api-reference.md), [开发 API](dev/API.md) |
-| **认证** | [认证模块](06-modules/authentication/), [安全指南](security/QUICK_SECURITY_GUIDE.md) |
-| **热点** | [热点监控](06-modules/hot-topics/), [热点数据](HOT_TOPICS_DATA_ANALYSIS.md) |
-| **AI** | [AI 服务](06-modules/ai-services/), [AI 服务对比](analysis/AI-SERVICES-COMPARISON.md) |
+| **配置** | [环境变量](04-technical-standards/ENVIRONMENT_VARIABLES_STANDARD.md), [快速参考](09-reference/QUICK_REFERENCE.md) |
+| **API** | [API 参考](05-api/api-reference.md), [开发 API](02-development/API.md) |
+| **认证** | [认证模块](06-modules/authentication/), [安全指南](04-technical-standards/QUICK_SECURITY_GUIDE.md) |
+| **热点** | [热点监控](06-modules/hot-topics/), [热点数据](10-archive/old-reports/HOT_TOPICS_DATA_ANALYSIS.md) |
+| **AI** | [AI 服务](06-modules/ai-services/), [AI 服务对比](09-reference/AI-SERVICES-COMPARISON.md) |
 | **视频** | [视频创作](06-modules/video-creation/), [Remotion](specs/remotion-video-generation/) |
 | **发布** | [发布中心](06-modules/publish-center/), [MCP 平台](specs/mcp-publish-platform/) |
-| **安全** | [安全指南](security/QUICK_SECURITY_GUIDE.md), [安全加固](security/SECURITY_HARDENING_PLAN.md) |
-| **监控** | [监控系统](MONITORING_ALERT_SYSTEM.md), [日志系统](LOGGING_SYSTEM_STANDARD.md) |
+| **安全** | [安全指南](04-technical-standards/QUICK_SECURITY_GUIDE.md), [安全加固](04-technical-standards/SECURITY_HARDENING_PLAN.md) |
+| **监控** | [监控系统](04-technical-standards/MONITORING_ALERT_SYSTEM.md), [日志系统](04-technical-standards/LOGGING_SYSTEM_STANDARD.md) |
 | **Ollama** | [LLM Gateway](server/services/llm.js), [LiteLLM 集成](specs/litellm-integration/) |
-| **测试** | [测试计划](test/SERVICE_LAUNCHER_TEST_PLAN.md), [测试指南](02-development/testing-guide.md) |
+| **测试** | [测试计划](08-troubleshooting/SERVICE_LAUNCHER_TEST_PLAN.md), [测试指南](02-development/testing-guide.md) |
 
 ### 按任务类型搜索
 
 | 任务类型 | 推荐文档 |
 |---------|----------|
-| 添加新功能 | [开发工作流](02-development/workflow.md), [规格标准](dev/SPEC_STANDARDS.md) |
-| 修复 Bug | [故障排查](08-troubleshooting/), [测试报告](analysis/TEST-REPORT.md) |
-| 优化性能 | [优化计划](dev/OPTIMIZATION_PLAN.md), [性能调优](08-troubleshooting/performance-tuning.md) |
-| 集成服务 | [架构设计](03-architecture/), [技术标准](04-standards/) |
-| 部署上线 | [部署指南](07-deployment/deployment-guide.md), [监控](MONITORING_ALERT_SYSTEM.md) |
+| 添加新功能 | [开发工作流](02-development/workflow.md), [规格标准](02-development/SPEC_STANDARDS.md) |
+| 修复 Bug | [故障排查](08-troubleshooting/), [测试报告](09-reference/TEST-REPORT.md) |
+| 优化性能 | [优化计划](02-development/OPTIMIZATION_PLAN.md), [性能调优](08-troubleshooting/performance-tuning.md) |
+| 集成服务 | [架构设计](03-architecture/), [技术标准](04-technical-standards/) |
+| 部署上线 | [部署指南](07-deployment/deployment-guide.md), [监控](04-technical-standards/MONITORING_ALERT_SYSTEM.md) |
 
 ---
 
@@ -182,7 +189,7 @@ docs/
 - **故障排查**: 发现新问题时更新
 
 ### 贡献指南
-1. 遵循 [文档标准规范](DOCUMENTATION_STANDARDS.md)
+1. 遵循 [文档标准规范](04-technical-standards/DOCUMENTATION_STANDARDS.md)
 2. 使用清晰的标题层级
 3. 提供代码示例
 4. 添加必要的图表和说明

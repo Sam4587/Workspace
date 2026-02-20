@@ -53,3 +53,26 @@ query
 
 # 待开发目录
 publisher-web/
+
+# 临时脚本文件
+scripts/organize-docs*.cjs
+scripts/organize-docs*.js
+scripts/merge-archive.cjs
+
+# 任务管理文件
+task_plan.md
+findings.md
+progress.md
+
+# 测试文件
+test-*.cjs
+test-*.js
+
+# IDE 配置
+.claude/
+.specify/
+
+# 其他临时文件
+COMMIT_MSG.txt
+start-with-pm2.bat
+ecosystem.config.cjs

@@ -27,13 +27,21 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">总览</h1>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <HotTopicVisualization topics={topics} loading={loading} />
-        <RecentActivity />
+    <div className="space-y-8">
+      <div className="pb-4">
+        <h1 className="text-4xl font-bold text-gray-900">总览</h1>
+        <p className="mt-2 text-gray-600">查看和管理您的内容创作流程</p>
       </div>
-      <WorkflowPanel />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <HotTopicVisualization topics={topics} loading={loading} />
+        </div>
+        <div className="space-y-8">
+          <RecentActivity />
+          <WorkflowPanel />
+        </div>
+      </div>
     </div>
   );
 };

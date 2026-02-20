@@ -3,6 +3,91 @@ const router = express.Router();
 const { enhancedAIAnalysisService } = require('../services/enhancedAIAnalysisService');
 const logger = require('../utils/logger');
 
+router.post('/analyze-topic', async (req, res) => {
+  try {
+    const { title, content, source, heat } = req.body;
+    
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        error: '请提供话题标题'
+      });
+    }
+
+    const heatValue = parseInt(heat) || 50;
+    
+    let trend = 'stable';
+    let score = 75;
+    let timing = 'watch';
+    let timingReason = '基于趋势分析';
+    let suggestions = [];
+
+    if (heatValue > 80) {
+      trend = 'rising';
+      score = Math.min(95, heatValue + 10);
+      timing = 'immediate';
+      timingReason = '热度高涨，建议立即介入';
+      suggestions = [
+        '快速创作相关内容抢占流量',
+        '结合当下热点设计互动话题',
+        '多平台同步发布扩大影响力'
+      ];
+    } else if (heatValue > 60) {
+      trend = 'rising';
+      score = heatValue + 5;
+      timing = 'immediate';
+      timingReason = '热度正在上升，建议尽快介入';
+      suggestions = [
+        '创作高质量内容参与话题讨论',
+        '添加相关关键词提高搜索曝光',
+        '结合用户痛点设计内容角度'
+      ];
+    } else if (heatValue > 40) {
+      trend = 'stable';
+      score = heatValue;
+      timing = 'watch';
+      timingReason = '热度平稳，可持续观察';
+      suggestions = [
+        '观察话题后续发展趋势',
+        '准备相关素材待热度上升时发布',
+        '从独特角度切入避免同质化'
+      ];
+    } else {
+      trend = 'declining';
+      score = Math.max(40, heatValue - 10);
+      timing = 'passed';
+      timingReason = '热度已过，不建议投入过多资源';
+      suggestions = [
+        '寻找新的热点话题',
+        '将内容存档供后续参考',
+        '分析话题传播规律用于未来参考'
+      ];
+    }
+
+    const analysis = {
+      trend,
+      score,
+      timing,
+      timingReason,
+      suggestions,
+      title,
+      source,
+      heat: heatValue
+    };
+    
+    res.json({
+      success: true,
+      analysis
+    });
+  } catch (error) {
+    logger.error('[AIAnalysisAPI] 话题分析失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 router.post('/core-trends', async (req, res) => {
   try {
     const { topics, options } = req.body;

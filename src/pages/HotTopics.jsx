@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Filter, RefreshCw, TrendingUp, ExternalLink, Wand2, Brain, BarChart3, CheckSquare, Square, Calendar, Download, Bell, FileText, MoreHorizontal } from 'lucide-react';
+import { Search, Filter, RefreshCw, TrendingUp, ExternalLink, Wand2, Brain, BarChart3, CheckSquare, Square, Calendar, Download, Bell, FileText, MoreHorizontal, Sparkles, Zap } from 'lucide-react';
 import TopicCard from '../components/TopicCard';
 import FilterPanel from '../components/FilterPanel';
 import TrendTimeline from '../components/TrendTimeline';
 import AIAnalysisPanel from '../components/AIAnalysisPanel';
 import CrossPlatformAnalysis from '../components/CrossPlatformAnalysis';
 import HotTopicVisualization from '../components/HotTopicVisualization';
+import HotTopicToContent from '../components/HotTopicToContent';
 import api from '../lib/api';
 import { useNotification } from '../contexts/NotificationContext';
 
@@ -77,6 +78,8 @@ const HotTopics = () => {
   const [viewingTopicContents, setViewingTopicContents] = useState(null);
   const [showReportMenu, setShowReportMenu] = useState(false);
   const [openTopicMenu, setOpenTopicMenu] = useState(null);
+  const [showSmartCreate, setShowSmartCreate] = useState(false);
+  const [smartCreateTopic, setSmartCreateTopic] = useState(null);
   
   const reportMenuRef = useRef(null);
   const topicMenuRefs = useRef({});
@@ -129,7 +132,7 @@ const HotTopics = () => {
   });
 
   const refreshMutation = useMutation({
-    mutationFn: api.updateHotTopics,
+    mutationFn: () => api.updateHotTopics(),
     onSuccess: () => {
       showSuccess('热点数据刷新成功');
       refetch();
@@ -217,6 +220,27 @@ const HotTopics = () => {
   const handleShowAIAnalysis = () => {
     const selectedTopicsList = topics?.filter(t => selectedTopicIds.includes(t._id)) || [];
     setActivePanel({ type: 'ai', topics: selectedTopicsList });
+  };
+
+  const handleSmartCreate = (topic) => {
+    setSmartCreateTopic(topic);
+    setShowSmartCreate(true);
+  };
+
+  const handleGenerateFromAnalysis = (data) => {
+    navigate('/content-creation', {
+      state: {
+        selectedTopic: {
+          _id: data.hotTopicId,
+          title: data.topic,
+          keywords: data.keywords
+        },
+        generatedTitle: data.title,
+        analysis: data.analysis
+      }
+    });
+    setShowSmartCreate(false);
+    setSmartCreateTopic(null);
   };
 
   const handleClosePanel = () => {
@@ -538,6 +562,13 @@ const HotTopics = () => {
                       </div>
                       <div className="flex items-center space-x-1 ml-3 flex-shrink-0">
                         <button
+                          onClick={() => handleSmartCreate(topic)}
+                          className="flex items-center space-x-1 px-2.5 py-1.5 text-xs text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-lg transition-colors"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                          <span>智能创作</span>
+                        </button>
+                        <button
                           onClick={() => handleGenerateContent(topic)}
                           className="flex items-center space-x-1 px-2.5 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                         >
@@ -720,6 +751,42 @@ const HotTopics = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 智能创作弹窗 */}
+      {showSmartCreate && smartCreateTopic && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-purple-500" />
+                  智能创作
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  从热点分析到内容创作的完整流程
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowSmartCreate(false);
+                  setSmartCreateTopic(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <HotTopicToContent
+                topic={smartCreateTopic}
+                onGenerateContent={handleGenerateFromAnalysis}
+              />
             </div>
           </div>
         </div>
