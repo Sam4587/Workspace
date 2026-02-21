@@ -246,13 +246,191 @@ router.post('/workflows/execute', async (req, res) => {
       });
     }
 
-    const { workflowId, context, trigger = 'manual' } = req.body;
+    const { workflowId, context, trigger = 'manual', config } = req.body;
 
-    const result = await workflowEngine.executeWorkflow(workflowId, context, trigger);
+    const result = await workflowEngine.executeWorkflow(workflowId, context, trigger, config);
 
-    res.json(result);
+    res.json({
+      success: true,
+      data: result
+    });
   } catch (error) {
     logger.error('[ContentAPI] 执行工作流失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/workflows/instances
+ * 获取工作流实例列表
+ */
+router.get('/workflows/instances', (req, res) => {
+  try {
+    if (!workflowEngine) {
+      return res.status(500).json({
+        success: false,
+        message: '工作流引擎不可用'
+      });
+    }
+
+    const { workflowId, status, trigger, page = 1, limit = 50 } = req.query;
+    
+    const result = workflowEngine.storage.getWorkflowInstances({
+      workflowId,
+      status,
+      trigger,
+      page: parseInt(page),
+      limit: parseInt(limit)
+    });
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取工作流实例列表失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/workflows/instances/:instanceId
+ * 获取工作流实例详情
+ */
+router.get('/workflows/instances/:instanceId', (req, res) => {
+  try {
+    if (!workflowEngine) {
+      return res.status(500).json({
+        success: false,
+        message: '工作流引擎不可用'
+      });
+    }
+
+    const { instanceId } = req.params;
+    const instance = workflowEngine.getWorkflowInstance(instanceId) || 
+                     workflowEngine.storage.getWorkflowInstance(instanceId);
+
+    if (!instance) {
+      return res.status(404).json({
+        success: false,
+        message: '工作流实例不存在'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: instance
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取工作流实例详情失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/workflows/instances/:instanceId/cancel
+ * 取消工作流
+ */
+router.post('/workflows/instances/:instanceId/cancel', (req, res) => {
+  try {
+    if (!workflowEngine) {
+      return res.status(500).json({
+        success: false,
+        message: '工作流引擎不可用'
+      });
+    }
+
+    const { instanceId } = req.params;
+    const success = workflowEngine.cancelWorkflow(instanceId);
+
+    res.json({
+      success,
+      message: success ? '工作流已取消' : '取消失败，工作流可能已完成或不存在'
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 取消工作流失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/workflows/instances/:instanceId/retry
+ * 重试工作流（从检查点恢复）
+ */
+router.post('/workflows/instances/:instanceId/retry', async (req, res) => {
+  try {
+    if (!workflowEngine) {
+      return res.status(500).json({
+        success: false,
+        message: '工作流引擎不可用'
+      });
+    }
+
+    const { instanceId } = req.params;
+    const instance = await workflowEngine.resumeFromCheckpoint(instanceId);
+
+    if (!instance) {
+      return res.status(404).json({
+        success: false,
+        message: '没有找到可恢复的检查点'
+      });
+    }
+
+    const result = await workflowEngine.executeWorkflow(
+      instance.workflowId,
+      instance.context,
+      'checkpoint_retry',
+      { maxRetries: 3 }
+    );
+
+    res.json({
+      success: true,
+      data: result,
+      message: '工作流已从检查点恢复并重新执行'
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 重试工作流失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/workflows/instances/:instanceId/checkpoints
+ * 获取工作流检查点
+ */
+router.get('/workflows/instances/:instanceId/checkpoints', (req, res) => {
+  try {
+    if (!workflowEngine) {
+      return res.status(500).json({
+        success: false,
+        message: '工作流引擎不可用'
+      });
+    }
+
+    const { instanceId } = req.params;
+    const checkpoint = workflowEngine.storage.getLatestCheckpoint(instanceId);
+
+    res.json({
+      success: true,
+      data: checkpoint ? [checkpoint] : []
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 获取检查点失败', { error: error.message });
     res.status(500).json({
       success: false,
       message: error.message

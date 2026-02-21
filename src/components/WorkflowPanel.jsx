@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Settings, FileText, Zap, Workflow, Activity, AlertCircle, RefreshCw } from 'lucide-react';
+import { Play, Pause, RotateCcw, Settings, FileText, Zap, Workflow, Activity, AlertCircle, RefreshCw, ArrowRight, Eye, Edit3 } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { useNotification } from '../contexts/NotificationContext';
 import WorkflowSettings from './WorkflowSettings';
@@ -33,12 +34,14 @@ const defaultWorkflowConfig = {
 };
 
 const WorkflowPanel = ({ topic, onContentGenerated }) => {
+  const navigate = useNavigate();
   const { showSuccess, showError } = useNotification();
   const [selectedWorkflow, setSelectedWorkflow] = useState('hot-topic-to-content');
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionStatus, setExecutionStatus] = useState(null);
   const [executionProgress, setExecutionProgress] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState(null);
   const [workflowConfig, setWorkflowConfig] = useState(() => {
     const saved = localStorage.getItem('workflowConfig');
     return saved ? JSON.parse(saved) : defaultWorkflowConfig;
@@ -80,6 +83,13 @@ const WorkflowPanel = ({ topic, onContentGenerated }) => {
     onSuccess: (data) => {
       setExecutionStatus(data);
       setIsExecuting(false);
+      
+      if (data.savedContents && data.savedContents.length > 0) {
+        setGeneratedContent(data.savedContents[0]);
+      } else if (data.contentId) {
+        setGeneratedContent({ _id: data.contentId });
+      }
+      
       showSuccess('工作流执行成功');
       
       if (workflowConfig.notifications.onComplete) {
@@ -313,6 +323,69 @@ const WorkflowPanel = ({ topic, onContentGenerated }) => {
               <div className="bg-gray-50 p-4 rounded-xl">
                 <div className="text-sm text-gray-500 mb-1">状态</div>
                 <div className="text-lg font-semibold text-gray-900">{executionStatus.status}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 生成内容预览和操作指引 */}
+        {generatedContent && (
+          <div className="border-t pt-6 mt-6">
+            <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <FileText className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">内容已生成！</h4>
+                  <p className="text-sm text-gray-600">工作流执行成功，您可以查看或编辑生成的内容</p>
+                </div>
+              </div>
+              
+              {generatedContent.title && (
+                <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">内容标题</div>
+                  <div className="text-base font-medium text-gray-900">{generatedContent.title}</div>
+                  {generatedContent.wordCount && (
+                    <div className="text-sm text-gray-500 mt-2">{generatedContent.wordCount} 字</div>
+                  )}
+                </div>
+              )}
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    if (generatedContent._id) {
+                      navigate('/content-creation', { state: { contentId: generatedContent._id } });
+                    }
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-medium shadow-md hover:shadow-lg"
+                >
+                  <Eye className="h-5 w-5" />
+                  <span>查看内容</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    if (generatedContent._id) {
+                      navigate('/content-creation', { state: { contentId: generatedContent._id, editMode: true } });
+                    }
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-medium"
+                >
+                  <Edit3 className="h-5 w-5" />
+                  <span>编辑内容</span>
+                </button>
+              </div>
+              
+              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h5 className="text-sm font-medium text-yellow-800 mb-2">💡 后续操作建议</h5>
+                <ul className="text-sm text-yellow-700 space-y-1">
+                  <li>• 查看生成的内容质量和准确性</li>
+                  <li>• 根据需要编辑和优化内容</li>
+                  <li>• 选择目标平台进行发布</li>
+                  <li>• 设置定时发布或立即发布</li>
+                </ul>
               </div>
             </div>
           </div>

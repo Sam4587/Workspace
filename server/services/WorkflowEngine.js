@@ -5,6 +5,7 @@
 
 const logger = require('../utils/logger');
 const hotTopicService = require('./hotTopicService');
+const { workflowStorage } = require('./WorkflowStorage');
 
 // 安全导入AI服务
 let aiService = null;
@@ -81,14 +82,123 @@ const TASK_STATUS = {
   SKIPPED: 'skipped'
 };
 
+// 错误类型
+const ERROR_TYPES = {
+  VALIDATION_ERROR: 'validation_error',
+  NETWORK_ERROR: 'network_error',
+  AI_SERVICE_ERROR: 'ai_service_error',
+  DATABASE_ERROR: 'database_error',
+  TIMEOUT_ERROR: 'timeout_error',
+  RATE_LIMIT_ERROR: 'rate_limit_error',
+  UNKNOWN_ERROR: 'unknown_error'
+};
+
+// 重试配置
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  initialDelay: 1000,
+  maxDelay: 30000,
+  backoffMultiplier: 2,
+  jitter: true
+};
+
+// 计算重试延迟
+function calculateRetryDelay(attempt, config = RETRY_CONFIG) {
+  const { initialDelay, maxDelay, backoffMultiplier, jitter } = config;
+  
+  let delay = initialDelay * Math.pow(backoffMultiplier, attempt);
+  delay = Math.min(delay, maxDelay);
+  
+  if (jitter) {
+    const jitterFactor = 0.8 + Math.random() * 0.4;
+    delay = delay * jitterFactor;
+  }
+  
+  return Math.round(delay);
+}
+
+// 可重试错误判断
+function isRetryableError(error) {
+  const retryableTypes = [
+    ERROR_TYPES.NETWORK_ERROR,
+    ERROR_TYPES.TIMEOUT_ERROR,
+    ERROR_TYPES.RATE_LIMIT_ERROR,
+    ERROR_TYPES.AI_SERVICE_ERROR
+  ];
+  
+  return retryableTypes.includes(error?.type);
+}
+
 class WorkflowEngine {
   constructor() {
-    this.workflows = new Map(); // 存储工作流定义
-    this.runningInstances = new Map(); // 存储运行中的实例
-    this.workflowInstances = new Map(); // 存储工作流实例历史
-
-    // 注册内置工作流
+    this.workflows = new Map();
+    this.runningInstances = new Map();
+    this.workflowInstances = new Map();
+    this.storage = workflowStorage;
+    
+    this.loadFromStorage();
     this.registerBuiltInWorkflows();
+  }
+
+  loadFromStorage() {
+    const { instances: storedInstances } = this.storage.getWorkflowInstances();
+    storedInstances.forEach(instance => {
+      if (instance.status === WORKFLOW_STATUS.COMPLETED || 
+          instance.status === WORKFLOW_STATUS.FAILED ||
+          instance.status === WORKFLOW_STATUS.CANCELLED) {
+        this.workflowInstances.set(instance.id, instance);
+      }
+    });
+    
+    logger.info('[WorkflowEngine] 从存储加载工作流历史', { 
+      count: this.workflowInstances.size 
+    });
+  }
+
+  saveCheckpoint(instance, taskIndex) {
+    const checkpoint = {
+      instanceId: instance.id,
+      taskIndex,
+      context: JSON.parse(JSON.stringify(instance.context)),
+      tasks: JSON.parse(JSON.stringify(instance.tasks)),
+      createdAt: new Date()
+    };
+    
+    this.storage.saveCheckpoint(checkpoint);
+    logger.debug('[WorkflowEngine] 检查点已保存', { 
+      instanceId: instance.id, 
+      taskIndex 
+    });
+    
+    return checkpoint;
+  }
+
+  async resumeFromCheckpoint(instanceId) {
+    const checkpoint = this.storage.getLatestCheckpoint(instanceId);
+    if (!checkpoint) {
+      logger.warn('[WorkflowEngine] 没有找到检查点', { instanceId });
+      return null;
+    }
+    
+    const instance = {
+      id: instanceId,
+      workflowId: checkpoint.workflowId || 'hot-topic-to-content',
+      status: WORKFLOW_STATUS.RUNNING,
+      context: checkpoint.context,
+      tasks: checkpoint.tasks,
+      startedAt: checkpoint.createdAt,
+      completedAt: null,
+      trigger: 'checkpoint_resume',
+      resumedFromCheckpoint: true,
+      error: null
+    };
+    
+    logger.info('[WorkflowEngine] 从检查点恢复工作流', { 
+      instanceId,
+      taskIndex: checkpoint.taskIndex 
+    });
+    
+    return instance;
   }
 
   /**
@@ -237,9 +347,10 @@ class WorkflowEngine {
    * @param {string} workflowId - 工作流ID
    * @param {Object} context - 执行上下文
    * @param {string} trigger - 触发源
+   * @param {Object} config - 工作流配置
    * @returns {Promise<Object>}
    */
-  async executeWorkflow(workflowId, context = {}, trigger = 'manual') {
+  async executeWorkflow(workflowId, context = {}, trigger = 'manual', config = {}) {
     const workflow = this.getWorkflow(workflowId);
     if (!workflow) {
       throw new Error(`工作流不存在: ${workflowId}`);
@@ -255,10 +366,14 @@ class WorkflowEngine {
       startedAt: new Date(),
       completedAt: null,
       trigger,
-      error: null
+      config: { ...config },
+      error: null,
+      retryCount: 0,
+      maxRetries: config.maxRetries || RETRY_CONFIG.maxRetries
     };
 
     this.runningInstances.set(instanceId, instance);
+    this.storage.saveWorkflowInstance(instance);
 
     logger.info('[WorkflowEngine] 开始执行工作流', {
       workflowId,
@@ -266,22 +381,31 @@ class WorkflowEngine {
       trigger
     });
 
+    let currentTaskIndex = 0;
+
     try {
-      // 执行任务
-      for (const taskDef of workflow.tasks) {
+      for (currentTaskIndex = 0; currentTaskIndex < workflow.tasks.length; currentTaskIndex++) {
+        const taskDef = workflow.tasks[currentTaskIndex];
+        
         if (instance.status !== WORKFLOW_STATUS.RUNNING) {
           break;
         }
 
-        const taskResult = await this.executeTask(instance, taskDef);
+        const taskResult = await this.executeTaskWithRetry(instance, taskDef, currentTaskIndex);
+        
         if (!taskResult.success && taskDef.required) {
           instance.status = WORKFLOW_STATUS.FAILED;
           instance.error = taskResult.error;
           break;
         }
+
+        if ((currentTaskIndex + 1) % 2 === 0 || currentTaskIndex === workflow.tasks.length - 1) {
+          this.saveCheckpoint(instance, currentTaskIndex + 1);
+        }
+
+        this.storage.saveWorkflowInstance(instance);
       }
 
-      // 完成工作流
       instance.status = instance.status === WORKFLOW_STATUS.RUNNING ? WORKFLOW_STATUS.COMPLETED : instance.status;
       instance.completedAt = new Date();
 
@@ -293,37 +417,95 @@ class WorkflowEngine {
 
     } catch (error) {
       instance.status = WORKFLOW_STATUS.FAILED;
-      instance.error = error.message;
+      instance.error = error.message || '未知错误';
       logger.error('[WorkflowEngine] 工作流执行失败', {
         workflowId,
         instanceId,
-        error: error.message
+        error: instance.error,
+        currentTaskIndex
       });
     } finally {
-      // 移除运行实例，存档到历史
       this.runningInstances.delete(instanceId);
       this.workflowInstances.set(instanceId, instance);
-      
-      // 只保留最近100个实例
-      if (this.workflowInstances.size > 100) {
-        const keys = Array.from(this.workflowInstances.keys());
-        for (let i = 0; i < keys.length - 100; i++) {
-          this.workflowInstances.delete(keys[i]);
-        }
-      }
+      this.storage.saveWorkflowInstance(instance);
     }
 
     return instance;
   }
 
   /**
+   * 执行任务（带重试机制）
+   */
+  async executeTaskWithRetry(instance, taskDef, taskIndex) {
+    let lastError = null;
+    const maxRetries = instance.config.maxRetries || RETRY_CONFIG.maxRetries;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const taskResult = await this.executeTask(instance, taskDef, attempt);
+        
+        if (taskResult.success) {
+          return taskResult;
+        }
+
+        lastError = taskResult.error;
+
+        if (attempt < maxRetries && isRetryableError(lastError)) {
+          const delay = calculateRetryDelay(attempt);
+          logger.warn('[WorkflowEngine] 任务失败，准备重试', {
+            taskId: taskDef.id,
+            attempt: attempt + 1,
+            maxRetries,
+            delay
+          });
+
+          await new Promise(resolve => setTimeout(resolve, delay));
+          instance.retryCount = attempt + 1;
+          continue;
+        }
+
+        return taskResult;
+
+      } catch (error) {
+        lastError = error;
+        
+        if (attempt < maxRetries && isRetryableError(error)) {
+          const delay = calculateRetryDelay(attempt);
+          logger.warn('[WorkflowEngine] 任务异常，准备重试', {
+            taskId: taskDef.id,
+            attempt: attempt + 1,
+            maxRetries,
+            delay,
+            error: error.message
+          });
+
+          await new Promise(resolve => setTimeout(resolve, delay));
+          instance.retryCount = attempt + 1;
+          continue;
+        }
+
+        return {
+          success: false,
+          error: error.message || '任务执行异常'
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: lastError?.message || '任务执行失败，已达到最大重试次数'
+    };
+  }
+
+  /**
    * 执行任务
    * @param {Object} instance - 工作流实例
    * @param {Object} taskDef - 任务定义
+   * @param {number} attempt - 重试次数
    * @returns {Promise<Object>}
    */
-  async executeTask(instance, taskDef) {
-    const taskId = `task-${Date.now()}-${taskDef.id}`;
+  async executeTask(instance, taskDef, attempt = 0) {
+    const taskId = `task-${Date.now()}-${taskDef.id}-${attempt}`;
     const task = {
       id: taskId,
       name: taskDef.name,
@@ -332,16 +514,29 @@ class WorkflowEngine {
       startedAt: new Date(),
       completedAt: null,
       result: null,
-      error: null
+      error: null,
+      attempt
     };
 
-    instance.tasks.push(task);
+    if (attempt === 0) {
+      instance.tasks.push(task);
+    } else {
+      const existingTaskIndex = instance.tasks.findIndex(t => 
+        t.name === taskDef.name && t.status === TASK_STATUS.FAILED
+      );
+      if (existingTaskIndex >= 0) {
+        instance.tasks[existingTaskIndex] = task;
+      } else {
+        instance.tasks.push(task);
+      }
+    }
 
     logger.debug('[WorkflowEngine] 开始执行任务', {
       workflowId: instance.workflowId,
       instanceId: instance.id,
       taskId: task.id,
-      taskName: task.name
+      taskName: task.name,
+      attempt
     });
 
     try {
@@ -353,7 +548,8 @@ class WorkflowEngine {
 
       logger.debug('[WorkflowEngine] 任务执行成功', {
         taskId: task.id,
-        taskName: task.name
+        taskName: task.name,
+        attempt
       });
 
       return {
@@ -369,14 +565,43 @@ class WorkflowEngine {
       logger.error('[WorkflowEngine] 任务执行失败', {
         taskId: task.id,
         taskName: task.name,
+        attempt,
         error: error.message
       });
 
       return {
         success: false,
-        error: error.message
+        error: {
+          message: error.message,
+          type: this.classifyError(error)
+        }
       };
     }
+  }
+
+  classifyError(error) {
+    const message = error?.message || '';
+    
+    if (message.includes('timeout') || message.includes('timed out')) {
+      return ERROR_TYPES.TIMEOUT_ERROR;
+    }
+    if (message.includes('network') || message.includes('fetch') || message.includes('ECONN')) {
+      return ERROR_TYPES.NETWORK_ERROR;
+    }
+    if (message.includes('rate limit') || message.includes('429')) {
+      return ERROR_TYPES.RATE_LIMIT_ERROR;
+    }
+    if (message.includes('AI') || message.includes('OpenAI') || message.includes('LLM')) {
+      return ERROR_TYPES.AI_SERVICE_ERROR;
+    }
+    if (message.includes('database') || message.includes('DB') || message.includes('Mongo')) {
+      return ERROR_TYPES.DATABASE_ERROR;
+    }
+    if (message.includes('validation') || message.includes('required')) {
+      return ERROR_TYPES.VALIDATION_ERROR;
+    }
+    
+    return ERROR_TYPES.UNKNOWN_ERROR;
   }
 
   // ==================== 内置任务处理器 ====================
@@ -866,5 +1091,7 @@ module.exports = {
   WorkflowEngine,
   workflowEngine,
   WORKFLOW_STATUS,
-  TASK_STATUS
+  TASK_STATUS,
+  ERROR_TYPES,
+  RETRY_CONFIG
 };

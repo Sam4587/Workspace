@@ -53,6 +53,7 @@ query
 
 # 待开发目录
 publisher-web/
+everything-claude-code/
 
 # 临时脚本文件
 scripts/organize-docs*.cjs
