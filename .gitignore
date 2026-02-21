@@ -68,8 +68,8 @@ progress.md
 test-*.cjs
 test-*.js
 
-# IDE 配置
-.claude/
+# IDE 配置（保留规范文件已提交到版本控制）
+# .claude/  - 已移除，以便规范文件需要版本控制
 .specify/
 
 # 其他临时文件
