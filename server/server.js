@@ -1321,16 +1321,35 @@ async function isPortInUse(port) {
   });
 }
 
+let startAttempts = 0;
+const MAX_START_ATTEMPTS = 3;
+let isWatchMode = process.env.NODE_RUN_WATCH === 'true' || process.argv.includes('--watch');
+
 async function startServer() {
+  startAttempts++;
+
+  if (startAttempts > MAX_START_ATTEMPTS) {
+    enhancedLogger.error('服务器启动尝试次数过多，退出程序', { attempts: startAttempts });
+    process.exit(1);
+    return;
+  }
+
   const portInUse = await isPortInUse(PORT);
-  
+
   if (portInUse) {
-    enhancedLogger.error('端口已被占用，尝试终止占用进程', { port: PORT });
-    
+    enhancedLogger.error('端口已被占用', { port: PORT, attempt: startAttempts, maxAttempts: MAX_START_ATTEMPTS });
+
+    // 如果是 --watch 模式，等待一段时间后重试而不是退出
+    if (isWatchMode) {
+      enhancedLogger.info('检测到 --watch 模式，等待 3 秒后重试...');
+      setTimeout(startServer, 3000);
+      return;
+    }
+
     try {
       const { exec } = require('child_process');
       const platform = process.platform;
-      
+
       if (platform === 'win32') {
         exec(`netstat -ano | findstr :${PORT}`, (err, stdout) => {
           if (!err && stdout) {
@@ -1368,6 +1387,9 @@ async function startServer() {
   }
 
   const server = app.listen(PORT, async () => {
+    // 重置启动尝试计数器
+    startAttempts = 0;
+
     enhancedLogger.info('服务器启动成功', { 
       port: PORT, 
       environment: configLoader.getEnvironment(),
