@@ -1288,6 +1288,14 @@ app.delete('/api/content/:id', (req, res) => {
   });
 });
 
+// ========== 多平台发布路由 ==========
+try {
+  app.use('/api/publishing', require('./routes/publishing'));
+  console.log('[PublishingRoute] 多平台发布路由加载成功');
+} catch (error) {
+  console.log('[PublishingRoute] 多平台发布路由加载失败:', error.message);
+}
+
 // 全局错误处理中间件
 app.use(errorLoggingMiddleware);
 
@@ -1481,11 +1489,3 @@ async function startMonitoringChecks() {
 }
 
 module.exports = app;
-
-// ========== 多平台发布路由 ==========
-try {
-  app.use('/api/publishing', require('./routes/publishing'));
-  console.log('[PublishingRoute] 多平台发布路由加载成功');
-} catch (error) {
-  console.log('[PublishingRoute] 多平台发布路由加载失败:', error.message);
-}

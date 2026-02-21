@@ -1555,4 +1555,221 @@ router.post('/check-title-compliance', (req, res) => {
   }
 });
 
+// ============================================
+// 热点到内容生成 API
+// ============================================
+
+/**
+ * POST /api/contents/generate-from-topic
+ * 从热点话题生成内容
+ */
+router.post('/generate-from-topic', async (req, res) => {
+  try {
+    const { topicId, title, keywords, generateTitle = true, platform = 'toutiao' } = req.body;
+    const userId = req.user?.id || 'anonymous';
+
+    if (!topicId && !title) {
+      return res.status(400).json({
+        success: false,
+        message: '请提供 topicId 或 title'
+      });
+    }
+
+    // 获取热点话题信息
+    let topicData = { title, keywords: keywords || [] };
+    if (topicId) {
+      const HotTopicModel = require('../models/HotTopic');
+      const topic = await HotTopicModel.findById(topicId);
+      if (topic) {
+        topicData = {
+          title: topic.title,
+          keywords: topic.keywords || [],
+          category: topic.category,
+          heat: topic.heat || topic.hotScore
+        };
+      }
+    }
+
+    // 生成爆款标题
+    let generatedTitle = title;
+    if (generateTitle && titleGenerationService) {
+      try {
+        const titleResult = await titleGenerationService.generateTitle({
+          topic: topicData.title,
+          keywords: topicData.keywords,
+          platform,
+          style: 'viral'
+        });
+        if (titleResult.titles && titleResult.titles.length > 0) {
+          generatedTitle = titleResult.titles[0];
+        }
+      } catch (err) {
+        logger.warn('[ContentAPI] 标题生成失败，使用原标题', { error: err.message });
+      }
+    }
+
+    // 生成内容
+    let generatedContent = null;
+    if (aiService) {
+      try {
+        const contentResult = await aiService.generateContent({
+          title: generatedTitle,
+          topic: topicData.title,
+          keywords: topicData.keywords,
+          type: 'article'
+        });
+        generatedContent = contentResult.content || contentResult.text;
+      } catch (err) {
+        logger.warn('[ContentAPI] 内容生成失败', { error: err.message });
+      }
+    }
+
+    // 如果 AI 生成失败，创建基础内容
+    if (!generatedContent) {
+      generatedContent = `# ${generatedTitle}\n\n基于热点话题"${topicData.title}"生成的内容。\n\n关键词：${topicData.keywords.join('、') || '无'}\n\n请编辑完善内容后发布。`;
+    }
+
+    // 保存内容到数据库
+    const contentData = {
+      title: generatedTitle,
+      content: generatedContent,
+      hotTopicId: topicId,
+      keywords: topicData.keywords,
+      status: 'draft',
+      source: 'hot_topic'
+    };
+
+    const savedContent = await ContentModel.create(contentData);
+
+    logger.info('[ContentAPI] 从热点生成内容成功', {
+      topicId,
+      title: generatedTitle
+    });
+
+    res.json({
+      success: true,
+      data: {
+        content: savedContent,
+        title: generatedTitle,
+        originalTopic: topicData.title
+      }
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 从热点生成内容失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/contents/:id/publish
+ * 发布指定内容到平台
+ */
+router.post('/:id/publish', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { platforms, publishType = 'image_text' } = req.body;
+
+    if (!platforms || !Array.isArray(platforms) || platforms.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '请指定发布平台'
+      });
+    }
+
+    // 获取内容
+    const content = await ContentModel.findById(id);
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: '内容不存在'
+      });
+    }
+
+    // 导入发布服务
+    const publishIntegration = require('../services/PublishIntegration');
+
+    const results = [];
+    for (const platform of platforms) {
+      try {
+        // 检查登录状态
+        const loginStatus = await publishIntegration.checkLoginStatus(platform);
+        if (!loginStatus.isLoggedIn) {
+          results.push({
+            platform,
+            success: false,
+            error: '未登录，请先登录平台'
+          });
+          continue;
+        }
+
+        // 发布内容
+        let result;
+        if (publishType === 'video') {
+          result = await publishIntegration.publishVideo(platform, {
+            title: content.title,
+            content: content.content,
+            videoPath: content.videoPath,
+            tags: content.keywords || []
+          });
+        } else {
+          result = await publishIntegration.publishImageText(platform, {
+            title: content.title,
+            content: content.content,
+            images: content.images || [],
+            tags: content.keywords || []
+          });
+        }
+
+        results.push({
+          platform,
+          ...result
+        });
+
+        // 更新内容状态
+        if (result.success) {
+          await ContentModel.findByIdAndUpdate(id, {
+            status: 'published',
+            publishedAt: new Date(),
+            publishedPlatforms: platforms
+          });
+        }
+      } catch (err) {
+        results.push({
+          platform,
+          success: false,
+          error: err.message
+        });
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length;
+
+    logger.info('[ContentAPI] 内容发布完成', {
+      contentId: id,
+      totalPlatforms: platforms.length,
+      successCount
+    });
+
+    res.json({
+      success: successCount > 0,
+      data: {
+        contentId: id,
+        totalPlatforms: platforms.length,
+        successCount,
+        failedCount: platforms.length - successCount,
+        results
+      }
+    });
+  } catch (error) {
+    logger.error('[ContentAPI] 内容发布失败', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;

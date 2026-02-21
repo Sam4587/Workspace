@@ -7,111 +7,42 @@ import { Textarea } from '../components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
-import { 
-  Send, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Send,
+  CheckCircle,
+  XCircle,
   Loader2,
   ImageIcon,
   Video,
   ExternalLink,
+  RefreshCw,
   Settings
 } from 'lucide-react';
+import api from '../lib/api';
+import QrCodeModal from '../components/QrCodeModal';
 
-const MCP_PUBLISH_API = import.meta.env.VITE_MCP_PUBLISH_API || 'http://localhost:8080';
-
-const publishApi = {
-  checkLogin: async (platform) => {
-    try {
-      const response = await fetch(`${MCP_PUBLISH_API}/api/${platform}/check_login`);
-      return await response.json();
-    } catch (error) {
-      console.error('检查登录状态失败:', error);
-      return { is_logged_in: false };
-    }
-  },
-  
-  login: async (platform) => {
-    try {
-      const response = await fetch(`${MCP_PUBLISH_API}/api/${platform}/login`, {
-        method: 'POST',
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('登录请求失败:', error);
-      throw error;
-    }
-  },
-  
-  publish: async (platform, data) => {
-    try {
-      const response = await fetch(`${MCP_PUBLISH_API}/api/${platform}/publish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('发布请求失败:', error);
-      throw error;
-    }
-  },
-  
-  search: async (platform, keyword) => {
-    try {
-      const response = await fetch(`${MCP_PUBLISH_API}/api/${platform}/search?keyword=${encodeURIComponent(keyword)}`);
-      return await response.json();
-    } catch (error) {
-      console.error('搜索请求失败:', error);
-      return { notes: [] };
-    }
-  }
-};
-
-const localApi = {
-  checkLogin: async (platform) => {
-    try {
-      const response = await fetch(`/api/${platform}/check_login`);
-      return await response.json();
-    } catch (error) {
-      return { is_logged_in: false };
-    }
-  },
-  
-  login: async (platform) => {
-    try {
-      const response = await fetch(`/api/${platform}/login`, {
-        method: 'POST',
-      });
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
-  },
-  
-  publish: async (platform, data) => {
-    try {
-      const response = await fetch(`/api/${platform}/publish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
-  }
-};
+const MCP_PUBLISH_API = import.meta.env.VITE_MCP_PUBLISH_API || 'http://localhost:18060';
 
 export default function PublishCenter() {
   const [selectedPlatform, setSelectedPlatform] = useState('xiaohongshu');
-  const [platforms, setPlatforms] = useState([]);
+  const [platforms, setPlatforms] = useState([
+    { id: 'xiaohongshu', name: '小红书', color: 'bg-red-500' },
+    { id: 'douyin', name: '抖音', color: 'bg-black' },
+    { id: 'toutiao', name: '今日头条', color: 'bg-blue-500' }
+  ]);
   const [loginStatus, setLoginStatus] = useState({});
   const [publishType, setPublishType] = useState('image_text');
   const [loading, setLoading] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [useMcpApi, setUseMcpApi] = useState(true);
-  
+  const [useBackendApi, setUseBackendApi] = useState(true);
+
+  // 二维码弹窗状态
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [loginPlatform, setLoginPlatform] = useState(null);
+
+  // MCP 服务状态
+  const [mcpStatus, setMcpStatus] = useState({ available: false, baseUrl: '' });
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState([]);
@@ -119,79 +50,87 @@ export default function PublishCenter() {
   const [tags, setTags] = useState('');
 
   useEffect(() => {
-    fetchPlatforms();
+    checkMcpStatus();
     checkAllLoginStatus();
   }, []);
 
-  const fetchPlatforms = async () => {
-    setPlatforms(['xiaohongshu', 'douyin', 'toutiao']);
+  // 检查 MCP 服务状态
+  const checkMcpStatus = async () => {
+    try {
+      const result = await api.getMcpStatus();
+      setMcpStatus(result.data || { available: false, baseUrl: '' });
+    } catch (error) {
+      console.error('检查 MCP 服务状态失败:', error);
+    }
   };
 
+  // 检查所有平台登录状态
   const checkAllLoginStatus = async () => {
-    const api = useMcpApi ? publishApi : localApi;
+    setLoading(true);
     const status = {};
-    for (const platform of ['xiaohongshu', 'douyin', 'toutiao']) {
+    for (const platform of platforms) {
       try {
-        const result = await api.checkLogin(platform);
-        status[platform] = result.is_logged_in || false;
+        const result = await api.checkPlatformLogin(platform.id);
+        status[platform.id] = result.isLoggedIn || false;
       } catch {
-        status[platform] = false;
+        status[platform.id] = false;
       }
     }
     setLoginStatus(status);
+    setLoading(false);
   };
 
-  const handleLogin = async (platform) => {
-    setLoading(true);
-    const api = useMcpApi ? publishApi : localApi;
-    try {
-      const data = await api.login(platform);
-      
-      if (data.img) {
-        toast.info('请扫描二维码登录');
-      }
-      
-      toast.success('登录请求已发送，请扫描二维码');
-      setTimeout(() => checkAllLoginStatus(), 2000);
-    } catch (error) {
-      toast.error('登录请求失败: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
+  // 处理登录
+  const handleLogin = (platform) => {
+    setLoginPlatform(platform);
+    setShowQrModal(true);
   };
 
+  // 登录成功回调
+  const handleLoginSuccess = (platform) => {
+    toast.success(`${getPlatformName(platform)} 登录成功！`);
+    setLoginStatus(prev => ({ ...prev, [platform]: true }));
+    setShowQrModal(false);
+  };
+
+  // 发布内容
   const handlePublish = async () => {
     if (!title.trim() || !content.trim()) {
       toast.error('请填写标题和内容');
       return;
     }
 
+    if (!loginStatus[selectedPlatform]) {
+      toast.error('请先登录目标平台');
+      return;
+    }
+
     setPublishing(true);
-    const api = useMcpApi ? publishApi : localApi;
     try {
       const publishData = {
         title,
         content,
         tags: tags.split(',').map(t => t.trim()).filter(t => t),
+        publishType,
+        images: publishType === 'image_text' ? images.filter(img => img) : [],
+        videoPath: publishType === 'video' ? videoPath : ''
       };
 
-      if (publishType === 'image_text') {
-        publishData.images = images.filter(img => img);
-      } else {
-        publishData.video_path = videoPath;
-      }
+      const result = await api.publishToMcp(selectedPlatform, publishData);
 
-      const data = await api.publish(selectedPlatform, publishData);
-
-      if (data.success) {
+      if (result.success) {
         toast.success('发布成功！');
+        if (result.feedUrl) {
+          toast.info(`查看内容: ${result.feedUrl}`, { duration: 5000 });
+        }
+        // 清空表单
         setTitle('');
         setContent('');
         setTags('');
         setImages([]);
         setVideoPath('');
       } else {
-        toast.error('发布失败: ' + (data.error || data.message));
+        toast.error('发布失败: ' + (result.error || result.message));
       }
     } catch (error) {
       toast.error('发布失败: ' + error.message);
@@ -201,59 +140,39 @@ export default function PublishCenter() {
   };
 
   const getPlatformName = (id) => {
-    const names = {
-      xiaohongshu: '小红书',
-      douyin: '抖音',
-      toutiao: '今日头条'
-    };
-    return names[id] || id;
+    const platform = platforms.find(p => p.id === id);
+    return platform?.name || id;
   };
 
   const getPlatformColor = (id) => {
-    const colors = {
-      xiaohongshu: 'bg-red-500',
-      douyin: 'bg-black',
-      toutiao: 'bg-blue-500'
-    };
-    return colors[id] || 'bg-gray-500';
+    const platform = platforms.find(p => p.id === id);
+    return platform?.color || 'bg-gray-500';
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* 页面标题 */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">发布中心</h1>
           <p className="text-muted-foreground">多平台内容发布一站式管理</p>
         </div>
         <div className="flex items-center space-x-4">
+          {/* MCP 服务状态 */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">API模式:</span>
-            <button
-              onClick={() => setUseMcpApi(!useMcpApi)}
-              className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                useMcpApi 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700'
-              }`}
-            >
-              {useMcpApi ? 'MCP服务' : '本地API'}
-            </button>
+            <Badge variant={mcpStatus.available ? "default" : "secondary"} className={mcpStatus.available ? "bg-green-600" : ""}>
+              {mcpStatus.available ? 'MCP 服务在线' : 'MCP 服务离线'}
+            </Badge>
           </div>
-          {useMcpApi && (
-            <a
-              href={`${MCP_PUBLISH_API}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
-            >
-              <ExternalLink className="h-4 w-4" />
-              <span className="text-sm">MCP服务状态</span>
-            </a>
-          )}
+          <Button variant="outline" size="sm" onClick={checkAllLoginStatus}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            刷新状态
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 左侧：平台选择 */}
         <div className="space-y-4">
           <Card>
             <CardHeader>
@@ -263,23 +182,23 @@ export default function PublishCenter() {
             <CardContent className="space-y-4">
               {platforms.map((platform) => (
                 <div
-                  key={platform}
+                  key={platform.id}
                   className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    selectedPlatform === platform 
-                      ? 'border-primary bg-primary/5' 
+                    selectedPlatform === platform.id
+                      ? 'border-primary bg-primary/5'
                       : 'hover:border-primary/50'
                   }`}
-                  onClick={() => setSelectedPlatform(platform)}
+                  onClick={() => setSelectedPlatform(platform.id)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full ${getPlatformColor(platform)} flex items-center justify-center text-white font-bold`}>
-                        {getPlatformName(platform).charAt(0)}
+                      <div className={`w-10 h-10 rounded-full ${platform.color} flex items-center justify-center text-white font-bold`}>
+                        {platform.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-semibold">{getPlatformName(platform)}</div>
+                        <div className="font-semibold">{platform.name}</div>
                         <div className="text-sm text-muted-foreground">
-                          {loginStatus[platform] ? (
+                          {loginStatus[platform.id] ? (
                             <span className="text-green-600 flex items-center gap-1">
                               <CheckCircle className="w-3 h-3" /> 已登录
                             </span>
@@ -291,15 +210,15 @@ export default function PublishCenter() {
                         </div>
                       </div>
                     </div>
-                    {selectedPlatform === platform && (
+                    {selectedPlatform === platform.id && (
                       <Badge>已选</Badge>
                     )}
                   </div>
                 </div>
               ))}
 
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 onClick={() => handleLogin(selectedPlatform)}
                 disabled={loading}
               >
@@ -309,6 +228,7 @@ export default function PublishCenter() {
             </CardContent>
           </Card>
 
+          {/* 发布类型 */}
           <Card>
             <CardHeader>
               <CardTitle>发布类型</CardTitle>
@@ -330,12 +250,16 @@ export default function PublishCenter() {
           </Card>
         </div>
 
+        {/* 右侧：发布内容 */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>发布内容</CardTitle>
               <CardDescription>
                 发布到 {getPlatformName(selectedPlatform)}
+                {!loginStatus[selectedPlatform] && (
+                  <span className="text-red-500 ml-2">(请先登录)</span>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -400,11 +324,11 @@ export default function PublishCenter() {
                 </p>
               </div>
 
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 size="lg"
                 onClick={handlePublish}
-                disabled={publishing}
+                disabled={publishing || !loginStatus[selectedPlatform]}
               >
                 {publishing ? (
                   <>
@@ -422,6 +346,14 @@ export default function PublishCenter() {
           </Card>
         </div>
       </div>
+
+      {/* 二维码登录弹窗 */}
+      <QrCodeModal
+        open={showQrModal}
+        onClose={() => setShowQrModal(false)}
+        platform={loginPlatform}
+        onLoginSuccess={handleLoginSuccess}
+      />
     </div>
   );
 }

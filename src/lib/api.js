@@ -1534,6 +1534,133 @@ class ApiClient {
       };
     }
   }
+
+  // ============================================
+  // MCP 发布服务相关 API
+  // ============================================
+
+  // 检查 MCP 服务状态
+  async getMcpStatus() {
+    try {
+      const response = await this.client.get('/publishing/mcp/status');
+      return response;
+    } catch (error) {
+      console.error('获取 MCP 服务状态失败:', error);
+      return {
+        success: false,
+        message: error.message || '获取 MCP 服务状态失败'
+      };
+    }
+  }
+
+  // 获取平台登录二维码
+  async getLoginQrcode(platform) {
+    try {
+      const response = await this.client.get(`/publishing/mcp/platform/${platform}/qrcode`);
+      return response;
+    } catch (error) {
+      console.error('获取登录二维码失败:', error);
+      return {
+        success: false,
+        message: error.message || '获取登录二维码失败'
+      };
+    }
+  }
+
+  // 检查平台登录状态
+  async checkPlatformLogin(platform) {
+    try {
+      const response = await this.client.get(`/publishing/mcp/platform/${platform}/login-status`);
+      return response;
+    } catch (error) {
+      console.error('检查登录状态失败:', error);
+      return {
+        success: false,
+        isLoggedIn: false,
+        message: error.message || '检查登录状态失败'
+      };
+    }
+  }
+
+  // 轮询登录状态
+  async pollLoginStatus(platform, timeout = 120000) {
+    try {
+      const response = await this.client.post(`/publishing/mcp/platform/${platform}/poll-login`, { timeout });
+      return response;
+    } catch (error) {
+      console.error('轮询登录状态失败:', error);
+      return {
+        success: false,
+        isLoggedIn: false,
+        message: error.message || '轮询登录状态失败'
+      };
+    }
+  }
+
+  // 发布内容到平台
+  async publishToMcp(platform, data) {
+    try {
+      const response = await this.client.post(`/publishing/mcp/platform/${platform}/publish`, data);
+      return response;
+    } catch (error) {
+      console.error('发布内容失败:', error);
+      return {
+        success: false,
+        message: error.message || '发布内容失败'
+      };
+    }
+  }
+
+  // 批量发布到多个平台
+  async publishBatchToMcp(platforms, content) {
+    try {
+      const response = await this.client.post('/publishing/mcp/publish-batch', {
+        platforms,
+        content
+      });
+      return response;
+    } catch (error) {
+      console.error('批量发布失败:', error);
+      return {
+        success: false,
+        message: error.message || '批量发布失败'
+      };
+    }
+  }
+
+  // 从热点生成内容
+  async generateFromTopic(topicId, options = {}) {
+    try {
+      const response = await this.client.post('/contents/generate-from-topic', {
+        topicId,
+        ...options
+      });
+      return response;
+    } catch (error) {
+      console.error('从热点生成内容失败:', error);
+      return {
+        success: false,
+        message: error.message || '从热点生成内容失败'
+      };
+    }
+  }
+
+  // 发布指定内容
+  async publishContent(contentId, platforms, options = {}) {
+    try {
+      const response = await this.client.post(`/contents/${contentId}/publish`, {
+        platforms,
+        ...options
+      });
+      return response;
+    } catch (error) {
+      console.error('发布内容失败:', error);
+      return {
+        success: false,
+        message: error.message || '发布内容失败'
+      };
+    }
+  }
 }
 
 export default new ApiClient();

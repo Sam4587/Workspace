@@ -74,13 +74,204 @@ class PublishIntegration {
    */
   async checkServiceStatus() {
     try {
-      const response = await this.apiClient.get('/health');
-      return response.data && response.data.status === 'ok';
+      const response = await this.apiClient.get('/api/v1/health');
+      return response.data && response.data.success;
     } catch (error) {
       logger.warn('[PublishIntegration] Publisher Tools 服务不可用', {
         error: error.message
       });
       return false;
+    }
+  }
+
+  /**
+   * 获取登录二维码
+   * @param {string} platform - 平台名称
+   * @returns {Promise<Object>}
+   */
+  async getLoginQrcode(platform) {
+    try {
+      const response = await this.apiClient.get('/api/v1/login/qrcode');
+
+      logger.info('[PublishIntegration] 获取登录二维码成功', { platform });
+
+      return {
+        success: true,
+        platform,
+        qrcodeImage: response.data.data?.img,
+        timeout: response.data.data?.timeout,
+        isLoggedIn: response.data.data?.is_logged_in,
+        ...response.data
+      };
+    } catch (error) {
+      logger.error('[PublishIntegration] 获取登录二维码失败', {
+        platform,
+        error: error.message
+      });
+
+      return {
+        success: false,
+        platform,
+        error: error.response?.data?.message || error.message,
+        message: '获取登录二维码失败'
+      };
+    }
+  }
+
+  /**
+   * 检查登录状态
+   * @param {string} platform - 平台名称
+   * @returns {Promise<Object>}
+   */
+  async checkLoginStatus(platform) {
+    try {
+      const response = await this.apiClient.get('/api/v1/login/status');
+
+      return {
+        success: true,
+        platform,
+        isLoggedIn: response.data.data?.is_logged_in || false,
+        username: response.data.data?.username,
+        ...response.data
+      };
+    } catch (error) {
+      logger.error('[PublishIntegration] 检查登录状态失败', {
+        platform,
+        error: error.message
+      });
+
+      return {
+        success: false,
+        platform,
+        isLoggedIn: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * 轮询登录状态（等待用户扫码）
+   * @param {string} platform - 平台名称
+   * @param {number} timeout - 超时时间（毫秒）
+   * @param {number} interval - 轮询间隔（毫秒）
+   * @returns {Promise<Object>}
+   */
+  async pollLoginStatus(platform, timeout = 120000, interval = 3000) {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+      try {
+        const status = await this.checkLoginStatus(platform);
+
+        if (status.isLoggedIn) {
+          logger.info('[PublishIntegration] 登录成功', { platform });
+          return {
+            success: true,
+            platform,
+            isLoggedIn: true,
+            message: '登录成功'
+          };
+        }
+
+        // 等待下一次轮询
+        await new Promise(resolve => setTimeout(resolve, interval));
+      } catch (error) {
+        logger.warn('[PublishIntegration] 轮询登录状态出错', {
+          platform,
+          error: error.message
+        });
+      }
+    }
+
+    logger.warn('[PublishIntegration] 登录超时', { platform, timeout });
+    return {
+      success: false,
+      platform,
+      isLoggedIn: false,
+      message: '登录超时，请重新扫码'
+    };
+  }
+
+  /**
+   * 发布图文内容
+   * @param {string} platform - 平台名称
+   * @param {Object} data - 发布数据
+   * @returns {Promise<Object>}
+   */
+  async publishImageText(platform, data) {
+    try {
+      const response = await this.apiClient.post('/api/v1/publish', {
+        title: data.title,
+        content: data.content,
+        images: data.images || [],
+        tags: data.tags || []
+      });
+
+      logger.info('[PublishIntegration] 图文发布成功', {
+        platform,
+        title: data.title
+      });
+
+      return {
+        success: true,
+        platform,
+        feedId: response.data.data?.feed_id,
+        feedUrl: response.data.data?.feed_url,
+        ...response.data
+      };
+    } catch (error) {
+      logger.error('[PublishIntegration] 图文发布失败', {
+        platform,
+        error: error.message
+      });
+
+      return {
+        success: false,
+        platform,
+        error: error.response?.data?.message || error.message
+      };
+    }
+  }
+
+  /**
+   * 发布视频内容
+   * @param {string} platform - 平台名称
+   * @param {Object} data - 发布数据
+   * @returns {Promise<Object>}
+   */
+  async publishVideo(platform, data) {
+    try {
+      const response = await this.apiClient.post('/api/v1/publish/video', {
+        title: data.title,
+        description: data.description || data.content,
+        video_path: data.videoPath || data.video_path,
+        cover_path: data.coverPath || data.cover_path,
+        tags: data.tags || []
+      });
+
+      logger.info('[PublishIntegration] 视频发布成功', {
+        platform,
+        title: data.title
+      });
+
+      return {
+        success: true,
+        platform,
+        feedId: response.data.data?.feed_id,
+        feedUrl: response.data.data?.feed_url,
+        ...response.data
+      };
+    } catch (error) {
+      logger.error('[PublishIntegration] 视频发布失败', {
+        platform,
+        error: error.message
+      });
+
+      return {
+        success: false,
+        platform,
+        error: error.response?.data?.message || error.message
+      };
     }
   }
 
